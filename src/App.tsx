@@ -18,6 +18,8 @@ import Photos from './screens/Photos'
 import Cycle from './screens/Cycle'
 import More from './screens/More'
 import Settings from './screens/Settings'
+import Login from './screens/Login'
+import { useSync } from './sync'
 
 function moduleScreen(id: ModuleId, pushed: boolean): ReactNode {
   switch (id) {
@@ -57,12 +59,16 @@ export default function App() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
+  const sync = useSync()
   const theme = useResolvedTheme(s.theme)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.lang = s.lang
   }, [theme, s.lang])
+
+  if (sync.status === 'loading') return <div className="loading">❤️</div>
+  if (sync.status !== 'ready') return <Login />
 
   const tabs: { id: Tab; icon: string; label: string }[] = [
     { id: 'today', icon: 'today', label: moduleLabel(s, 'today').title },

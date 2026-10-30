@@ -95,6 +95,8 @@ export interface State {
   trips: Trip[]
   photos: Photo[]
   periods: Period[]
+  /** Period days published by Julia's device — the only cycle data her partner receives. */
+  sharedPeriodDays?: string[]
   cycleLength: number
   periodLength: number
 }

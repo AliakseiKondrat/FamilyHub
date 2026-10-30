@@ -80,6 +80,11 @@ const ru = {
   prototype: 'Прототип: данные пока хранятся только на этом устройстве. Синхронизация между вами — следующий шаг.',
   install: 'Как установить на iPhone', installHint: 'Открой в Safari → «Поделиться» → «На экран Домой». Приложение откроется без адресной строки.',
   pet: 'Питомец', defaultName: 'По умолчанию',
+  tagline: 'Наш общий дом', email: 'Email', password: 'Пароль', signIn: 'Войти', signUp: 'Создать аккаунт',
+  haveAccount: 'Уже есть аккаунт? Войти', noAccount: 'Впервые здесь? Создать аккаунт',
+  checkEmail: 'Готово! Подтверди адрес по ссылке из письма, потом вернись сюда и войди.',
+  noAccess: '{email} нет в списке участников. Войди с другим адресом.', signOut: 'Выйти', account: 'Аккаунт',
+  synced: 'Всё синхронизировано', offline: 'Нет сети — изменения отправятся позже', pendingN: 'Ждут отправки: {n}',
 }
 
 type Dict = typeof ru
@@ -163,6 +168,11 @@ const en: Dict = {
   prototype: 'Prototype: data lives only on this device for now. Syncing between you is the next step.',
   install: 'Install on iPhone', installHint: 'Open in Safari → Share → Add to Home Screen. The app opens without the address bar.',
   pet: 'Pet', defaultName: 'Default',
+  tagline: 'Our shared home', email: 'Email', password: 'Password', signIn: 'Sign in', signUp: 'Create account',
+  haveAccount: 'Already have an account? Sign in', noAccount: 'New here? Create an account',
+  checkEmail: 'Done! Confirm your address with the link in the email, then come back and sign in.',
+  noAccess: '{email} is not on the members list. Sign in with another address.', signOut: 'Sign out', account: 'Account',
+  synced: 'Everything is synced', offline: 'Offline — changes will be sent later', pendingN: 'Waiting to send: {n}',
 }
 
 const pl: Dict = {
@@ -244,6 +254,11 @@ const pl: Dict = {
   prototype: 'Prototyp: dane są na razie tylko na tym urządzeniu. Synchronizacja między wami to następny krok.',
   install: 'Jak zainstalować na iPhonie', installHint: 'Otwórz w Safari → Udostępnij → Do ekranu początkowego. Aplikacja otworzy się bez paska adresu.',
   pet: 'Pupil', defaultName: 'Domyślnie',
+  tagline: 'Nasz wspólny dom', email: 'Email', password: 'Hasło', signIn: 'Zaloguj się', signUp: 'Utwórz konto',
+  haveAccount: 'Masz już konto? Zaloguj się', noAccount: 'Pierwszy raz? Utwórz konto',
+  checkEmail: 'Gotowe! Potwierdź adres linkiem z maila, potem wróć tu i zaloguj się.',
+  noAccess: '{email} nie ma na liście członków. Zaloguj się innym adresem.', signOut: 'Wyloguj', account: 'Konto',
+  synced: 'Wszystko zsynchronizowane', offline: 'Brak sieci — zmiany wyślą się później', pendingN: 'Czeka na wysłanie: {n}',
 }
 
 const es: Dict = {
@@ -325,6 +340,11 @@ const es: Dict = {
   prototype: 'Prototipo: por ahora los datos solo están en este dispositivo. La sincronización entre vosotros es el siguiente paso.',
   install: 'Instalar en el iPhone', installHint: 'Abre en Safari → Compartir → Añadir a pantalla de inicio. La app se abrirá sin barra de direcciones.',
   pet: 'Mascota', defaultName: 'Por defecto',
+  tagline: 'Nuestro hogar compartido', email: 'Email', password: 'Contraseña', signIn: 'Entrar', signUp: 'Crear cuenta',
+  haveAccount: '¿Ya tienes cuenta? Entrar', noAccount: '¿Primera vez? Crear cuenta',
+  checkEmail: '¡Listo! Confirma tu dirección con el enlace del correo y vuelve aquí para entrar.',
+  noAccess: '{email} no está en la lista de miembros. Entra con otra dirección.', signOut: 'Cerrar sesión', account: 'Cuenta',
+  synced: 'Todo sincronizado', offline: 'Sin conexión — los cambios se enviarán después', pendingN: 'Pendientes de enviar: {n}',
 }
 
 export const DICTS: Record<Lang, Dict> = { ru, en, pl, es }

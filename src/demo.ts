@@ -6,6 +6,17 @@ const b = (by: UserId = 'a', extra: Partial<Base> = {}): Base => ({
   id: `demo-${++n}`, createdBy: by, createdAt: new Date().toISOString(), ...extra,
 })
 
+/** Empty data with default settings: the starting point for a signed-in, synced account. */
+export function blankState(): State {
+  return {
+    ...demoState(),
+    pet: { name: 'Честер', emoji: '🐶' },
+    budgets: {},
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [],
+    petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
+  }
+}
+
 /** Starting data so every screen has something to show; "Settings → Reset" brings it back. */
 export function demoState(): State {
   n = 0

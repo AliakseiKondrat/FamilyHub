@@ -3,6 +3,8 @@ import { getState, replaceState, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT } from '../i18n'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, TextRow, emojiList } from '../ui'
 import { demoState } from '../demo'
+import { SYNC_ENABLED } from '../config'
+import { signOut, useSync } from '../sync'
 import type { Lang, ModuleId, Theme, UserId } from '../types'
 
 const ALL: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'photos', 'watch', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']
@@ -10,6 +12,7 @@ const ALL: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'p
 export default function Settings() {
   const s = useApp()
   const t = useT()
+  const sync = useSync()
   const [mod, setMod] = useState<ModuleId | null>(null)
   const [person, setPerson] = useState<UserId | null>(null)
 
@@ -23,16 +26,24 @@ export default function Settings() {
 
   return (
     <Screen title={t('settings')} back>
-      <Section footer={t('prototype')}>
-        <Row icon="🧪" title={<span style={{ fontSize: 15, color: 'var(--label2)' }}>{t('install')}</span>} sub={t('installHint')} />
-      </Section>
-
-      <div style={{ margin: '0 16px' }}>
-        <div className="section-header">{t('iAm')}</div>
-        <Segmented inSheet value={s.me} onChange={(me) => update((st) => { st.me = me })}
-          options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
-        <div className="section-footer" style={{ marginTop: -12, marginBottom: 24 }}>{t('iAmHint')}</div>
-      </div>
+      {SYNC_ENABLED ? (
+        <Section header={t('account')} footer={t('installHint')}>
+          <Row icon={s.users[s.me].emoji} title={s.users[s.me].name} sub={sync.email} />
+          <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'}
+            title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} />
+          <button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button>
+        </Section>
+      ) : <>
+        <Section footer={t('prototype')}>
+          <Row icon="🧪" title={<span style={{ fontSize: 15, color: 'var(--label2)' }}>{t('install')}</span>} sub={t('installHint')} />
+        </Section>
+        <div style={{ margin: '0 16px' }}>
+          <div className="section-header">{t('iAm')}</div>
+          <Segmented inSheet value={s.me} onChange={(me) => update((st) => { st.me = me })}
+            options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
+          <div className="section-footer" style={{ marginTop: -12, marginBottom: 24 }}>{t('iAmHint')}</div>
+        </div>
+      </>}
 
       <Section header={t('people')}>
         {(['a', 'j'] as UserId[]).map((u) => (
@@ -65,7 +76,7 @@ export default function Settings() {
 
       <Section header={t('data')}>
         <button className="row tap accent" onClick={exportData}>⬇️ {t('export')}</button>
-        <button className="row tap destructive" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>{t('reset')}</button>
+        {!SYNC_ENABLED && <button className="row tap destructive" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>{t('reset')}</button>}
       </Section>
 
       {mod && <ModuleSheet id={mod} onClose={() => setMod(null)} />}

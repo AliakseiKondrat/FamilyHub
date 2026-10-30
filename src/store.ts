@@ -20,15 +20,22 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* ignore quota / private mode */ }
 }
 
+/** Called after every local change with the old and new state (the sync engine pushes the diff). */
+let onLocalChange: ((prev: State, next: State) => void) | undefined
+export const setChangeHook = (fn: typeof onLocalChange) => { onLocalChange = fn }
+
 /** Mutate a copy of the state; subscribers re-render with the new object. */
 export function update(fn: (s: State) => void) {
+  const prev = state
   const next = structuredClone(state)
   fn(next)
   state = next
   save()
   listeners.forEach((l) => l())
+  onLocalChange?.(prev, next)
 }
 
+/** Replace the state without treating it as a local edit (used for demo reset and data from the server). */
 export function replaceState(s: State) {
   state = s
   save()
