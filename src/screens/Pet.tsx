@@ -1,6 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import { base, uid, update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { useT } from '../i18n'
 import { DateRow, GlassButton, Row, Screen, Section, SelectRow, Sheet, Swipe, TextRow } from '../ui'
 import { addDays, diffDays, fmtDate, today } from '../lib/date'
 import { PET_EMOJI, PET_INTERVAL } from '../lib/categories'
@@ -36,16 +36,20 @@ export default function Pet() {
   })
 
   return (
-    <Screen title={moduleLabel(s, 'pet').title} back
-      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), kind: 'vaccine', title: '', date: d, nextDue: addDays(d, 365) })} />}>
-      <button className="hero" style={{ '--h1': '#a2845e', '--h2': '#ff9f62', border: 0, width: 'calc(100% - 32px)', textAlign: 'left', display: 'flex', gap: 16, alignItems: 'center' } as CSSProperties}
-        onClick={() => setProfile(true)}>
-        <span style={{ fontSize: 56 }}>{s.pet.emoji}</span>
+    <Screen title={s.pet.name} back accent="pet"
+      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), kind: 'vaccine', title: '', date: d, nextDue: addDays(d, 365) })} />}
+      hero={<div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <span className="circle lg" style={{ width: 76, height: 76, fontSize: 42 }}>{s.pet.emoji}</span>
         <div>
-          <div className="h-title">{s.pet.name}</div>
-          <div className="h-sub">{[s.pet.breed, age, lastW && `${lastW.kg} ${t('kg')}`].filter(Boolean).join(' · ')}</div>
+          <div className="hero-num">{lastW ? `${lastW.kg} ${t('kg')}` : '—'}</div>
+          <div className="hero-sub" style={{ marginTop: 2 }}>{[s.pet.breed, age].filter(Boolean).join(' · ')}</div>
         </div>
-      </button>
+      </div>}
+      actions={[
+        { icon: '💉', label: t('add'), onClick: () => setEdit({ ...base(s.me), kind: 'vaccine', title: '', date: d, nextDue: addDays(d, 365) }) },
+        { icon: '⚖️', label: t('weight'), onClick: () => setWeight(true) },
+        { icon: '✏️', label: t('edit'), onClick: () => setProfile(true) },
+      ]}>
 
       {upcoming.length > 0 && (
         <Section big header={t('upcoming')}>

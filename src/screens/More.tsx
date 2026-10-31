@@ -30,7 +30,7 @@ export default function More() {
   // The cycle tracker only exists for Julia.
   const mods = MODULES.filter((m) => m !== 'cycle' || s.me === 'j')
   return (
-    <Screen title={t('more')} right={<GlassButton icon="gear" label={t('settings')} onClick={() => nav.push({ settings: true })} />}>
+    <Screen title={t('more')} accent="more" right={<GlassButton icon="gear" label={t('settings')} onClick={() => nav.push({ settings: true })} />}>
       <div className="cards">
         {mods.map((id) => {
           const l = moduleLabel(s, id)

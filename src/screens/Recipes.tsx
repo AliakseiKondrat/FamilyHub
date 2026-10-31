@@ -24,16 +24,16 @@ export default function Recipes() {
   )
 
   return (
-    <Screen title={moduleLabel(s, 'recipes').title} back
-      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', tags: [], ingredients: [], someday: false, cooked: 0 })} />}>
-      <div className="chips">
+    <Screen title={moduleLabel(s, 'recipes').title} back accent="recipes"
+      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', tags: [], ingredients: [], someday: false, cooked: 0 })} />}
+      head={<div className="chips" style={{ paddingTop: 0 }}>
         <button className={'chip' + (!tag ? ' on' : '')} onClick={() => setTag(null)}>{t('all')}</button>
         <button className={'chip' + (tag === '__someday' ? ' on' : '')} onClick={() => setTag('__someday')}>🕸️ {t('someday')}</button>
         {tags.map((x) => <button key={x} className={'chip' + (tag === x ? ' on' : '')} onClick={() => setTag(x)}>#{x}</button>)}
-      </div>
+      </div>}>
       {list.length === 0 && <Empty emoji="🍳" text={t('empty')} />}
       {regular.length > 0 && <Section>{regular.map(row)}</Section>}
-      {someday.length > 0 && <Section header={`🕸️ ${t('someday')}`}>{someday.map(row)}</Section>}
+      {someday.length > 0 && <Section big header={`🕸️ ${t('someday')}`}>{someday.map(row)}</Section>}
       {edit && <RecipeEditor recipe={edit} onClose={() => setEdit(null)} />}
     </Screen>
   )

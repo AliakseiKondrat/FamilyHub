@@ -25,7 +25,7 @@ export default function Settings() {
   }
 
   return (
-    <Screen title={t('settings')} back>
+    <Screen title={t('settings')} back accent="settings">
       {SYNC_ENABLED ? (
         <Section header={t('account')} footer={t('installHint')}>
           <Row icon={s.users[s.me].emoji} title={s.users[s.me].name} sub={sync.email} />

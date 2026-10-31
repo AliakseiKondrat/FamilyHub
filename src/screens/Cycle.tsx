@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { uid, update, useApp } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { Empty, Row, Screen, Section, Swipe } from '../ui'
@@ -10,7 +9,7 @@ export default function Cycle() {
   const s = useApp()
   const t = useT()
   const title = moduleLabel(s, 'cycle').title
-  if (s.me !== 'j') return <Screen title={title} back><Empty emoji="🔒" text={t('privateHint')} /></Screen>
+  if (s.me !== 'j') return <Screen title={title} back accent="cycle"><Empty emoji="🔒" text={t('privateHint')} /></Screen>
 
   const d = today()
   const periods = [...s.periods].sort((a, b) => b.start.localeCompare(a.start))
@@ -20,20 +19,17 @@ export default function Cycle() {
   const cyc = avgCycle(s)
 
   return (
-    <Screen title={title} back>
-      <div className="hero" style={{ '--h1': '#ff375f', '--h2': '#bf5af2', textAlign: 'center' } as CSSProperties}>
-        <div className="h-lbl">{current ? t('inPeriod') : '🌸'}</div>
-        <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.2 }}>
+    <Screen title={title} back accent="cycle"
+      hero={<div style={{ textAlign: 'center' }}>
+        <div className="hero-sub" style={{ marginTop: 0 }}>{current ? t('inPeriod') : '🌸'}</div>
+        <div className="hero-big" style={{ fontSize: 40, marginTop: 4 }}>
           {current ? t('dayN', { n: diffDays(d, current.start) + 1 }) : cd ? t('cycleDay', { n: cd }) : '—'}
         </div>
-        {!current && next && <div className="h-sub">{t('nextPeriod')}: {fmtDate(next, s.lang, { day: 'numeric', month: 'long' })} · {t('inDays', { n: diffDays(next, d) })}</div>}
-      </div>
-
-      <Section>
-        {!current
-          ? <button className="row tap accent" onClick={() => update((st) => { st.periods.push({ id: uid(), start: today() }) })}>🌸 {t('logStart')}</button>
-          : <button className="row tap accent" onClick={() => update((st) => { st.periods.find((p) => p.id === current.id)!.end = today() })}>✓ {t('logEnd')}</button>}
-      </Section>
+        {!current && next && <div className="hero-sub">{t('nextPeriod')}: {fmtDate(next, s.lang, { day: 'numeric', month: 'long' })} · {t('inDays', { n: diffDays(next, d) })}</div>}
+      </div>}
+      actions={[!current
+        ? { icon: '🌸', label: t('logStart'), onClick: () => update((st) => { st.periods.push({ id: uid(), start: today() }) }) }
+        : { icon: '✓', label: t('logEnd'), onClick: () => update((st) => { st.periods.find((p) => p.id === current.id)!.end = today() }) }]}>
 
       <Section footer={t('cyclePrivate', { name: s.users.a.name })}>
         <Row icon="🔄" title={t('avgCycle')} detail={`${cyc} ${t('days')}`} />
@@ -45,7 +41,7 @@ export default function Cycle() {
           </span>} />
       </Section>
 
-      <Section header={t('history')}>
+      <Section big header={t('history')}>
         {periods.map((p) => (
           <Swipe key={p.id} onDelete={() => update((st) => { st.periods = st.periods.filter((x) => x.id !== p.id) })}>
             <Row icon="🌸" title={`${fmtDate(p.start, s.lang, { day: 'numeric', month: 'long' })} – ${fmtDate(p.end ?? addDays(p.start, s.periodLength - 1), s.lang, { day: 'numeric', month: 'long' })}`} />

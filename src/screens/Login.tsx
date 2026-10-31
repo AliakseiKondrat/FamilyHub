@@ -29,9 +29,9 @@ export default function Login() {
   if (sync.status === 'noAccess') {
     return (
       <div className="login">
-        <div className="login-logo">🔒</div>
+        <div className="login-logo lg on-accent">🔒</div>
         <p className="login-msg">{t('noAccess', { email: sync.email ?? '' })}</p>
-        <button className="glass-btn tint login-btn" onClick={() => signOut()}>{t('signOut')}</button>
+        <button className="glass-btn lg login-btn" onClick={() => signOut()}>{t('signOut')}</button>
       </div>
     )
   }
@@ -39,16 +39,16 @@ export default function Login() {
   const ready = email.includes('@') && password.length >= 6
   return (
     <div className="login">
-      <div className="login-logo" style={{ background: 'linear-gradient(135deg,#ff5e8a,#ff9f62)' } as CSSProperties}>❤️</div>
+      <div className="login-logo lg on-accent" style={{ width: 92 } as CSSProperties}>❤️</div>
       <h1>Вдвоём</h1>
       <p className="login-tag">{t('tagline')}</p>
-      <div className="list login-form">
+      <div className="login-form lg on-accent">
         <div className="row"><input type="email" autoComplete="email" inputMode="email" placeholder={t('email')} value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <div className="row"><input type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder={t('password')} value={password}
           onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && ready) submit() }} /></div>
       </div>
-      {msg && <p className="login-msg" style={{ color: msg.ok ? 'var(--green)' : 'var(--red)' }}>{msg.text}</p>}
-      <button className="glass-btn tint login-btn" disabled={!ready || busy} style={{ opacity: !ready || busy ? 0.5 : 1 }} onClick={submit}>
+      {msg && <p className="login-msg" style={{ color: msg.ok ? '#d9ffe6' : '#ffe1e1' }}>{msg.ok ? '✓ ' : '⚠︎ '}{msg.text}</p>}
+      <button className="glass-btn lg login-btn" disabled={!ready || busy} style={{ opacity: !ready || busy ? 0.5 : 1 }} onClick={submit}>
         {busy ? '…' : mode === 'in' ? t('signIn') : t('signUp')}
       </button>
       <button className="login-switch" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setMsg(null) }}>

@@ -45,36 +45,41 @@ export default function Budget() {
   const days = [...new Set(mine.map((e) => e.date))].sort().reverse()
 
   return (
-    <Screen title={moduleLabel(s, 'budget').title} back
-      right={<GlassButton icon="plus" label={t('newExpense')} onClick={() => setEdit(newExpense(s))} />}>
-      <div className="hero" style={{ '--h1': '#34c759', '--h2': '#30b0c7' } as CSSProperties}>
+    <Screen title={moduleLabel(s, 'budget').title} back accent="budget"
+      right={<GlassButton icon="plus" label={t('newExpense')} onClick={() => setEdit(newExpense(s))} />}
+      hero={<div style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button className="glass-btn" style={{ background: 'rgba(255,255,255,.2)', color: '#fff' }} onClick={() => shift(-1)}><Icon name="back" /></button>
-          <div className="h-title cap" style={{ fontSize: 18 }}>
+          <button className="glass-btn lg" onClick={() => shift(-1)} aria-label="Previous"><Icon name="back" /></button>
+          <div className="cap" style={{ fontWeight: 700 }}>
             {new Intl.DateTimeFormat(LOCALES[s.lang], { month: 'long', year: 'numeric' }).format(first)}
           </div>
-          <button className="glass-btn" style={{ background: 'rgba(255,255,255,.2)', color: '#fff' }} onClick={() => shift(1)}><Icon name="fwd" /></button>
+          <button className="glass-btn lg" onClick={() => shift(1)} aria-label="Next"><Icon name="fwd" /></button>
         </div>
-        <div className="h-row" style={{ justifyContent: 'center', textAlign: 'center' }}>
-          <div>
-            <div className="h-num money" style={{ fontSize: 34 }}>{money(total)}</div>
-            <div className="h-lbl">{t('spent')}{totalLimit ? ` · ${t('ofLimit', { sum: money(totalLimit) })}` : ''}</div>
+        <div className="hero-big money" style={{ marginTop: 14 }}>{money(total)}</div>
+        <div className="hero-sub">{t('spent')}{totalLimit ? ` · ${t('ofLimit', { sum: money(totalLimit) })}` : ''}</div>
+        {totalLimit > 0 && (
+          <div className="progress" style={{ background: 'rgba(255,255,255,.25)', margin: '14px 20px 0' }}>
+            <i style={{ width: Math.min(100, (total / totalLimit) * 100) + '%', background: '#fff' }} />
           </div>
-        </div>
-      </div>
+        )}
+      </div>}
+      actions={[
+        { icon: 'plus', label: t('newExpense'), onClick: () => setEdit(newExpense(s)) },
+        ...(bal !== 0 ? [{ icon: '🤝', label: t('settle'), onClick: () => update((st) => {
+          st.expenses.push({ ...base(st.me), title: t('settlement'), amount: Math.abs(bal), currency: cur, category: 'other',
+            paidBy: bal > 0 ? partner : st.me, shared: true, date: today(), settlement: true })
+        }) }] : []),
+      ]}>
 
       <Section>
         <Row icon={bal === 0 ? '🤝' : '⚖️'}
           title={bal === 0 ? t('settled') : bal > 0
             ? t('owes', { a: s.users[partner].name, b: s.users[s.me].name, sum: money(bal) })
             : t('owes', { a: s.users[s.me].name, b: s.users[partner].name, sum: money(-bal) })}
-          right={bal !== 0 ? <button className="chip" style={{ background: 'var(--fill)' }} onClick={() => update((st) => {
-            st.expenses.push({ ...base(st.me), title: t('settlement'), amount: Math.abs(bal), currency: cur, category: 'other',
-              paidBy: bal > 0 ? partner : st.me, shared: true, date: today(), settlement: true })
-          })}>{t('settle')}</button> : undefined} />
+        />
       </Section>
 
-      <Section header={t('byCategory')} footer={t('limitHint')}>
+      <Section big header={t('byCategory')} footer={t('limitHint')}>
         {byCat.map(({ c, sum }) => {
           const lim = s.budgets[c]
           const pct = lim ? Math.min(100, (sum / lim) * 100) : 0
@@ -93,7 +98,7 @@ export default function Budget() {
       </Section>
 
       {days.map((day) => (
-        <Section key={day} header={fmtDate(day, s.lang, { weekday: 'short', day: 'numeric', month: 'long' })}>
+        <Section key={day} big header={<span className="cap" style={{ display: 'inline-block' }}>{fmtDate(day, s.lang, { weekday: 'short', day: 'numeric', month: 'long' })}</span>}>
           {mine.filter((e) => e.date === day).map((e) => (
             <Swipe key={e.id} onDelete={() => update((st) => { st.expenses = st.expenses.filter((x) => x.id !== e.id) })}>
               <Row icon={BUDGET_EMOJI[e.category]} iconBg={`color-mix(in srgb, ${BUDGET_COLOR[e.category]} 18%, transparent)`}

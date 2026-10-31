@@ -7,8 +7,8 @@ import { addDays, diffDays, fmtDate, today } from '../lib/date'
 import { cycleDay, nextStart, periodDays } from '../lib/cycle'
 import { PET_EMOJI } from '../lib/categories'
 import type { CalEvent, Task } from '../types'
-import { dayAgenda, EventEditor } from './Calendar'
-import { TaskEditor, TaskRow } from './Tasks'
+import { dayAgenda, EventEditor, newEvent } from './Calendar'
+import { newTask, TaskEditor, TaskRow } from './Tasks'
 import { PhotoThumb } from './Photos'
 
 export default function Today() {
@@ -27,7 +27,6 @@ export default function Today() {
   const tasksNow = visible(s.tasks, s.me).filter((k) => !k.done && k.due && k.due <= d)
     .sort((a, b) => ((a.due ?? '') + (a.time ?? '')).localeCompare((b.due ?? '') + (b.time ?? '')))
   const groceriesLeft = visible(s.groceries, s.me).filter((g) => !g.done).length
-  const openTasks = visible(s.tasks, s.me).filter((k) => !k.done).length
   const trip = visible(s.trips, s.me).filter((tr) => tr.end >= d).sort((a, b) => a.start.localeCompare(b.start))[0]
   const petSoon = visible(s.petRecords, s.me).filter((r) => r.nextDue && diffDays(r.nextDue, d) <= 7)
   const ideas = visible(s.notes, s.me).filter((n) => n.module === 'dates' && !n.done)
@@ -46,36 +45,28 @@ export default function Today() {
 
   const memories = useMemo(() => visible(s.photos, s.me).filter((p) => p.createdAt.slice(5, 10) === d.slice(5, 10) && p.createdAt.slice(0, 4) < d.slice(0, 4)), [s.photos, s.me, d])
 
-  const card = (emoji: string, num: number | string, label: string, color: string, onClick: () => void) => (
-    <button className="card" onClick={onClick}>
-      <div className="card-top">
-        <span className="card-emoji" style={{ background: `color-mix(in srgb, ${color} 18%, transparent)` }}>{emoji}</span>
-        <span className="card-num">{num}</span>
-      </div>
-      <span className="card-label">{label}</span>
-    </button>
-  )
-
   return (
-    <Screen title={moduleLabel(s, 'today').title}
-      subtitle={<>{fmtDate(d, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</>}
-      right={<GlassButton label={me.emoji} onClick={() => nav.push({ settings: true })} />}>
-      <div className="hero">
-        <div className="h-title">{t(greet as 'greet.day', { name: me.name })}</div>
-        {cycleLine && <div className="h-sub">{cycleLine}</div>}
-        <div className="h-row">
-          <div><div className="h-num">{ag.events.length}</div><div className="h-lbl">{t('todayEvents')}</div></div>
-          <div><div className="h-num">{tasksNow.length}</div><div className="h-lbl">{t('todayTasks')}</div></div>
+    <Screen title={t(greet as 'greet.day', { name: me.name })} accent="today"
+      subtitle={<span className="cap" style={{ display: 'block' }}>{fmtDate(d, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
+      right={<GlassButton label={me.emoji} onClick={() => nav.push({ settings: true })} />}
+      hero={<>
+        {cycleLine && <div className="hero-sub" style={{ marginTop: 0 }}>{cycleLine}</div>}
+        <div className="hero-row" style={{ marginTop: cycleLine ? 12 : 0 }}>
+          <div><div className="hero-num">{ag.events.length}</div><div className="hero-lbl">{t('todayEvents')}</div></div>
+          <div><div className="hero-num">{tasksNow.length}</div><div className="hero-lbl">{t('todayTasks')}</div></div>
+          <div><div className="hero-num">{groceriesLeft}</div><div className="hero-lbl">{moduleLabel(s, 'groceries').title}</div></div>
         </div>
-      </div>
+      </>}
+      actions={[
+        { icon: '✅', label: moduleLabel(s, 'tasks').title, onClick: () => setEditTask(newTask(s.me, { due: d })) },
+        { icon: '📅', label: moduleLabel(s, 'calendar').title, onClick: () => setEditEvent(newEvent(s.me, d)) },
+        { icon: '🛒', label: moduleLabel(s, 'groceries').title, onClick: () => nav.setTab('groceries') },
+        { icon: '💸', label: moduleLabel(s, 'budget').title, onClick: () => nav.open('budget') },
+      ]}>
 
-      <div className="cards">
-        {card('🛒', groceriesLeft, moduleLabel(s, 'groceries').title, 'var(--green)', () => nav.setTab('groceries'))}
-        {card('✅', openTasks, moduleLabel(s, 'tasks').title, 'var(--blue)', () => nav.setTab('tasks'))}
-      </div>
 
       {trip && (
-        <button className="banner" style={{ width: 'calc(100% - 32px)', border: 0, textAlign: 'left' }} onClick={() => nav.push({ trip: trip.id })}>
+        <button className="banner" onClick={() => nav.push({ trip: trip.id })}>
           <span className="big-emoji">✈️</span>
           <div>
             <b>{trip.start <= d ? t('tripNow', { place: trip.title }) : t('tripIn', { place: trip.title, n: diffDays(trip.start, d) })}</b>

@@ -50,20 +50,20 @@ export default function Notes({ module }: { module: NoteModule }) {
   )
 
   return (
-    <Screen title={moduleLabel(s, module as ModuleId).title} back
-      right={<>
-        {module === 'dates' && <GlassButton icon="dice" label={t('randomIdea')} onClick={random} />}
-        <GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), module, title: '' })} />
+    <Screen title={moduleLabel(s, module as ModuleId).title} back accent={module}
+      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), module, title: '' })} />}
+      actions={module === 'dates' ? [{ icon: '🎲', label: t('randomIdea'), onClick: random }] : undefined}
+      head={<>
+        {module === 'inbox' && <QuickAdd placeholder={t('add') + '…'} onAdd={(title) => update((st) => {
+          const url = title.match(/https?:\/\/\S+/)?.[0]
+          st.notes.unshift({ ...base(st.me), module, title: url ? title.replace(url, '').trim() || url : title, url })
+        })} />}
+        {module === 'dates' && <Segmented value={been ? 'been' : 'ideas'} onChange={(x) => setBeen(x === 'been')}
+          options={[{ value: 'ideas', label: `💡 ${t('ideas')}` }, { value: 'been', label: `✓ ${t('been')}` }]} />}
       </>}>
-      {module === 'inbox' && <QuickAdd placeholder={t('add') + '…'} onAdd={(title) => update((st) => {
-        const url = title.match(/https?:\/\/\S+/)?.[0]
-        st.notes.unshift({ ...base(st.me), module, title: url ? title.replace(url, '').trim() || url : title, url })
-      })} />}
-      {module === 'dates' && <Segmented value={been ? 'been' : 'ideas'} onChange={(x) => setBeen(x === 'been')}
-        options={[{ value: 'ideas', label: `💡 ${t('ideas')}` }, { value: 'been', label: `✓ ${t('been')}` }]} />}
 
       {list.length === 0 && <Empty emoji={ICON[module]} text={t('empty')} />}
-      {reminders.length > 0 && <Section header="⏰">{reminders.map(row)}</Section>}
+      {reminders.length > 0 && <Section big header={`⏰ ${t('upcoming')}`}>{reminders.map(row)}</Section>}
       {rest.length > 0 && <Section>{rest.map(row)}</Section>}
 
       {pick && (

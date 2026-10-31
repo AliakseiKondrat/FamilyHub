@@ -55,14 +55,14 @@ export default function Photos() {
   }
 
   return (
-    <Screen title={moduleLabel(s, 'photos').title} back
+    <Screen title={moduleLabel(s, 'photos').title} back accent="photos"
       subtitle={busy ? t('uploading') + ` (${busy})` : `${photos.length} 📷`}
-      right={<GlassButton icon="plus" label={t('addPhotos')} onClick={() => input.current?.click()} />}>
-      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
-      <div className="chips">
+      right={<GlassButton icon="plus" label={t('addPhotos')} onClick={() => input.current?.click()} />}
+      head={<div className="chips" style={{ paddingTop: 0 }}>
         <button className={'chip' + (album === 'all' ? ' on' : '')} onClick={() => setAlbum('all')}>{t('all')}</button>
         {ALBUMS.map((a) => <button key={a} className={'chip' + (album === a ? ' on' : '')} onClick={() => setAlbum(a)}>{t(`alb.${a}`)}</button>)}
-      </div>
+      </div>}>
+      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
       {photos.length === 0
         ? <button style={{ border: 0, background: 'none', width: '100%' }} onClick={() => input.current?.click()}><Empty emoji="📸" text={t('noPhotos')} /></button>
         : <div className="photos">{photos.map((p, i) => <PhotoThumb key={p.id} photo={p} onClick={() => setOpen(i)} />)}</div>}
@@ -84,15 +84,15 @@ function Viewer({ photos, index, onIndex, onClose }: { photos: Photo[]; index: n
       onPointerDown={(e) => { startX.current = e.clientX }}
       onPointerUp={(e) => { if (startX.current != null) { const dx = e.clientX - startX.current; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1) } startX.current = null }}>
       <div className="viewer-bar">
-        <button className="glass-btn" onClick={onClose}><Icon name="close" /></button>
-        <select className="glass-btn" value={p.album} onChange={(e) => update((st) => { st.photos.find((x) => x.id === p.id)!.album = e.target.value })}>
+        <button className="glass-btn lg on-accent" onClick={onClose}><Icon name="close" /></button>
+        <select className="glass-btn lg on-accent" value={p.album} onChange={(e) => update((st) => { st.photos.find((x) => x.id === p.id)!.album = e.target.value })}>
           {ALBUMS.map((a) => <option key={a} value={a}>{t(`alb.${a}`)}</option>)}
         </select>
       </div>
       {url && <img src={url} alt="" />}
       <div className="viewer-bar bottom">
         <span style={{ fontSize: 15 }}>{s.users[p.createdBy].emoji} {fmtDate(p.createdAt.slice(0, 10), s.lang, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-        <button className="glass-btn" aria-label={t('delete')} onClick={() => {
+        <button className="glass-btn lg on-accent" aria-label={t('delete')} onClick={() => {
           update((st) => { st.photos = st.photos.filter((x) => x.id !== p.id) })
           deleteBlob(p.id + ':full'); deleteBlob(p.id + ':thumb')
           if (photos.length <= 1) onClose(); else if (index >= photos.length - 1) onIndex(index - 1)

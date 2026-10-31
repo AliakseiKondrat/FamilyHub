@@ -39,8 +39,10 @@ export default function Calendar({ back }: { back?: boolean }) {
   const gridStart = addDays(toISO(first), -offset)
   const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
   const cells = Math.ceil((offset + daysInMonth) / 7) * 7
+  const [slide, setSlide] = useState<'slide-l' | 'slide-r' | ''>('')
   const shiftMonth = (n: number) => {
     const d = new Date(first.getFullYear(), first.getMonth() + n, 1)
+    setSlide(n > 0 ? 'slide-l' : 'slide-r')
     setMonth(toISO(d).slice(0, 7))
   }
 
@@ -50,7 +52,7 @@ export default function Calendar({ back }: { back?: boolean }) {
 
   const { title } = moduleLabel(s, 'calendar')
   return (
-    <Screen title={title} back={back}
+    <Screen title={title} back={back} accent="calendar"
       right={<>
         <GlassButton label={t('today')} onClick={() => { setSel(today()); setMonth(today().slice(0, 7)) }} />
         <GlassButton icon="plus" label={t('newEvent')} onClick={() => setEditEvent(newEvent(s.me, sel))} />
@@ -63,7 +65,7 @@ export default function Calendar({ back }: { back?: boolean }) {
             <button onClick={() => shiftMonth(1)} aria-label="Next"><Icon name="fwd" /></button>
           </div>
         </div>
-        <div className="cal-grid">
+        <div className={'cal-grid ' + slide} key={month}>
           {weekdayNames(s.lang).map((w) => <div key={w} className="cal-wd">{w}</div>)}
           {Array.from({ length: cells }, (_, i) => {
             const day = addDays(gridStart, i)
@@ -85,7 +87,7 @@ export default function Calendar({ back }: { back?: boolean }) {
         </div>
       </div>
 
-      <Section header={fmtDate(sel, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}>
+      <Section big header={<span className="cap" style={{ display: 'inline-block' }}>{fmtDate(sel, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}>
         {isPeriod && <Row icon="🌸" iconBg="color-mix(in srgb, var(--pink) 18%, transparent)"
           title={s.me === 'j' ? t('inPeriod') : t('periodNow', { name: s.users.j.name }).replace('🌸 ', '')} />}
         {ag.trips.map((tr) => <Row key={tr.id} icon="✈️" title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}

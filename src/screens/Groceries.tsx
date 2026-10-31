@@ -36,14 +36,15 @@ export default function Groceries({ back }: { back?: boolean }) {
 
   const { title } = moduleLabel(s, 'groceries')
   return (
-    <Screen title={title} back={back} subtitle={todo.length ? `${todo.length} ${t('groceriesLeft')}` : undefined}>
-      <QuickAdd placeholder={t('gro.placeholder')} onAdd={add} />
-
-      {frequent.length > 0 && (
-        <div className="chips">
-          {frequent.map((f) => <button key={f} className="chip" onClick={() => add(f)}>+ {f}</button>)}
-        </div>
-      )}
+    <Screen title={title} back={back} accent="groceries" subtitle={todo.length ? `${todo.length} ${t('groceriesLeft')}` : undefined}
+      head={<>
+        <QuickAdd placeholder={t('gro.placeholder')} onAdd={add} />
+        {frequent.length > 0 && (
+          <div className="chips">
+            {frequent.map((f) => <button key={f} className="chip" onClick={() => add(f)}>+ {f}</button>)}
+          </div>
+        )}
+      </>}>
 
       {todo.length === 0 && <Empty emoji="🧺" text={t('empty')} />}
 
@@ -51,7 +52,7 @@ export default function Groceries({ back }: { back?: boolean }) {
         const items = todo.filter((g) => g.category === cat)
         if (!items.length) return null
         return (
-          <Section key={cat} header={`${GROCERY_EMOJI[cat]} ${t(`cat.${cat}`)}`}>
+          <Section key={cat} big header={`${GROCERY_EMOJI[cat]} ${t(`cat.${cat}`)}`}>
             {items.map((g) => (
               <Swipe key={g.id} onDelete={() => remove(g.id)}>
                 <Row left={<Check on={false} onChange={() => toggle(g.id)} color="var(--green)" />}
@@ -63,7 +64,7 @@ export default function Groceries({ back }: { back?: boolean }) {
       })}
 
       {bought.length > 0 && (
-        <Section header={t('inCart')} action={
+        <Section big header={`🧺 ${t('inCart')}`} action={
           <button onClick={() => update((st) => { st.groceries = st.groceries.filter((g) => !g.done || !visible([g], st.me).length) })}>{t('clearBought')}</button>
         }>
           {bought.map((g) => (

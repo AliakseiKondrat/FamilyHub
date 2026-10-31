@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { Base, Repeat, UserId, Who } from './types'
 import { getState, other, useApp } from './store'
 import { useT } from './i18n'
-import { useNav } from './nav'
+import { popWithoutAnimation, useNav } from './nav'
 import { today } from './lib/date'
+import { accentStyle, type Accent } from './theme'
 
 /* ---------- Icons (SF Symbols look-alikes) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -38,33 +39,94 @@ const Chevron = () => (
   <svg className="chev" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1.5 1.5 7.5 7.5l-6 6" /></svg>
 )
 
-/* ---------- Screen with collapsing large title ---------- */
-export function Screen({ title, left, right, children, back, subtitle }: {
-  title: ReactNode; left?: ReactNode; right?: ReactNode; children: ReactNode; back?: boolean; subtitle?: ReactNode
+export interface Action { icon: ReactNode; label: string; onClick: () => void }
+
+/**
+ * A screen: colored header (aura) behind the status bar with a large title, optional hero content,
+ * glass action buttons and extra header controls; the title collapses into a glass bar on scroll.
+ * Pushed screens can be dismissed with a swipe from the left edge.
+ */
+export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head }: {
+  title: ReactNode; accent: Accent; left?: ReactNode; right?: ReactNode; children: ReactNode; back?: boolean
+  subtitle?: ReactNode; hero?: ReactNode; actions?: Action[]; head?: ReactNode
 }) {
   const nav = useNav()
   const ref = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [auraH, setAuraH] = useState(360)
+
   useEffect(() => {
     const el = ref.current!
-    const on = () => setScrolled(el.scrollTop > 40)
+    const on = () => setScrolled(el.scrollTop > 44)
     el.addEventListener('scroll', on, { passive: true })
     return () => el.removeEventListener('scroll', on)
   }, [])
+
+  // The aura covers the header block and fades out just below it.
+  useLayoutEffect(() => {
+    const h = headRef.current
+    if (!h) return
+    const measure = () => setAuraH(h.offsetTop + h.offsetHeight + 80)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(h)
+    return () => ro.disconnect()
+  }, [])
+
+  // Interactive edge-swipe back, like UINavigationController.
+  const drag = useRef<{ x: number; dx: number } | null>(null)
+  const onDown = (e: React.PointerEvent) => {
+    if (back && e.clientX - (ref.current?.getBoundingClientRect().left ?? 0) < 24) drag.current = { x: e.clientX, dx: 0 }
+  }
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current, el = ref.current
+    if (!d || !el) return
+    d.dx = Math.max(0, e.clientX - d.x)
+    el.classList.add('dragging')
+    el.style.transform = `translateX(${d.dx}px)`
+  }
+  const onUp = () => {
+    const d = drag.current, el = ref.current
+    drag.current = null
+    if (!d || !el) return
+    el.classList.remove('dragging')
+    if (d.dx > el.clientWidth * 0.33) {
+      el.style.transform = 'translateX(100%)'
+      setTimeout(popWithoutAnimation, 280)
+    } else el.style.transform = ''
+  }
+
   return (
-    <div className={'screen' + (back ? ' push' : '')} ref={ref}>
+    <div className={'screen' + (back ? ' push' : '')} ref={ref} style={{ ...accentStyle(accent), '--aura-h': auraH + 'px' } as CSSProperties}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+      <div className="aura" />
       <div className={'navbar' + (scrolled ? ' scrolled' : '')}>
         <div className="navbar-row">
           <div className="navbar-side">
-            {back && <button className="glass-btn" onClick={nav.pop} aria-label="Back"><Icon name="back" /></button>}
+            {back && <button className="glass-btn lg" onClick={nav.pop} aria-label="Back"><Icon name="back" /></button>}
             {left}
           </div>
           <div className="navbar-title">{title}</div>
           <div className="navbar-side">{right}</div>
         </div>
       </div>
-      <div className="large-title">{title}</div>
-      {subtitle && <div className="subtitle">{subtitle}</div>}
+      <div className="head" ref={headRef}>
+        <div className="large-title">{title}</div>
+        {subtitle && <div className="subtitle">{subtitle}</div>}
+        {hero && <div className="hero-block">{hero}</div>}
+        {actions && actions.length > 0 && (
+          <div className="actions">
+            {actions.map((a) => (
+              <button key={a.label} className="action" onClick={a.onClick}>
+                <span className="circle lg">{typeof a.icon === 'string' && a.icon.length > 3 ? <Icon name={a.icon} /> : a.icon}</span>
+                <span>{a.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {head && <div className="head-extra">{head}</div>}
+      </div>
       {children}
     </div>
   )
@@ -72,20 +134,23 @@ export function Screen({ title, left, right, children, back, subtitle }: {
 
 export function GlassButton({ icon, label, onClick, tint }: { icon?: string; label?: string; onClick: () => void; tint?: boolean }) {
   return (
-    <button className={'glass-btn' + (tint ? ' tint' : '')} onClick={onClick} aria-label={label}>
-      {icon && <Icon name={icon} />}{!icon && label}
+    <button className={'glass-btn lg' + (tint ? ' tint' : '')} onClick={onClick} aria-label={label}>
+      {icon ? <Icon name={icon} /> : <span>{label}</span>}
     </button>
   )
 }
 
-/* ---------- Grouped lists ---------- */
+/* ---------- Cards / grouped lists ---------- */
 export function Section({ header, footer, children, big, action }: {
   header?: ReactNode; footer?: ReactNode; children: ReactNode; big?: boolean; action?: ReactNode
 }) {
   return (
     <div className="section">
-      {header && <div className={'section-header' + (big ? ' big' : '')}><span>{header}</span>{action}</div>}
-      <div className="list">{children}</div>
+      {header && !big && <div className="section-header"><span>{header}</span>{action}</div>}
+      <div className="list">
+        {header && big && <div className="card-head"><span>{header}</span>{action}</div>}
+        {children}
+      </div>
       {footer && <div className="section-footer">{footer}</div>}
     </div>
   )
@@ -111,17 +176,19 @@ export function Row({ icon, iconBg, title, sub, detail, onClick, chevron, left, 
   )
 }
 
-/** Swipe left to reveal a delete action, like iOS lists. */
+/** Swipe left to reveal Delete (full swipe deletes); the row collapses away before it is removed. */
 export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: () => void }) {
   const t = useT()
   const [x, setX] = useState(0)
   const [drag, setDrag] = useState(false)
+  const [removing, setRemoving] = useState(false)
   const start = useRef<{ x: number; y: number; base: number; locked?: 'h' | 'v' } | null>(null)
   const W = 88
+  const remove = () => { setRemoving(true); setX(-window.innerWidth); setTimeout(onDelete, 260) }
   return (
-    <div className="swipe">
+    <div className={'swipe' + (removing ? ' removing' : '')}>
       <div className="swipe-actions">
-        <button style={{ background: 'var(--red)' }} onClick={() => { setX(0); onDelete() }}>{t('delete')}</button>
+        <button style={{ background: 'var(--red)' }} onClick={remove}>{t('delete')}</button>
       </div>
       <div
         className={'swipe-content' + (drag ? ' dragging' : '')}
@@ -132,14 +199,14 @@ export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: (
           if (!s) return
           const dx = e.clientX - s.x, dy = e.clientY - s.y
           if (!s.locked && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) s.locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
-          if (s.locked === 'h') { setDrag(true); setX(Math.min(0, Math.max(-W * 1.6, s.base + dx))) }
+          if (s.locked === 'h') { e.stopPropagation(); setDrag(true); setX(Math.min(0, Math.max(-W * 2, s.base + dx))) }
         }}
         onPointerUp={() => {
           const s = start.current
           start.current = null
           if (!s?.locked || s.locked === 'v') return
           setDrag(false)
-          if (x < -W * 1.4) { setX(0); onDelete() } else setX(x < -W / 2 ? -W : 0)
+          if (x < -W * 1.6) remove(); else setX(x < -W / 2 ? -W : 0)
         }}
         onPointerCancel={() => { start.current = null; setDrag(false); setX(0) }}
         onClickCapture={(e) => { if (x !== 0) { e.stopPropagation(); setX(0) } }}
@@ -153,7 +220,7 @@ export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: (
 export function Check({ on, onChange, color }: { on: boolean; onChange: () => void; color?: string }) {
   return (
     <button className={'check' + (on ? ' on' : '')} style={{ '--c': color } as CSSProperties}
-      onClick={(e) => { e.stopPropagation(); onChange() }} aria-pressed={on}>
+      onClick={(e) => { e.stopPropagation(); navigator.vibrate?.(8); onChange() }} aria-pressed={on}>
       <Icon name="check" />
     </button>
   )
@@ -163,11 +230,14 @@ export function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) =
   return <button className={'switch' + (on ? ' on' : '')} onClick={() => onChange(!on)} role="switch" aria-checked={on} />
 }
 
+/** Segmented control whose thumb slides with a spring. */
 export function Segmented<T extends string>({ value, options, onChange, inSheet }: {
   value: T; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void; inSheet?: boolean
 }) {
+  const i = Math.max(0, options.findIndex((o) => o.value === value))
   return (
     <div className={'seg' + (inSheet ? ' in-sheet' : '')}>
+      <div className="seg-thumb" style={{ width: `calc((100% - 6px) / ${options.length})`, transform: `translateX(${i * 100}%)` }} />
       {options.map((o) => (
         <button key={o.value} className={o.value === value ? 'on' : ''} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
@@ -183,7 +253,7 @@ export function QuickAdd({ placeholder, onAdd }: { placeholder: string; onAdd: (
   const [v, setV] = useState('')
   const submit = () => { if (v.trim()) { onAdd(v.trim()); setV('') } }
   return (
-    <div className="quick">
+    <div className="quick lg">
       <input value={v} onChange={(e) => setV(e.target.value)} placeholder={placeholder} enterKeyHint="done"
         onKeyDown={(e) => { if (e.key === 'Enter') submit() }} />
       <button className="plus" disabled={!v.trim()} onClick={submit} aria-label="Add"><Icon name="plus" /></button>
@@ -200,26 +270,28 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   const start = useRef<number | null>(null)
   const close = (after?: () => void) => {
     setClosing(true)
-    setTimeout(() => { after?.(); onClose() }, 220)
+    setTimeout(() => { after?.(); onClose() }, 240)
   }
+  const style = { '--from': `translateY(${dy}px)`, transform: dy && !closing ? `translateY(${dy}px)` : undefined } as CSSProperties
   // Portal to <body> so the sheet sits above the tab bar regardless of which screen opened it.
   return createPortal(
     <>
       <div className={'backdrop' + (closing ? ' closing' : '')} onClick={() => close()} />
-      <div className={'sheet' + (closing ? ' closing' : '')} style={dy ? { transform: `translateY(${dy}px)`, animation: 'none' } : undefined}>
+      <div className={'sheet' + (closing ? ' closing' : '') + (start.current != null ? ' dragging' : '')} style={style}>
         <div
-          onPointerDown={(e) => { start.current = e.clientY; (e.target as HTMLElement).setPointerCapture?.(e.pointerId) }}
+          onPointerDown={(e) => { start.current = e.clientY; (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) }}
           onPointerMove={(e) => { if (start.current != null) setDy(Math.max(0, e.clientY - start.current)) }}
-          onPointerUp={() => { start.current = null; if (dy > 120) close(); setDy(0) }}
+          onPointerUp={() => { start.current = null; if (dy > 110) close(); else setDy(0) }}
+          onPointerCancel={() => { start.current = null; setDy(0) }}
         >
           <div className="sheet-grabber" />
           <div className="sheet-head">
-            <button className="glass-btn" onClick={() => close()} aria-label="Close"><Icon name="close" /></button>
+            <button className="glass-btn lg" onClick={() => close()} aria-label="Close"><Icon name="close" /></button>
             <div className="sheet-title">{title}</div>
             {onDone
-              ? <button className="glass-btn tint" disabled={doneDisabled} style={doneDisabled ? { opacity: 0.4 } : undefined}
+              ? <button className="glass-btn lg tint" disabled={doneDisabled} style={doneDisabled ? { opacity: 0.35 } : undefined}
                   onClick={() => close(onDone)} aria-label="Done"><Icon name="check" /></button>
-              : <div style={{ width: 38 }} />}
+              : <div style={{ width: 40 }} />}
           </div>
         </div>
         <div className="sheet-body">{children}</div>
@@ -345,9 +417,9 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 export function toast(text: string) {
   document.querySelector('.toast')?.remove()
   const el = document.createElement('div')
-  el.className = 'toast'
+  el.className = 'toast lg'
   el.textContent = text
-  document.querySelector('.app')?.appendChild(el)
+  document.body.appendChild(el)
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => el.remove(), 1800)
 }

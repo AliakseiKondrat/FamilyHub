@@ -12,6 +12,7 @@ create or replace function public.my_role() returns text
 language sql stable security definer set search_path = public as $$
   select role from public.members where lower(email) = lower(auth.jwt() ->> 'email')
 $$;
+revoke execute on function public.my_role() from public, anon;
 grant execute on function public.my_role() to authenticated;
 
 create policy "members see members" on public.members for select to authenticated using (public.my_role() is not null);

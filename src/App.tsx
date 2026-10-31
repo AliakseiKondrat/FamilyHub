@@ -1,7 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useApp } from './store'
 import { moduleLabel, useT } from './i18n'
-import { useNav, type Route, type Tab } from './nav'
+import { consumeSkipLeave, useNav, type Route, type Tab } from './nav'
 import { Icon } from './ui'
 import type { ModuleId } from './types'
 import Today from './screens/Today'
@@ -55,12 +55,30 @@ function useResolvedTheme(theme: 'auto' | 'light' | 'dark') {
   return theme === 'auto' ? (sysDark ? 'dark' : 'light') : theme
 }
 
+/** Keeps the popped screen mounted for its slide-out animation. */
+function useLeaving(stack: Route[]) {
+  const prev = useRef(stack)
+  const [leaving, setLeaving] = useState<Route | null>(null)
+  useLayoutEffect(() => {
+    if (stack.length < prev.current.length && !consumeSkipLeave()) {
+      setLeaving(prev.current[prev.current.length - 1])
+      const id = setTimeout(() => setLeaving(null), 320)
+      prev.current = stack
+      return () => clearTimeout(id)
+    }
+    prev.current = stack
+  }, [stack])
+  return leaving
+}
+
 export default function App() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
   const sync = useSync()
   const theme = useResolvedTheme(s.theme)
+  const leaving = useLeaving(nav.stack)
+  const [squish, setSquish] = useState(0)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -77,16 +95,25 @@ export default function App() {
     { id: 'groceries', icon: 'cart', label: moduleLabel(s, 'groceries').title },
     { id: 'more', icon: 'grid', label: t('more') },
   ]
+  const active = tabs.findIndex((tb) => tb.id === nav.tab)
+  const layers = [...nav.stack.map((r, i) => ({ r, i, out: false })), ...(leaving ? [{ r: leaving, i: nav.stack.length, out: true }] : [])]
 
-  const top = nav.stack[nav.stack.length - 1]
   return (
     <div className="app">
-      {nav.tab === 'more' ? <More /> : moduleScreen(nav.tab, false)}
-      {top && <div key={nav.stack.length}>{routeScreen(top)}</div>}
-      <nav className="tabbar">
+      <div className={nav.stack.length ? 'covered-wrap' : undefined} key={nav.tab}>
+        {nav.tab === 'more' ? <More /> : moduleScreen(nav.tab, false)}
+      </div>
+      {layers.map(({ r, i, out }) => (
+        <div key={i} className={out ? 'leaving-wrap' : i < nav.stack.length - 1 ? 'covered-wrap' : undefined}>{routeScreen(r)}</div>
+      ))}
+      <nav className="tabbar lg">
+        <div className="tab-lens" style={{ transform: `translateX(${active * 100}%)` }}><i key={squish} className={squish ? 'squish' : undefined} /></div>
         {tabs.map((tb) => (
           <button key={tb.id} className={'tab' + (nav.tab === tb.id ? ' on' : '')}
-            onClick={() => (nav.tab === tb.id && nav.stack.length ? history.go(-nav.stack.length) : nav.setTab(tb.id))}>
+            onClick={() => {
+              if (nav.tab === tb.id && nav.stack.length) history.go(-nav.stack.length)
+              else if (nav.tab !== tb.id) { setSquish((n) => n + 1); nav.setTab(tb.id) }
+            }}>
             <Icon name={tb.icon} />
             <span>{tb.label}</span>
           </button>

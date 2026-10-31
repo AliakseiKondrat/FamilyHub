@@ -24,7 +24,7 @@ export default function Travel() {
   )
 
   return (
-    <Screen title={moduleLabel(s, 'travel').title} back
+    <Screen title={moduleLabel(s, 'travel').title} back accent="travel"
       right={<GlassButton icon="plus" label={t('newTrip')} onClick={() => setEdit({ ...base(s.me), title: '', destination: '', start: addDays(d, 30), end: addDays(d, 35), plan: [], packing: [], docs: [] })} />}>
       {trips.length === 0 && <Empty emoji="🧳" text={t('empty')} />}
       {upcoming.length > 0 && <Section big header={t('upcomingTrips')}>{upcoming.map(row)}</Section>}
@@ -68,25 +68,26 @@ export function TripDetail({ id }: { id: string }) {
   const [edit, setEdit] = useState(false)
   const [planDate, setPlanDate] = useState<string | null>(null)
   const trip = s.trips.find((x) => x.id === id)
-  if (!trip) return <Screen title="—" back><Empty emoji="🧳" text={t('empty')} /></Screen>
+  if (!trip) return <Screen title="—" back accent="travel"><Empty emoji="🧳" text={t('empty')} /></Screen>
 
   const mut = (fn: (x: Trip) => void) => update((st) => fn(st.trips.find((x) => x.id === id)!))
   const days = Array.from({ length: diffDays(trip.end, trip.start) + 1 }, (_, i) => addDays(trip.start, i))
   const packed = trip.packing.filter((p) => p.done).length
 
   return (
-    <Screen title={trip.title} back right={<GlassButton label={t('edit')} onClick={() => setEdit(true)} />}
-      subtitle={`${trip.destination ? trip.destination + ' · ' : ''}${fmtDate(trip.start, s.lang, { day: 'numeric', month: 'long' })} – ${fmtDate(trip.end, s.lang, { day: 'numeric', month: 'long' })}`}>
-      <Segmented value={tab} onChange={setTab} options={[
+    <Screen title={trip.title} back accent="travel" right={<GlassButton label={t('edit')} onClick={() => setEdit(true)} />}
+      subtitle={`${trip.destination ? trip.destination + ' · ' : ''}${fmtDate(trip.start, s.lang, { day: 'numeric', month: 'long' })} – ${fmtDate(trip.end, s.lang, { day: 'numeric', month: 'long' })}`}
+      hero={trip.start > today() ? <><div className="hero-big">{diffDays(trip.start, today())}</div><div className="hero-sub">{t('inDays', { n: diffDays(trip.start, today()) })}</div></> : undefined}
+      head={<Segmented value={tab} onChange={setTab} options={[
         { value: 'plan', label: `🗓️ ${t('plan')}` },
-        { value: 'packing', label: `🧳 ${t('packing')} ${trip.packing.length ? `${packed}/${trip.packing.length}` : ''}` },
+        { value: 'packing', label: `🧳 ${trip.packing.length ? `${packed}/${trip.packing.length}` : t('packing')}` },
         { value: 'docs', label: `🎫 ${t('docs')}` },
-      ]} />
+      ]} />}>
 
       {tab === 'plan' && days.map((day, i) => {
         const items = trip.plan.filter((p) => p.date === day).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
         return (
-          <Section key={day} header={`${i + 1}. ${fmtDate(day, s.lang, { weekday: 'short', day: 'numeric', month: 'short' })}`}
+          <Section key={day} big header={`${i + 1}. ${fmtDate(day, s.lang, { weekday: 'short', day: 'numeric', month: 'short' })}`}
             action={<button onClick={() => setPlanDate(day)}>+ {t('add')}</button>}>
             {items.map((p) => (
               <Swipe key={p.id} onDelete={() => mut((x) => { x.plan = x.plan.filter((k) => k.id !== p.id) })}>

@@ -20,12 +20,10 @@ export default function Watch() {
   }
 
   return (
-    <Screen title={moduleLabel(s, 'watch').title} back
-      right={<>
-        <GlassButton icon="dice" label={t('whatToWatch')} onClick={random} />
-        <GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', kind: 'movie', status: tab })} />
-      </>}>
-      <Segmented value={tab} onChange={setTab} options={(['want', 'watching', 'done'] as WatchStatus[]).map((x) => ({ value: x, label: t(`ws.${x}`) }))} />
+    <Screen title={moduleLabel(s, 'watch').title} back accent="watch"
+      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', kind: 'movie', status: tab })} />}
+      actions={[{ icon: '🎲', label: t('whatToWatch'), onClick: random }]}
+      head={<Segmented value={tab} onChange={setTab} options={(['want', 'watching', 'done'] as WatchStatus[]).map((x) => ({ value: x, label: t(`ws.${x}`) }))} />}>
       {list.length === 0 && <Empty emoji="🍿" text={t('empty')} />}
       {list.length > 0 && (
         <Section>

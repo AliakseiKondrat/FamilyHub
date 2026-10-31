@@ -2,8 +2,10 @@ import { useSyncExternalStore } from 'react'
 import type { Base, State, UserId } from './types'
 import { today } from './lib/date'
 import { demoState } from './demo'
+import { SYNC_ENABLED } from './config'
 
-const KEY = 'familyhub:v1'
+// Demo mode keeps its own copy so it never mixes with an account's data.
+const KEY = SYNC_ENABLED ? 'familyhub:v1' : 'familyhub:demo'
 
 function load(): State {
   try {

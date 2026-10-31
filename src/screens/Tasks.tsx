@@ -76,12 +76,15 @@ export default function Tasks({ back }: { back?: boolean }) {
 
   const { title } = moduleLabel(s, 'tasks')
   return (
-    <Screen title={title} back={back}
-      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit(newTask(s.me))} />}>
-      <Segmented value={filter} onChange={setFilter} options={[
-        { value: 'all', label: t('filter.all') }, { value: 'mine', label: t('filter.mine') }, { value: 'shared', label: t('filter.shared') },
-      ]} />
-      <QuickAdd placeholder={t('task.placeholder')} onAdd={quick} />
+    <Screen title={title} back={back} accent="tasks" subtitle={open.length ? `${open.length} ${t('tasksLeft')}` : undefined}
+      right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit(newTask(s.me))} />}
+      head={<>
+        <Segmented value={filter} onChange={setFilter} options={[
+          { value: 'all', label: t('filter.all') }, { value: 'mine', label: t('filter.mine') }, { value: 'shared', label: t('filter.shared') },
+        ]} />
+        <div style={{ height: 12 }} />
+        <QuickAdd placeholder={t('task.placeholder')} onAdd={quick} />
+      </>}>
 
       {open.length === 0 && <Empty emoji="🎉" text={t('empty')} />}
 
@@ -92,7 +95,7 @@ export default function Tasks({ back }: { back?: boolean }) {
       ))}
 
       {done.length > 0 && (
-        <Section header={`${t('completed')} · ${done.length}`}
+        <Section big header={`${t('completed')} · ${done.length}`}
           action={<button onClick={() => setShowDone(!showDone)}>{showDone ? t('hideCompleted') : t('showCompleted')}</button>}>
           {showDone ? done.map((k) => <TaskRow key={k.id} task={k} onOpen={setEdit} />) : <></>}
         </Section>

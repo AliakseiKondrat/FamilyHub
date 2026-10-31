@@ -33,6 +33,11 @@ const actions = {
   },
 }
 
+/** After an edge-swipe the screen is already off-screen, so the pop must not animate again. */
+let skipLeave = false
+export function popWithoutAnimation() { skipLeave = true; history.back() }
+export function consumeSkipLeave() { const v = skipLeave; skipLeave = false; return v }
+
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
 export function useNav() {
   const state = useSyncExternalStore(subscribe, () => nav)
