@@ -3,12 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import App from './App'
 import { initSync } from './sync'
-import { initStatusBar } from './statusbar'
 import './styles.css'
 
 registerSW({ immediate: true })
 initSync()
-initStatusBar()
 
 // Keyboard on iOS: instead of letting Safari push the whole app up, keep it pinned and
 // tell the CSS how much room the keyboard takes (--kb), so sheets shrink above it.
