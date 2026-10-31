@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { base, uid, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { useNav } from '../nav'
-import { Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields } from '../ui'
+import {
+  Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, Em, EmojiField,
+} from '../ui'
 import { addDays, diffDays, fmtDate, today } from '../lib/date'
 import type { DocLink, Trip } from '../types'
 import { CoverPicker, Thumb, fromPreview, hostOf, isUrl, relink, useAutoCovers } from '../cover'
@@ -18,7 +20,7 @@ export default function Travel({ back }: { back?: boolean }) {
   const past = trips.filter((x) => x.end < d).sort((a, b) => b.start.localeCompare(a.start))
 
   const row = (x: Trip) => (
-    <Row key={x.id} icon="✈️" iconBg="color-mix(in srgb, var(--indigo) 18%, transparent)" chevron onClick={() => nav.push({ trip: x.id })}
+    <Row key={x.id} icon={x.emoji || "✈️"} iconBg="color-mix(in srgb, var(--indigo) 18%, transparent)" chevron onClick={() => nav.push({ trip: x.id })}
       title={<>{x.title} <Marks x={x} /></>}
       sub={`${x.destination ? x.destination + ' · ' : ''}${fmtDate(x.start, s.lang)} – ${fmtDate(x.end, s.lang)}`}
       detail={x.start > d ? t('inDays', { n: diffDays(x.start, d) }) : undefined} />
@@ -52,6 +54,7 @@ function TripEditor({ trip, onClose }: { trip: Trip; onClose: () => void }) {
         <DateRow label={t('end')} value={v.end} clearable={false} onChange={(end) => end && setV({ ...v, end })} />
       </Section>
       <Section><TextRow value={v.notes ?? ''} onChange={(notes) => setV({ ...v, notes })} placeholder={t('notes')} multiline /></Section>
+      <EmojiField value={v} onChange={setV} />
       <VisibilityFields value={v} onChange={setV} />
       {!isNew && (
         <Section>
@@ -92,7 +95,7 @@ export function TripDetail({ id }: { id: string }) {
             action={<button onClick={() => setPlanDate(day)}>+ {t('add')}</button>}>
             {items.map((p) => (
               <Swipe key={p.id} onDelete={() => mut((x) => { x.plan = x.plan.filter((k) => k.id !== p.id) })}>
-                <Row left={<div className="time-col">{p.time ?? '·'}</div>} title={p.title} />
+                <Row left={<div className="time-col">{p.time ?? '·'}</div>} title={<><Em x={p} />{p.title}</>} />
               </Swipe>
             ))}
           </Section>
@@ -111,7 +114,7 @@ export function TripDetail({ id }: { id: string }) {
             {trip.packing.map((p) => (
               <Swipe key={p.id} onDelete={() => mut((x) => { x.packing = x.packing.filter((k) => k.id !== p.id) })}>
                 <Row left={<Check on={p.done} color="var(--indigo)" onChange={() => mut((x) => { const k = x.packing.find((q) => q.id === p.id)!; k.done = !k.done })} />}
-                  title={p.title} dim={p.done} />
+                  title={<><Em x={p} />{p.title}</>} dim={p.done} />
               </Swipe>
             ))}
           </Section>

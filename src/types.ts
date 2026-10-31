@@ -18,12 +18,12 @@ export interface Base {
   revealAt?: string
   /** Only this user can see it. */
   privateTo?: UserId
+  /** Picked by hand; otherwise guessed from the title ('' = none). */
+  emoji?: string
 }
 
 export interface Grocery extends Base {
   title: string; category: string; done: boolean; doneAt?: string
-  /** Picked by hand; otherwise guessed from the title ('' = none). */
-  emoji?: string
 }
 
 export type Repeat = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'

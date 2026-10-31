@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import {
-  Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow,
-  VisibilityFields, toast,
+  Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, toast, Em, EmojiField,
 } from '../ui'
+import { recordEmoji } from '../lib/emoji'
 import { fmtDate, nextRepeat, today } from '../lib/date'
 import { guessCategory } from '../lib/categories'
 import type { ModuleId, Note, NoteModule, State } from '../types'
@@ -40,8 +40,8 @@ export default function Notes({ module, back }: { module: NoteModule; back?: boo
     <Swipe key={n.id} onDelete={() => update((st) => { st.notes = st.notes.filter((k) => k.id !== n.id) })}>
       <Row
         left={module === 'home' && n.due ? <Check on={!!n.done} onChange={() => toggle(n)} /> : n.cover ? <Thumb src={n.cover} /> : undefined}
-        icon={module === 'home' && n.due || n.cover ? undefined : n.url ? '🔗' : ICON[module]}
-        title={<>{n.title} <Marks x={n} /></>} dim={module === 'home' && n.done}
+        icon={module === 'home' && n.due || n.cover ? undefined : (s.prefs.groceryEmoji && recordEmoji(n)) || (n.url ? '🔗' : ICON[module])}
+        title={<>{(module === 'home' && n.due || n.cover) && <Em x={n} />}{n.title} <Marks x={n} /></>} dim={module === 'home' && n.done}
         sub={(n.due || n.tags?.length || n.notes || n.url) && <>
           {n.due && <span className={!n.done && n.due < today() ? 'red' : ''}>{fmtDate(n.due, s.lang)}{n.repeat && n.repeat !== 'none' ? ' 🔁' : ''}</span>}
           {n.tags?.map((x) => <span key={x} className="tag">{x}</span>)}
@@ -125,6 +125,7 @@ function NoteEditor({ note, onClose }: { note: Note; onClose: () => void }) {
         <Section><Row left={<Check on={!!v.done} onChange={() => setV({ ...v, done: !v.done })} color="var(--pink)" />} title={t('been')} /></Section>
       )}
       {v.url && <Section><a className="row tap accent" href={v.url} target="_blank" rel="noreferrer">🔗 {t('open_link')}</a></Section>}
+      {!v.cover && <EmojiField value={v} onChange={setV} />}
       <VisibilityFields value={v} onChange={setV} allowPrivate={v.module === 'archive' || v.module === 'inbox' || v.module === 'home'} />
       {!isNew && (
         <Section header={t('moveTo')}>

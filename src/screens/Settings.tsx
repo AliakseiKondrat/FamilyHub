@@ -5,7 +5,7 @@ import { API_BASE, widgetScript } from '../lib/widget'
 import { PRESETS as SHORTCUTS, presetSteps } from '../lib/shortcuts'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
-import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
+import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, toast } from '../ui'
 import { demoState } from '../demo'
 import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { LOCALES } from '../lib/date'
@@ -309,16 +309,6 @@ function SectionsPage() {
   )
 }
 
-export function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
-  return (
-    <>
-      <div className="emoji-grid">
-        {[...new Set([...extra, ...emojiList()])].map((e) => <button key={e} className={e === value ? 'on' : ''} onClick={() => onChange(e)}>{e}</button>)}
-      </div>
-      <TextRow value={value} onChange={(v) => onChange([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
-    </>
-  )
-}
 
 function ModuleSheet({ id, onClose }: { id: ModuleId; onClose: () => void }) {
   const s = useApp()

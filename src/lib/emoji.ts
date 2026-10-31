@@ -1,0 +1,101 @@
+import { groceryEmoji } from './categories'
+
+/** Everyday things that land in tasks, events and notes (RU / EN / PL / ES stems, most specific first). */
+const THINGS: [string[], string][] = [
+  [['день рожд', 'днюх', 'birthday', 'urodzin', 'cumpleañ'], '🎂'],
+  [['годовщин', 'anniversar', 'rocznic', 'aniversario'], '💍'],
+  [['свадьб', 'wedding', 'ślub', 'wesel', 'boda'], '💒'],
+  [['свидани', 'date night', 'randk', 'cita '], '💕'],
+  [['стоматолог', 'зубной врач', 'dentist', 'dentyst', 'dentista'], '🦷'],
+  [['ветеринар', 'ветклин', 'vet ', 'weteryn', 'veterinar'], '🐶'],
+  [['врач', 'доктор', 'поликлин', 'анализ', 'doctor', 'clinic', 'lekarz', 'przychodn', 'médico', 'medico', 'clínica'], '🩺'],
+  [['аптек', 'лекарств', 'pharmacy', 'apteka', 'farmacia'], '💊'],
+  [['стрижк', 'парикмах', 'haircut', 'fryzjer', 'peluquer'], '💇'],
+  [['маникюр', 'ногт', 'nails', 'manicure', 'paznok', 'uñas'], '💅'],
+  [['массаж', 'спа ', 'massage', 'masaż', 'masaje'], '💆'],
+  [['спортзал', 'тренировк', 'зал ', 'gym', 'workout', 'training', 'siłown', 'trening', 'gimnasio', 'entreno'], '🏋️'],
+  [['бассейн', 'плаван', 'swim', 'pool', 'basen', 'pływ', 'piscina', 'nadar'], '🏊'],
+  [['йог', 'yoga', 'joga'], '🧘'],
+  [['пробежк', 'бег ', 'run ', 'running', 'bieg', 'correr'], '🏃'],
+  [['велосипед', 'bike', 'cycling', 'rower', 'bici'], '🚴'],
+  [['футбол', 'football', 'soccer', 'piłk', 'fútbol'], '⚽️'],
+  [['теннис', 'падел', 'tennis', 'padel', 'tenis'], '🎾'],
+  [['поход', 'хайкинг', 'hike', 'hiking', 'wędrów', 'senderis', 'montaña'], '🥾'],
+  [['прогулк', 'погулять', 'walk', 'spacer', 'paseo'], '🚶'],
+  [['пляж', 'beach', 'plaż', 'playa'], '🏖️'],
+  [['пикник', 'picnic', 'piknik'], '🧺'],
+  [['концерт', 'concert', 'koncert', 'concierto'], '🎤'],
+  [['театр', 'theatre', 'theater', 'teatr', 'teatro'], '🎭'],
+  [['музе', 'выставк', 'галере', 'museum', 'exhibit', 'gallery', 'muzeum', 'wystaw', 'museo', 'exposici'], '🖼️'],
+  [['кино', 'фильм', 'cinema', 'movie', 'film', 'kino', 'cine', 'película'], '🎬'],
+  [['сериал', 'series', 'serial', 'serie'], '📺'],
+  [['игр', 'game', 'gra ', 'gry', 'juego'], '🎮'],
+  [['книг', 'читать', 'book', 'książk', 'czyta', 'libro', 'leer'], '📚'],
+  [['вечеринк', 'праздник', 'party', 'impreza', 'fiesta'], '🎉'],
+  [['ужин', 'обед', 'ресторан', 'dinner', 'lunch', 'restaurant', 'kolacj', 'obiad', 'restaurac', 'comida', 'restaurante'], '🍽️'],
+  [['завтрак', 'breakfast', 'śniadan', 'desayun'], '🥞'],
+  [['кафе', 'кофейн', 'cafe', 'café', 'kawiarn', 'cafetería'], '☕️'],
+  [['бар ', 'drinks', 'pub ', 'cocktail', 'коктейл'], '🍸'],
+  [['готовить', 'приготов', 'рецепт', 'cook', 'gotow', 'cocinar'], '🍳'],
+  [['купить', 'магазин', 'покупк', 'шопинг', 'buy', 'shop', 'kupi', 'zakup', 'comprar', 'tienda'], '🛍️'],
+  [['подар', 'gift', 'present', 'prezent', 'regalo'], '🎁'],
+  [['цвет', 'букет', 'flower', 'kwiat', 'flor'], '💐'],
+  [['самолёт', 'самолет', 'рейс', 'аэропорт', 'вылет', 'flight', 'airport', 'lot ', 'lotnisk', 'vuelo', 'aeropuerto'], '✈️'],
+  [['поезд', 'train', 'pociąg', 'tren'], '🚆'],
+  [['автобус', 'bus ', 'autobus'], '🚌'],
+  [['такси', 'uber', 'bolt', 'taxi', 'cabify'], '🚕'],
+  [['заправ', 'бензин', 'fuel', 'petrol', 'gas station', 'paliw', 'tankow', 'gasolin'], '⛽️'],
+  [['шиномонтаж', 'шины', 'резин', 'tyre', 'tire', 'opon', 'neumátic'], '🛞'],
+  [['мойк', 'car wash', 'myjni', 'lavado'], '🧽'],
+  [['стиралк', 'стиральн', 'washing machine', 'pralk', 'lavadora'], '🫧'],
+  [['машин', 'авто', 'техосмотр', 'car ', 'samoch', 'przegląd', 'coche', 'itv'], '🚗'],
+  [['отель', 'гостиниц', 'hotel', 'airbnb', 'nocleg'], '🏨'],
+  [['билет', 'ticket', 'bilet', 'entrada'], '🎫'],
+  [['паспорт', 'виз', 'passport', 'visa', 'paszport', 'wiza', 'pasaporte'], '🛂'],
+  [['чемодан', 'собрать вещи', 'packing', 'walizk', 'maleta'], '🧳'],
+  [['отпуск', 'каникул', 'vacation', 'holiday', 'urlop', 'wakacj', 'vacacion'], '🏝️'],
+  [['счётчик', 'счетчик', 'показани', 'meter', 'licznik', 'contador'], '📟'],
+  [['оплат', 'заплат', 'счёт', 'счет', 'pay', 'bill', 'invoice', 'opłat', 'zapłac', 'faktur', 'rachun', 'pagar', 'factura'], '💳'],
+  [['аренд', 'квартплат', ' rent', 'czynsz', 'alquiler'], '🏠'],
+  [['интернет', 'wifi', 'wi-fi', 'internet', 'router', 'роутер'], '🌐'],
+  [['телефон', 'позвонить', 'звонок', 'call', 'phone', 'zadzwo', 'telefon', 'llamar'], '📞'],
+  [['налог', 'tax', 'podat', 'impuest', 'hacienda'], '🧾'],
+  [['банк', 'bank', 'banco'], '🏦'],
+  [['страховк', 'insurance', 'ubezpiecz', 'seguro'], '🛡️'],
+  [['документ', 'договор', 'контракт', 'document', 'contract', 'umow', 'dokument', 'contrato', 'documento'], '📄'],
+  [['гарантия', 'чек ', 'warranty', 'receipt', 'gwaranc', 'paragon', 'garantía', 'ticket de'], '🧾'],
+  [['посылк', 'доставк', 'заказ', 'package', 'parcel', 'delivery', 'paczk', 'przesyłk', 'paquete', 'envío', 'pedido'], '📦'],
+  [['почт', 'письм', 'mail', 'letter', 'poczt', 'correo', 'carta'], '✉️'],
+  [['работ', 'офис', 'встреч', 'созвон', 'work', 'office', 'meeting', 'praca', 'biur', 'spotkan', 'trabajo', 'oficina', 'reunión'], '💼'],
+  [['учёб', 'учеб', 'курс', 'урок', 'экзамен', 'study', 'course', 'lesson', 'exam', 'nauk', 'kurs', 'lekcj', 'egzamin', 'estudi', 'curso', 'clase', 'examen'], '🎓'],
+  [['уборк', 'убрать', 'пылесос', 'помыть', 'clean', 'vacuum', 'sprząt', 'odkurz', 'limpiar', 'aspirar'], '🧹'],
+  [['стирк', 'постирать', 'бельё', 'laundry', 'pranie', 'colada', 'lavar ropa'], '🧺'],
+  [['посуд', 'dishes', 'zmywar', 'naczyni', 'platos', 'lavavajillas'], '🍽️'],
+  [['мусор', 'trash', 'garbage', 'śmieci', 'basura'], '🗑️'],
+  [['фильтр', 'filter', 'filtr', 'filtro'], '🌀'],
+  [['ремонт', 'почини', 'сантехн', 'электрик', 'repair', 'fix', 'plumber', 'napraw', 'hydraul', 'reparar', 'fontaner'], '🔧'],
+  [['растени', 'цветы полить', 'полить', 'plant', 'water the', 'rośli', 'podlać', 'planta', 'regar'], '🪴'],
+  [['мебел', 'икеа', 'ikea', 'furniture', 'mebl', 'mueble'], '🛋️'],
+  [['квартир', 'жиль', 'apartment', 'flat', 'mieszkan', 'piso ', 'apartamento'], '🏡'],
+  [['честер', 'собак', 'пёс', 'dog', 'pies', 'perro'], '🐶'],
+  [['кошк', 'cat ', 'kot', 'gato'], '🐱'],
+  [['фото', 'photo', 'zdjęc', 'foto'], '📸'],
+  [['музык', 'песн', 'music', 'song', 'muzyk', 'piosenk', 'música', 'canción'], '🎵'],
+  [['пароль', 'password', 'hasło', 'contraseña'], '🔑'],
+  [['ключ', 'key ', 'klucz', 'llave'], '🔑'],
+  [['спать', 'sleep', 'spać', 'dormir'], '😴'],
+]
+
+/** Emoji for anything with a title: everyday things first, then food and household items. */
+export function guessEmoji(title: string): string | undefined {
+  const s = ' ' + title.toLowerCase() + ' '
+  return THINGS.find(([stems]) => stems.some((x) => s.includes(x)))?.[1] ?? groceryEmoji(title)
+}
+
+const HAS_EMOJI = /\p{Extended_Pictographic}/u
+/** The emoji a record shows: picked by hand, else guessed; none if the title already has one. */
+export function recordEmoji(x: { title: string; emoji?: string }): string | undefined {
+  if (x.emoji !== undefined) return x.emoji || undefined
+  if (HAS_EMOJI.test(x.title)) return undefined
+  return guessEmoji(x.title)
+}

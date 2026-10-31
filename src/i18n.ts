@@ -171,7 +171,7 @@ const ru = {
   restored: 'Восстановлено ✓',
   hideBought: 'Скрыть купленное',
   showBought: 'Показать купленное',
-  setGroceryEmoji: 'Эмодзи у продуктов',
+  setGroceryEmoji: 'Эмодзи в списках',
   autoEmoji: 'Авто',
 }
 
@@ -347,7 +347,7 @@ const en: Dict = {
   restored: 'Restored ✓',
   hideBought: 'Hide bought',
   showBought: 'Show bought',
-  setGroceryEmoji: 'Emoji next to groceries',
+  setGroceryEmoji: 'Emoji in lists',
   autoEmoji: 'Auto',
 }
 
@@ -521,7 +521,7 @@ const pl: Dict = {
   restored: 'Przywrócono ✓',
   hideBought: 'Ukryj kupione',
   showBought: 'Pokaż kupione',
-  setGroceryEmoji: 'Emoji przy produktach',
+  setGroceryEmoji: 'Emoji na listach',
   autoEmoji: 'Auto',
 }
 
@@ -695,7 +695,7 @@ const es: Dict = {
   restored: 'Restaurado ✓',
   hideBought: 'Ocultar comprado',
   showBought: 'Mostrar comprado',
-  setGroceryEmoji: 'Emoji junto a los productos',
+  setGroceryEmoji: 'Emoji en las listas',
   autoEmoji: 'Auto',
 }
 
