@@ -130,6 +130,17 @@ const ru = {
   w1: 'Установи Scriptable из App Store.', w2: 'Нажми «Скопировать скрипт» ниже, в Scriptable — «+», вставь и назови «Family Hub».',
   w3: 'На экране «Домой»: долгое нажатие → «+» → Scriptable → выбери размер.', w4: 'Нажми на виджет → Script: Family Hub.', copyScript: 'Скопировать скрипт',
   needKey: 'Сначала создай личный ключ выше.',
+  gConnect: 'Подключить Google', gConnected: 'Подключено: {email}', gLastSync: 'Синхронизация', gSyncNow: 'Синхронизировать сейчас',
+  gDisconnect: 'Отключить Google', gShare: 'Показывать мои события из Google партнёру', gTasks: 'Синхронизировать задачи с Google Tasks',
+  gHow: 'События и задачи синхронизируются в обе стороны каждые 10 минут. У каждого — свой Google.',
+  gSetup: 'Разовая настройка Google Cloud (~5 минут, один раз на двоих)',
+  g1: 'Открой console.cloud.google.com и создай проект «Family Hub».',
+  g2: '«API и сервисы» → «Библиотека»: включи Google Calendar API и Google Tasks API.',
+  g3: '«Экран согласия OAuth»: тип External, название Family Hub. В «Тестовые пользователи» добавь оба Gmail, затем «Опубликовать приложение» — иначе вход слетает через 7 дней.',
+  g4: '«Учётные данные» → «Создать» → «Идентификатор клиента OAuth» → «Веб-приложение». В «Разрешённые URI перенаправления» вставь адрес ниже.',
+  g5: 'Скопируй Client ID и Client secret. В Supabase: проект vdvoem → Edge Functions → Secrets → добавь GOOGLE_CLIENT_ID и GOOGLE_CLIENT_SECRET.',
+  g6: 'Вернись сюда и нажми «Подключить Google». На экране «приложение не проверено» — «Дополнительно» → «Перейти».',
+  gRedirect: 'Redirect URI', gOk: 'Google подключён ✓ Первая синхронизация уже идёт', gFail: 'Не удалось подключить Google', never: 'ещё не было',
 }
 
 type Dict = typeof ru
@@ -263,6 +274,17 @@ const en: Dict = {
   w1: 'Install Scriptable from the App Store.', w2: 'Tap “Copy script” below, in Scriptable tap “+”, paste and name it “Family Hub”.',
   w3: 'On the Home Screen: long-press → “+” → Scriptable → pick a size.', w4: 'Tap the widget → Script: Family Hub.', copyScript: 'Copy script',
   needKey: 'Create a personal key above first.',
+  gConnect: 'Connect Google', gConnected: 'Connected: {email}', gLastSync: 'Last sync', gSyncNow: 'Sync now',
+  gDisconnect: 'Disconnect Google', gShare: 'Show my Google events to my partner', gTasks: 'Sync tasks with Google Tasks',
+  gHow: 'Events and tasks sync both ways every 10 minutes. Each of you connects your own Google.',
+  gSetup: 'One-time Google Cloud setup (~5 minutes, once for both of you)',
+  g1: 'Open console.cloud.google.com and create a project “Family Hub”.',
+  g2: '“APIs & Services” → “Library”: enable Google Calendar API and Google Tasks API.',
+  g3: '“OAuth consent screen”: External, name Family Hub. Add both Gmail addresses as test users, then “Publish app” — otherwise sign-in expires after 7 days.',
+  g4: '“Credentials” → “Create” → “OAuth client ID” → “Web application”. Paste the address below into “Authorized redirect URIs”.',
+  g5: 'Copy the Client ID and Client secret. In Supabase: project vdvoem → Edge Functions → Secrets → add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.',
+  g6: 'Come back and tap “Connect Google”. On “app not verified” tap “Advanced” → “Go to”.',
+  gRedirect: 'Redirect URI', gOk: 'Google connected ✓ The first sync is running', gFail: 'Could not connect Google', never: 'not yet',
 }
 
 const pl: Dict = {
@@ -394,6 +416,17 @@ const pl: Dict = {
   w1: 'Zainstaluj Scriptable z App Store.', w2: 'Dotknij „Kopiuj skrypt” poniżej, w Scriptable „+”, wklej i nazwij „Family Hub”.',
   w3: 'Na ekranie początkowym: przytrzymaj → „+” → Scriptable → wybierz rozmiar.', w4: 'Dotknij widżetu → Script: Family Hub.', copyScript: 'Kopiuj skrypt',
   needKey: 'Najpierw utwórz klucz osobisty powyżej.',
+  gConnect: 'Połącz Google', gConnected: 'Połączono: {email}', gLastSync: 'Synchronizacja', gSyncNow: 'Synchronizuj teraz',
+  gDisconnect: 'Odłącz Google', gShare: 'Pokazuj partnerowi moje wydarzenia z Google', gTasks: 'Synchronizuj zadania z Google Tasks',
+  gHow: 'Wydarzenia i zadania synchronizują się w obie strony co 10 minut. Każde łączy swoje Google.',
+  gSetup: 'Jednorazowa konfiguracja Google Cloud (~5 minut, raz dla was obojga)',
+  g1: 'Otwórz console.cloud.google.com i utwórz projekt „Family Hub”.',
+  g2: '„Interfejsy API i usługi” → „Biblioteka”: włącz Google Calendar API i Google Tasks API.',
+  g3: '„Ekran zgody OAuth”: External, nazwa Family Hub. Dodaj oba Gmaile jako testerów, potem „Opublikuj aplikację” — inaczej logowanie wygasa po 7 dniach.',
+  g4: '„Dane logowania” → „Utwórz” → „Identyfikator klienta OAuth” → „Aplikacja internetowa”. Wklej adres poniżej do „Autoryzowane URI przekierowania”.',
+  g5: 'Skopiuj Client ID i Client secret. W Supabase: projekt vdvoem → Edge Functions → Secrets → dodaj GOOGLE_CLIENT_ID i GOOGLE_CLIENT_SECRET.',
+  g6: 'Wróć tu i dotknij „Połącz Google”. Przy „aplikacja niezweryfikowana” — „Zaawansowane” → „Przejdź”.',
+  gRedirect: 'Redirect URI', gOk: 'Google połączone ✓ Trwa pierwsza synchronizacja', gFail: 'Nie udało się połączyć Google', never: 'jeszcze nie',
 }
 
 const es: Dict = {
@@ -525,6 +558,17 @@ const es: Dict = {
   w1: 'Instala Scriptable desde el App Store.', w2: 'Toca «Copiar script», en Scriptable «+», pega y llámalo «Family Hub».',
   w3: 'En la pantalla de inicio: mantén pulsado → «+» → Scriptable → elige tamaño.', w4: 'Toca el widget → Script: Family Hub.', copyScript: 'Copiar script',
   needKey: 'Primero crea una clave personal arriba.',
+  gConnect: 'Conectar Google', gConnected: 'Conectado: {email}', gLastSync: 'Sincronización', gSyncNow: 'Sincronizar ahora',
+  gDisconnect: 'Desconectar Google', gShare: 'Mostrar mis eventos de Google a mi pareja', gTasks: 'Sincronizar tareas con Google Tasks',
+  gHow: 'Eventos y tareas se sincronizan en ambos sentidos cada 10 minutos. Cada uno conecta su propio Google.',
+  gSetup: 'Configuración única de Google Cloud (~5 minutos, una vez para los dos)',
+  g1: 'Abre console.cloud.google.com y crea un proyecto «Family Hub».',
+  g2: '«API y servicios» → «Biblioteca»: activa Google Calendar API y Google Tasks API.',
+  g3: '«Pantalla de consentimiento OAuth»: External, nombre Family Hub. Añade los dos Gmail como usuarios de prueba y luego «Publicar app» — si no, el acceso caduca a los 7 días.',
+  g4: '«Credenciales» → «Crear» → «ID de cliente OAuth» → «Aplicación web». Pega la dirección de abajo en «URI de redireccionamiento autorizados».',
+  g5: 'Copia el Client ID y el Client secret. En Supabase: proyecto vdvoem → Edge Functions → Secrets → añade GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET.',
+  g6: 'Vuelve aquí y toca «Conectar Google». En «app no verificada» toca «Avanzado» → «Ir a».',
+  gRedirect: 'Redirect URI', gOk: 'Google conectado ✓ La primera sincronización está en marcha', gFail: 'No se pudo conectar Google', never: 'aún no',
 }
 
 export const DICTS: Record<Lang, Dict> = { ru, en, pl, es }

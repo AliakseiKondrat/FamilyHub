@@ -3,7 +3,7 @@ import { useApp } from './store'
 import { moduleLabel, useT } from './i18n'
 import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
 import { ALL_MODULES } from './defaults'
-import { Icon } from './ui'
+import { Icon, toast } from './ui'
 import { accentColors, applyDesign } from './theme'
 import type { ModuleId } from './types'
 import Today from './screens/Today'
@@ -142,6 +142,14 @@ export default function App() {
   useEffect(() => { applyDesign(s, theme) }, [s, theme])
   // Book this month's recurring payments once the data is ready.
   useEffect(() => { if (sync.status === 'ready') bookRecurring() }, [sync.status])
+  // Back from Google sign-in (?google=ok|error): say how it went and tidy the address.
+  useEffect(() => {
+    const g = new URLSearchParams(location.search).get('google')
+    if (!g || sync.status !== 'ready') return
+    toast(g === 'ok' ? t('gOk') : t('gFail'))
+    history.replaceState(history.state, '', location.pathname)
+    nav.settings('google')
+  }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (sync.status === 'loading') return <div className="loading">❤️</div>
   if (sync.status !== 'ready') return <Login />

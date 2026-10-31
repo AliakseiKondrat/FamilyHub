@@ -97,7 +97,7 @@ export default function Calendar({ back }: { back?: boolean }) {
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
             left={<div className="color-bar" style={{ '--c': whoColor(e.who) } as CSSProperties} />}
-            title={<>{e.title} <Marks x={e} /></>}
+            title={<>{e.title} <Marks x={e} />{(e as { source?: string }).source === 'google' && <span className="badge" style={{ '--c': '#4285f4' } as CSSProperties}>G</span>}</>}
             sub={e.time ? `${e.time}${e.endTime ? ` – ${e.endTime}` : ''}` : t('allDay')}
             right={<Avatar who={e.who} />} />
         ))}
@@ -106,8 +106,8 @@ export default function Calendar({ back }: { back?: boolean }) {
         {empty && !isPeriod && <Row title={<span style={{ color: 'var(--label2)' }}>{t('noEvents')}</span>} />}
       </Section>
 
-      <Section footer={t('googleSoon')}>
-        <Row icon={<span style={{ fontWeight: 700, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} detail={t('soon')} />
+      <Section footer={t('gHow')}>
+        <Row icon={<span style={{ fontWeight: 800, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} chevron onClick={() => nav.settings('google')} />
       </Section>
 
       {editEvent && <EventEditor event={editEvent} onClose={() => setEditEvent(null)} />}

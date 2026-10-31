@@ -1,4 +1,5 @@
-// Renders the app icon (white heart on a pink→peach gradient) to PNG without any image libraries.
+// Renders the Family Hub icon (white house with a pink heart on the indigo→violet brand gradient) to PNG,
+// with no image libraries: shapes are tested per sub-pixel and antialiased by supersampling.
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
@@ -21,9 +22,21 @@ const chunk = (type, data) => {
   return Buffer.concat([len, td, crc])
 }
 
-const top = [255, 94, 138]
-const bottom = [255, 159, 98]
-const inHeart = (x, y) => (x * x + y * y - 1) ** 3 - x * x * y ** 3 <= 0
+const TOP = [67, 56, 202]     // #4338ca
+const BOTTOM = [168, 85, 247] // #a855f7
+const WHITE = [255, 255, 255]
+const HEART = [255, 94, 138]  // #ff5e8a
+
+// Shapes in a [-1.8, 1.8] square, y pointing up.
+const inTriangle = (x, y) => y >= 0.05 && y <= 1.1 - Math.abs(x) * 1.0 && Math.abs(x) <= 1.05
+const inBody = (x, y) => Math.abs(x) <= 0.78 && y <= 0.1 && y >= -1.0
+const inChimney = (x, y) => x >= 0.42 && x <= 0.66 && y >= 0.3 && y <= 0.95
+const inHouse = (x, y) => inTriangle(x, y) || inBody(x, y) || inChimney(x, y)
+const inHeart = (x, y) => {
+  const s = 0.36
+  const hx = x / s, hy = (y + 0.38) / s + 0.15
+  return (hx * hx + hy * hy - 1) ** 3 - hx * hx * hy ** 3 <= 0
+}
 
 function render(size) {
   const raw = Buffer.alloc((size * 3 + 1) * size)
@@ -31,18 +44,18 @@ function render(size) {
   for (let py = 0; py < size; py++) {
     raw[py * (size * 3 + 1)] = 0
     const t = py / (size - 1)
-    const bg = top.map((v, i) => v + (bottom[i] - v) * t)
+    const bg = TOP.map((v, i) => v + (BOTTOM[i] - v) * t)
     for (let px = 0; px < size; px++) {
-      let cover = 0
+      const acc = [0, 0, 0]
       for (let sy = 0; sy < ss; sy++)
         for (let sx = 0; sx < ss; sx++) {
           const x = ((px + (sx + 0.5) / ss) / size - 0.5) * 3.6
-          const y = -((py + (sy + 0.5) / ss) / size - 0.5) * 3.6 + 0.12
-          if (inHeart(x, y)) cover++
+          const y = -((py + (sy + 0.5) / ss) / size - 0.5) * 3.6 - 0.05
+          const c = inHeart(x, y) ? HEART : inHouse(x, y) ? WHITE : bg
+          for (let i = 0; i < 3; i++) acc[i] += c[i]
         }
-      const a = cover / (ss * ss)
       const o = py * (size * 3 + 1) + 1 + px * 3
-      for (let i = 0; i < 3; i++) raw[o + i] = Math.round(bg[i] * (1 - a) + 255 * a)
+      for (let i = 0; i < 3; i++) raw[o + i] = Math.round(acc[i] / (ss * ss))
     }
   }
   const ihdr = Buffer.alloc(13)

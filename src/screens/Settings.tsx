@@ -6,7 +6,8 @@ import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
 import { demoState } from '../demo'
-import { SYNC_ENABLED } from '../config'
+import { SUPABASE_URL, SYNC_ENABLED } from '../config'
+import { LOCALES } from '../lib/date'
 import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign } from '../defaults'
@@ -609,11 +610,58 @@ function WidgetPage() {
   )
 }
 
+interface GoogleStatus { configured: boolean; connected: boolean; email?: string; share_events?: boolean; sync_tasks?: boolean; last_sync?: string | null; last_error?: string | null }
+
 function GooglePage() {
+  const s = useApp()
   const t = useT()
+  const [st, setSt] = useState<GoogleStatus | null>(null)
+  const [busy, setBusy] = useState(false)
+  const call = async (action: string, extra: object = {}) => {
+    const { data, error } = await supabase!.functions.invoke('google', { body: { action, ...extra } })
+    if (error) throw error
+    return data
+  }
+  const refresh = () => call('status').then(setSt).catch(() => setSt({ configured: false, connected: false }))
+  useEffect(() => { if (SYNC_ENABLED) refresh() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true)
+    try { await fn() } catch (e) { toast('⚠︎ ' + ((e as Error).message ?? '')) }
+    await refresh()
+    setBusy(false)
+  }
+  const redirect = `${SUPABASE_URL}/functions/v1/google`
+  const when = st?.last_sync ? new Intl.DateTimeFormat(LOCALES[s.lang], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(st.last_sync)) : t('never')
+
   return (
-    <Screen title={t('connectGoogle')} back accent="calendar">
-      <Section footer={t('googleSoon')}><Row icon="G" title={t('connectGoogle')} detail={t('soon')} /></Section>
+    <Screen title={t('connectGoogle')} back accent="calendar" subtitle={t('gHow')}
+      actions={st?.configured ? [st.connected
+        ? { icon: '🔄', label: t('gSyncNow'), onClick: () => run(() => call('sync')) }
+        : { icon: 'G', label: t('gConnect'), onClick: () => run(async () => { const r = await call('start'); location.href = r.url }) }] : undefined}>
+      {!SYNC_ENABLED && <Section><Row title={t('prototype')} /></Section>}
+      {(busy || (SYNC_ENABLED && !st)) && <div className="empty" style={{ padding: 12 }}>…</div>}
+      {st?.connected && (
+        <>
+          <Section footer={st.last_error ? `⚠︎ ${st.last_error}` : undefined}>
+            <Row icon="✅" title={t('gConnected', { email: st.email ?? 'Google' })} sub={`${t('gLastSync')}: ${when}`} />
+          </Section>
+          <Section>
+            <ToggleRow icon="💞" label={t('gShare')} on={!!st.share_events} onChange={(v) => run(() => call('settings', { share_events: v, sync_tasks: st.sync_tasks }))} />
+            <ToggleRow icon="✅" label={t('gTasks')} on={!!st.sync_tasks} onChange={(v) => run(() => call('settings', { share_events: st.share_events, sync_tasks: v }))} />
+          </Section>
+          <Section>
+            <button className="row tap destructive" onClick={() => run(() => call('disconnect'))}>{t('gDisconnect')}</button>
+          </Section>
+        </>
+      )}
+      {st && !st.configured && (
+        <>
+          <Section header={t('gSetup')}>
+            {(['g1', 'g2', 'g3', 'g4', 'g5', 'g6'] as const).map((k, i) => <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
+          </Section>
+          <Section><CopyRow label={t('gRedirect')} value={redirect} /></Section>
+        </>
+      )}
     </Screen>
   )
 }
