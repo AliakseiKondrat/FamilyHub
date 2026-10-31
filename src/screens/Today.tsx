@@ -13,11 +13,13 @@ import { PhotoThumb } from './Photos'
 import { currencyOf, monthSpending } from './Budget'
 import { Cover, player } from './Music'
 import { StatusChips } from './Statuses'
+import { findDeviceUrl, usePlatform } from '../lib/platform'
 
 export default function Today({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const nav = useNav()
+  const platform = usePlatform()
   const [editTask, setEditTask] = useState<Task | null>(null)
   const [editEvent, setEditEvent] = useState<CalEvent | null>(null)
   const d = today()
@@ -141,7 +143,7 @@ export default function Today({ back }: { back?: boolean }) {
       right={<>
         <GlassButton icon="search" label={t('searchAll')} onClick={nav.search} />
         {/* Find My does the location sharing itself; we only jump to it. */}
-        <GlassButton label="📍" onClick={() => { location.href = 'findmy://' }} />
+        <GlassButton label="📍" onClick={() => { if (platform === 'android') window.open(findDeviceUrl(platform), '_blank'); else location.href = findDeviceUrl(platform) }} />
         <GlassButton label={me.emoji} onClick={() => nav.settings()} />
       </>}
       hero={<>

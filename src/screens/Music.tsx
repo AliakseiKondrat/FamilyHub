@@ -22,13 +22,13 @@ function fromItunes(me: UserId, x: ItunesSong): Track {
 }
 
 /** Title, artist, cover and player for a pasted Spotify / YouTube link (via our API). */
-async function fromLink(me: UserId, url: string): Promise<Track | null> {
+export async function fromLink(me: UserId, url: string): Promise<Track | null> {
   const m = await fetch(`${API_BASE}/meta?url=${encodeURIComponent(url)}`).then((r) => r.json()).catch(() => null)
   if (!m || m.error || !m.title) return null
   return { ...base(me), title: m.title, artist: m.artist ?? '', artwork: m.artwork ?? '', url: m.url, embed: m.embed, service: m.service, likes: [] }
 }
 
-const isMusicLink = (v: string) => /^https?:\/\/(open\.spotify\.com|(www\.|m\.|music\.)?youtube\.com|youtu\.be)\//.test(v)
+export const isMusicLink = (v: string) => /^https?:\/\/(open\.spotify\.com|(www\.|m\.|music\.)?youtube\.com|youtu\.be)\//.test(v)
 
 /* ---------- Tiny global player for previews ---------- */
 type PlayerState = { track?: Track; playing: boolean; progress: number }

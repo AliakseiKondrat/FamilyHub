@@ -1,4 +1,5 @@
 import type { Lang } from '../types'
+import { API_BASE } from './widget'
 
 /** A ready-made recipe for the Shortcuts app that talks to our personal API. */
 export interface Preset {
@@ -131,4 +132,72 @@ export function presetSteps(p: Preset, lang: Lang) {
       ? [`Новая команда «${tx.title}».`, '«Получить содержимое URL»: адрес ниже (метод GET).', '«Быстрый просмотр» или «Произнести текст» → «Содержимое URL».']
       : [`New shortcut “${tx.title}”.`, '“Get Contents of URL”: address below (method GET).', '“Quick Look” or “Speak Text” → “Contents of URL”.']
   }
+}
+
+/* ---------- Android: the same API through MacroDroid (free, Google Play) ---------- */
+
+type AndroidText = { trigger: string; endTrigger?: string; desc?: string; title?: string }
+/**
+ * MacroDroid triggers for the presets that make sense on Android. Adding to lists by hand is covered by the app
+ * itself there (Share → Family Hub, long-press on the icon), so only automatic and read-out presets are listed.
+ */
+export const ANDROID: Record<string, Record<'ru' | 'en', AndroidText>> = {
+  wallet: {
+    ru: { title: 'Траты из Google Кошелька', trigger: '«Уведомление» → «Получено» → приложение Google Кошелёк', desc: 'Каждая оплата телефоном попадает в бюджет: сумму и магазин сервер берёт из текста уведомления.' },
+    en: { title: 'Google Wallet expenses', trigger: '“Notification” → “Received” → Google Wallet app', desc: 'Every phone payment lands in the budget: the server reads amount and shop from the notification text.' },
+  },
+  drive: {
+    ru: { trigger: '«Bluetooth» → «Подключено» → магнитола машины (или «Android Auto» → «Подключено»)', endTrigger: '«Bluetooth» → «Отключено» → та же магнитола', desc: 'Сел в машину — «За рулём», вышел — статус снимается сам.' },
+    en: { trigger: '“Bluetooth” → “Connected” → the car stereo (or “Android Auto” → “Connected”)', endTrigger: '“Bluetooth” → “Disconnected” → the same stereo', desc: 'Get in the car — “Driving”; get out — it clears itself.' },
+  },
+  work: {
+    ru: { trigger: '«Местоположение» → «Геозона» → «Вход» → адрес работы', endTrigger: '«Геозона» → «Выход» → адрес работы', desc: 'Пришёл на работу — «Работаю», ушёл — статус снимается.' },
+    en: { trigger: '“Location” → “Geofence” → “Enter” → work address', endTrigger: '“Geofence” → “Exit” → work address', desc: 'Arrive at work — “Working”; leave — it clears.' },
+  },
+  home: {
+    ru: { trigger: '«Местоположение» → «Геозона» → «Вход» → дом (или подключение к домашнему Wi-Fi)', endTrigger: '«Геозона» → «Выход» → дом (или отключение от домашнего Wi-Fi)', desc: 'Пришёл домой — «Дома». Если вы оба дома, на главной будет общий статус 💞.' },
+    en: { trigger: '“Location” → “Geofence” → “Enter” → home (or connecting to home Wi-Fi)', endTrigger: '“Geofence” → “Exit” → home (or leaving home Wi-Fi)', desc: 'Arrive home — “Home”. When you’re both home, Today shows one shared status 💞.' },
+  },
+  sleep: {
+    ru: { trigger: '«Не беспокоить» → «Включён» (на Pixel его включает «Режим отхода ко сну»)', endTrigger: '«Не беспокоить» → «Выключен»', desc: 'Лёг спать — «Сплю», утром статус снимается сам.' },
+    en: { trigger: '“Do Not Disturb” → “Enabled” (on a Pixel, Bedtime mode turns it on)', endTrigger: '“Do Not Disturb” → “Disabled”', desc: 'Go to bed — “Sleeping”; in the morning it clears itself.' },
+  },
+  rest: {
+    ru: { trigger: '«День/время» → например 21:00', desc: 'Снимать не обязательно: «Сплю» его заменит, а старый статус и так гаснет сам.' },
+    en: { trigger: '“Day/Time” → e.g. 21:00', desc: 'No need to clear it: “Sleeping” replaces it, and old statuses fade anyway.' },
+  },
+  readGroceries: {
+    ru: { trigger: '«Ярлык» (иконка макроса на главном экране) или «Голосовая команда»' },
+    en: { trigger: '“Shortcut launched” (macro icon on the Home screen) or a voice trigger' },
+  },
+  readTasks: {
+    ru: { trigger: '«Будильник» → «Отключён» (утром) или «Ярлык» на главном экране' },
+    en: { trigger: '“Alarm” → “Dismissed” (mornings) or a Home-screen shortcut' },
+  },
+}
+
+/** A plain GET address with everything in it: MacroDroid's HTTP request then needs nothing else. */
+export function androidUrl(p: Preset, key: string, end = false) {
+  if (p.route === 'list') return `${API_BASE}/list?${p.query}&key=${key}`
+  // MacroDroid fills [notification_title] / [notification] with the payment notification's text.
+  const extra = p.id === 'wallet' ? { text: '[notification_title]%20[notification]' } : {}
+  const params = { key, ...p.fields, ...extra, ...(end ? { end: '1' } : {}) }
+  return `${API_BASE}/add?` + Object.entries(params).map(([k, v]) => `${k}=${v}`).join('&')
+}
+
+export function androidSteps(p: Preset, lang: Lang) {
+  const ru = lang === 'ru'
+  const a = ANDROID[p.id][ru ? 'ru' : 'en']
+  const where = a.endTrigger ? (ru ? '«Включение» ниже' : '“Start” below') : (ru ? 'ниже' : 'below')
+  const http = ru ? `Действие: «Подключение» → «HTTP-запрос», метод GET, адрес — ${where}.` : `Action: “Connectivity” → “HTTP Request”, method GET, URL — ${where}.`
+  const steps = ru
+    ? ['Установи MacroDroid из Google Play и открой его.', '«Добавить макрос».', `Триггер: ${a.trigger}.`, http]
+    : ['Install MacroDroid from Google Play and open it.', '“Add Macro”.', `Trigger: ${a.trigger}.`, http]
+  if (p.kind === 'read') steps.push(ru
+    ? 'В запросе сохрани ответ в текстовую переменную, затем «Уведомление» или «Произнести текст» с этой переменной.'
+    : 'In the request save the response to a string variable, then “Display Notification” or “Speak Text” with it.')
+  if (a.endTrigger) steps.push(ru
+    ? `Второй макрос, чтобы статус снимался: триггер ${a.endTrigger}, тот же HTTP-запрос с адресом «Выключение».`
+    : `A second macro clears the status: trigger ${a.endTrigger}, the same HTTP request with the “End” URL.`)
+  return steps
 }

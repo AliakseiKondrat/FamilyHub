@@ -6,6 +6,7 @@ import { today } from '../lib/date'
 import { ALL_MODULES } from '../defaults'
 import { accentColors } from '../theme'
 import type { ModuleId, State } from '../types'
+import { findDeviceUrl, usePlatform } from '../lib/platform'
 
 function count(s: State, id: ModuleId): number | string {
   const me = s.me
@@ -29,6 +30,7 @@ export default function More() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
+  const platform = usePlatform()
   // Everything not already in the tab bar; the cycle tracker only exists for Julia.
   const mods = ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j'))
   return (
@@ -58,9 +60,9 @@ export default function More() {
             <div className="row-icon" style={{ background: 'var(--gray)', color: '#fff' }}><Icon name="gear" style={{ width: 20, height: 20 }} /></div>
             <div className="row-main"><div className="row-title">{t('settings')}</div></div>
           </button>
-          <a className="row tap with-icon" href="findmy://" style={{ color: 'inherit' }}>
+          <a className="row tap with-icon" href={findDeviceUrl(platform)} target={platform === 'android' ? '_blank' : undefined} rel="noreferrer" style={{ color: 'inherit' }}>
             <div className="row-icon" style={{ background: 'linear-gradient(135deg,#34c759,#30b0c7)' }}>📍</div>
-            <div className="row-main"><div className="row-title">{t('openFindMy')}</div></div>
+            <div className="row-main"><div className="row-title">{t(platform === 'android' ? 'openFindHub' : 'openFindMy')}</div></div>
           </a>
           <button className="row tap with-icon" onClick={() => nav.settings('design')}>
             <div className="row-icon" style={{ background: 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)' }}>🎨</div>

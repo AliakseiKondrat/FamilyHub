@@ -10,7 +10,7 @@ import type { Grocery, State } from '../types'
 const cap = (x: string) => x[0].toUpperCase() + x.slice(1)
 
 /** Add items (comma-separated) to the list; a known item is just un-ticked. */
-function addItems(st: State, text: string, category?: string) {
+export function addItems(st: State, text: string, category?: string) {
   const cats = st.groceryCats.filter((c) => !c.hidden).map((c) => c.id)
   for (const title of text.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean)) {
     const existing = st.groceries.find((g) => g.title.toLowerCase() === title.toLowerCase())

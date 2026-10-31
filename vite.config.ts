@@ -30,6 +30,13 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Android: long-press the icon for these, and "Share → Family Hub" from any app (iOS ignores both).
+        shortcuts: [
+          { name: 'Продукты', short_name: 'Продукты', url: './?open=groceries', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Задачи', short_name: 'Задачи', url: './?open=tasks', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Входящие', short_name: 'Входящие', url: './?open=inbox', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+        ],
+        share_target: { action: './', method: 'GET', params: { title: 'title', text: 'text', url: 'url' } },
       },
     }),
   ],

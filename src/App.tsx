@@ -23,6 +23,7 @@ import More from './screens/More'
 import Settings from './screens/Settings'
 import Login from './screens/Login'
 import Search from './screens/Search'
+import { ShareSheet, takeLaunchParams, type Shared } from './screens/Share'
 import { useSync } from './sync'
 
 const TAB_ICONS: Partial<Record<ModuleId, string>> = { today: 'today', calendar: 'calendar', tasks: 'tasks', groceries: 'cart' }
@@ -137,6 +138,7 @@ export default function App() {
   const lensRef = useRef<HTMLDivElement>(null)
   const drag = useRef<{ x: number; moved: boolean } | null>(null)
   const swallowClick = useRef(false)
+  const [shared, setShared] = useState<Shared | null>(null)
 
   const width = useWidth()
   const wide = s.prefs.layout === 'wide' || (s.prefs.layout === 'auto' && width >= 900)
@@ -154,6 +156,14 @@ export default function App() {
     toast(g === 'ok' ? t('gOk') : t('gFail'))
     history.replaceState(history.state, '', location.pathname)
     nav.settings('google')
+  }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Opened from an icon shortcut (?open=groceries) or from Android's Share menu (?url=…&text=…).
+  useEffect(() => {
+    if (sync.status !== 'ready') return
+    const p = takeLaunchParams()
+    if (p.open && ALL_MODULES.includes(p.open)) nav.open(p.open)
+    if (p.shared) setShared(p.shared)
   }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (sync.status === 'loading') return <div className="loading">❤️</div>
@@ -211,6 +221,7 @@ export default function App() {
         <div key={i} className={out ? 'leaving-wrap' : i < nav.stack.length - 1 ? 'covered-wrap' : undefined}>{routeScreen(r)}</div>
       ))}
       <MiniPlayer />
+      {shared && <ShareSheet shared={shared} onClose={() => setShared(null)} />}
     </>
   )
 

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
 import { API_BASE, widgetScript } from '../lib/widget'
-import { PRESETS as SHORTCUTS, presetSteps } from '../lib/shortcuts'
+import { ANDROID, PRESETS as SHORTCUTS, androidSteps, androidUrl, presetSteps } from '../lib/shortcuts'
+import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
@@ -72,6 +73,8 @@ function RootPage() {
   const t = useT()
   const nav = useNav()
   const sync = useSync()
+  const platform = usePlatform()
+  const choice = usePlatformChoice()
   const link = (icon: string, bg: string, title: ReactNode, page: SettingsPage, detail?: ReactNode) => (
     <Row icon={icon} iconBg={bg} title={title} detail={detail} chevron onClick={() => nav.settings(page)} />
   )
@@ -85,7 +88,7 @@ function RootPage() {
         </div>
       </div>}>
       {SYNC_ENABLED ? (
-        <Section footer={t('installHint')}>
+        <Section footer={t(platform === 'android' ? 'installHintAndroid' : 'installHint')}>
           <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'}
             title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} />
           <button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button>
@@ -119,12 +122,22 @@ function RootPage() {
         <Row icon={s.pet.emoji} iconBg="color-mix(in srgb, var(--brown) 20%, transparent)" title={t('pet')} detail={s.pet.name} chevron onClick={() => nav.open('pet')} />
         {link('🌐', 'color-mix(in srgb, var(--indigo) 20%, transparent)', t('regionLang'), 'region', LANG_NAMES[s.lang])}
       </Section>
+      <Section footer={t('deviceHint')}>
+        <SelectRow label={`📱 ${t('device')}`} value={choice} onChange={setPlatformChoice}
+          options={[
+            { value: 'auto', label: t('platform.auto', { p: t(`platform.${detectPlatform()}`) }) },
+            { value: 'ios', label: t('platform.ios') },
+            { value: 'android', label: t('platform.android') },
+          ]} />
+      </Section>
 
       <Section header={t('integrations')}>
         {link('🔔', 'color-mix(in srgb, var(--red) 20%, transparent)', t('push'), 'notifications')}
-        {link('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length)}
-        {link('🎙️', 'color-mix(in srgb, var(--purple) 20%, transparent)', t('siriTitle'), 'siri')}
-        {link('🧩', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('widgets'), 'widget')}
+        {platform === 'android'
+          ? link('⚡️', 'linear-gradient(135deg,#34a853,#4285f4)', t('presetsAndroid'), 'shortcuts', Object.keys(ANDROID).length)
+          : link('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length)}
+        {platform === 'ios' && link('🎙️', 'color-mix(in srgb, var(--purple) 20%, transparent)', t('siriTitle'), 'siri')}
+        {link('🧩', 'color-mix(in srgb, var(--orange) 20%, transparent)', t(platform === 'android' ? 'quickActions' : 'widgets'), 'widget')}
         {link('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google')}
       </Section>
 
@@ -493,6 +506,7 @@ function NotificationsPage() {
   const s = useApp()
   const t = useT()
   const support = pushSupport()
+  const platform = usePlatform()
   const [status, setStatus] = useState<'on' | 'off' | 'denied' | '…'>('…')
   const [busy, setBusy] = useState(false)
   const n = s.prefs.notify
@@ -508,7 +522,7 @@ function NotificationsPage() {
     <Screen title={t('push')} back accent="calendar"
       hero={<div className="hero-sub" style={{ marginTop: 0, fontSize: 17 }}>
         {support === 'needs-install' ? t('pushInstall') : support === 'unsupported' ? t('pushUnsupported')
-          : status === 'on' ? `✅ ${t('pushOn')}` : status === 'denied' ? `⛔️ ${t('pushDenied')}` : `🔕 ${t('pushOff')}`}
+          : status === 'on' ? `✅ ${t('pushOn')}` : status === 'denied' ? `⛔️ ${t(platform === 'android' ? 'pushDeniedAndroid' : 'pushDenied')}` : `🔕 ${t('pushOff')}`}
       </div>}
       actions={support === 'ok' ? [
         status === 'on'
@@ -606,6 +620,14 @@ function WidgetPage() {
   const t = useT()
   const api = useApiKey()
   const { key } = api
+  // Android has no Scriptable; the installed app's icon shortcuts and Share target do that job.
+  if (usePlatform() === 'android') return (
+    <Screen title={t('quickActions')} back accent="recipes" subtitle={t('quickActionsIntro')}>
+      <Section footer={t('installHintAndroid')}>
+        {(['qa1', 'qa2', 'qa3'] as const).map((k, i) => <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
+      </Section>
+    </Screen>
+  )
   return (
     <Screen title={t('widgetTitle')} back accent="recipes" subtitle={t('widgetIntro')}>
       <KeySection api={api} />
@@ -703,6 +725,7 @@ function StatusesPage() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
+  const platform = usePlatform()
   const [edit, setEdit] = useState<StatusPreset | null>(null)
   const list = s.prefs.statusPresets
   const save = (next: StatusPreset[]) => setPrefs({ statusPresets: next })
@@ -723,7 +746,7 @@ function StatusesPage() {
         </Section>
       ))}
       <Section header={t('statusSourceTitle')} footer={t('statusSource')}>
-        <Row icon="⚡️" title={t('presets')} chevron onClick={() => nav.settings('shortcuts')} />
+        <Row icon="⚡️" title={t(platform === 'android' ? 'presetsAndroid' : 'presets')} chevron onClick={() => nav.settings('shortcuts')} />
       </Section>
       {edit && (
         <Sheet title={`${edit.emoji} ${edit.label || t('newStatus')}`} onClose={() => setEdit(null)} doneDisabled={!edit.label.trim()}
@@ -757,6 +780,31 @@ function ShortcutsPage() {
   const api = useApiKey()
   const [open, setOpen] = useState<string | null>(null)
   const ru = s.lang === 'ru'
+  if (usePlatform() === 'android') return (
+    <Screen title={t('presetsAndroid')} back accent="watch" subtitle={t('presetsHintAndroid')}>
+      <KeySection api={api} />
+      {SHORTCUTS.filter((p) => ANDROID[p.id]).map((p) => {
+        const tx = p.text[ru ? 'ru' : 'en']
+        const a = ANDROID[p.id][ru ? 'ru' : 'en']
+        const isOpen = open === p.id
+        const k = api.key ?? '…'
+        return (
+          <div key={p.id} className="section">
+            <div className="list">
+              <Row icon={p.emoji} title={a.title ?? tx.title} sub={a.desc ?? tx.desc} chevron onClick={() => setOpen(isOpen ? null : p.id)} />
+              {isOpen && (
+                <>
+                  {androidSteps(p, s.lang).map((step, i) => <Row key={i} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
+                  <CopyRow label={a.endTrigger ? t('urlStart') : t('apiUrl')} value={androidUrl(p, k)} />
+                  {a.endTrigger && <CopyRow label={t('urlEnd')} value={androidUrl(p, k, true)} />}
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </Screen>
+  )
   return (
     <Screen title={t('presets')} back accent="watch" subtitle={t('presetsHint')}>
       <KeySection api={api} />
