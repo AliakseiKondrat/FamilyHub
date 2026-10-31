@@ -10,7 +10,11 @@ const KEY = SYNC_ENABLED ? 'familyhub:v1' : 'familyhub:demo'
 function load(): State {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { ...demoState(), ...JSON.parse(raw) }
+    if (raw) {
+      // Fill in settings added in newer versions of the app.
+      const d = demoState(), p = JSON.parse(raw)
+      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: { ...d.prefs, ...p.prefs } }
+    }
   } catch { /* storage unavailable: fall back to demo data */ }
   return demoState()
 }

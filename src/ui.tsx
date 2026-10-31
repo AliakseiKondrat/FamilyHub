@@ -46,9 +46,11 @@ export interface Action { icon: ReactNode; label: string; onClick: () => void }
  * glass action buttons and extra header controls; the title collapses into a glass bar on scroll.
  * Pushed screens can be dismissed with a swipe from the left edge.
  */
-export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head }: {
+export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head, auraImage }: {
   title: ReactNode; accent: Accent; left?: ReactNode; right?: ReactNode; children: ReactNode; back?: boolean
   subtitle?: ReactNode; hero?: ReactNode; actions?: Action[]; head?: ReactNode
+  /** Optional picture blurred into the header (album art on the Music screen). */
+  auraImage?: string
 }) {
   const nav = useNav()
   const ref = useRef<HTMLDivElement>(null)
@@ -100,7 +102,7 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
   return (
     <div className={'screen' + (back ? ' push' : '')} ref={ref} style={{ ...accentStyle(accent), '--aura-h': auraH + 'px' } as CSSProperties}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-      <div className="aura" />
+      <div className="aura">{auraImage && <div className="aura-img" style={{ backgroundImage: `url("${auraImage}")` }} />}</div>
       <div className={'navbar' + (scrolled ? ' scrolled' : '')}>
         <div className="navbar-row">
           <div className="navbar-side">
@@ -119,7 +121,7 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
           <div className="actions">
             {actions.map((a) => (
               <button key={a.label} className="action" onClick={a.onClick}>
-                <span className="circle lg">{typeof a.icon === 'string' && a.icon.length > 3 ? <Icon name={a.icon} /> : a.icon}</span>
+                <span className="circle lg">{typeof a.icon === 'string' && a.icon in PATHS ? <Icon name={a.icon} /> : a.icon}</span>
                 <span>{a.label}</span>
               </button>
             ))}
@@ -220,7 +222,7 @@ export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: (
 export function Check({ on, onChange, color }: { on: boolean; onChange: () => void; color?: string }) {
   return (
     <button className={'check' + (on ? ' on' : '')} style={{ '--c': color } as CSSProperties}
-      onClick={(e) => { e.stopPropagation(); navigator.vibrate?.(8); onChange() }} aria-pressed={on}>
+      onClick={(e) => { e.stopPropagation(); if (getState().design.haptics) navigator.vibrate?.(8); onChange() }} aria-pressed={on}>
       <Icon name="check" />
     </button>
   )

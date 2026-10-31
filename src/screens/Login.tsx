@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+﻿import { useState, type CSSProperties } from 'react'
 import { useT } from '../i18n'
 import { signIn, signOut, signUp, useSync } from '../sync'
 
@@ -40,7 +40,7 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-logo lg on-accent" style={{ width: 92 } as CSSProperties}>❤️</div>
-      <h1>Вдвоём</h1>
+      <h1>Family Hub</h1>
       <p className="login-tag">{t('tagline')}</p>
       <div className="login-form lg on-accent">
         <div className="row"><input type="email" autoComplete="email" inputMode="email" placeholder={t('email')} value={email} onChange={(e) => setEmail(e.target.value)} /></div>

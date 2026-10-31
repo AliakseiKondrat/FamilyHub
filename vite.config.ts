@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'Вдвоём',
-        short_name: 'Вдвоём',
+        name: 'Family Hub',
+        short_name: 'Family Hub',
         description: 'Наш общий дом: продукты, задачи, календарь, бюджет и всё остальное',
         start_url: '.',
         scope: '.',

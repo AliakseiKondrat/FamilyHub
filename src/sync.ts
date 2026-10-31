@@ -6,6 +6,7 @@ import { blankState } from './demo'
 import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
+import { PERSONAL_KEYS, SHARED_KEYS } from './defaults'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -13,12 +14,12 @@ import type { State, UserId } from './types'
  * pull (on start / when the app comes back to the foreground) and by Realtime in between.
  */
 
-const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'watch', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods'] as const
+const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods'] as const
 type Coll = (typeof COLLECTIONS)[number]
-/** Settings both of you share; me / lang / theme stay per device. */
-const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength'] as const
 const SETTINGS_ID = 'meta:settings'
 const PERIOD_DAYS_ID = 'meta:period_days'
+/** Each person's own look & layout, private to them but shared across their devices. */
+const prefsId = (u: UserId) => `meta:prefs:${u}`
 
 interface Row {
   id: string; collection: string; data: unknown; created_by: UserId
@@ -55,6 +56,7 @@ function toRow(c: Coll, item: Item, me: UserId, deleted = false): Row {
 const metaRow = (id: string, data: unknown, me: UserId): Row =>
   ({ id, collection: 'meta', data, created_by: me, private_to: null, surprise_for: null, reveal_at: null, deleted: false })
 const shared = (s: State) => Object.fromEntries(SHARED_KEYS.map((k) => [k, s[k]]))
+const personal = (s: State) => Object.fromEntries(PERSONAL_KEYS.map((k) => [k, s[k]]))
 
 function enqueue(rows: Row[]) {
   if (!rows.length) return
@@ -76,6 +78,7 @@ function diff(prev: State, next: State) {
     for (const gone of before.values()) rows.push(toRow(c, gone, next.me, true))
   }
   if (JSON.stringify(shared(prev)) !== JSON.stringify(shared(next))) rows.push(metaRow(SETTINGS_ID, shared(next), next.me))
+  if (JSON.stringify(personal(prev)) !== JSON.stringify(personal(next))) rows.push({ ...metaRow(prefsId(next.me), personal(next), next.me), private_to: next.me })
   // Julia's device publishes just the period days for her partner's calendar.
   if (next.me === 'j' && (rows.some((r) => r.collection === 'periods') || prev.periodLength !== next.periodLength || prev.cycleLength !== next.cycleLength)) {
     rows.push(metaRow(PERIOD_DAYS_ID, { days: [...periodDays(next)].sort() }, next.me))
@@ -124,6 +127,7 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
     if (outbox[r.id] && !replace) continue // our own unsent edit is newer
     if (r.collection === 'meta') {
       if (r.id === SETTINGS_ID && !r.deleted) Object.assign(next, r.data)
+      if (r.id === prefsId(next.me) && !r.deleted) Object.assign(next, r.data)
       if (r.id === PERIOD_DAYS_ID && !r.deleted) next.sharedPeriodDays = (r.data as { days: string[] }).days
       continue
     }
@@ -136,7 +140,7 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
   if (replace) {
     // Unsent local edits win over what the server returned.
     for (const r of Object.values(outbox)) {
-      if (r.collection === 'meta') { if (r.id === SETTINGS_ID) Object.assign(next, r.data); continue }
+      if (r.collection === 'meta') { if (r.id === SETTINGS_ID || r.id === prefsId(next.me)) Object.assign(next, r.data); continue }
       const c = r.collection as Coll
       const list = (next[c] as Item[]).filter((x) => x.id !== r.id)
       if (!r.deleted) list.push(r.data as Item)

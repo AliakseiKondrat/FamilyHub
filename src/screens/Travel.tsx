@@ -6,7 +6,7 @@ import { Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Secti
 import { addDays, diffDays, fmtDate, today } from '../lib/date'
 import type { Trip } from '../types'
 
-export default function Travel() {
+export default function Travel({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const nav = useNav()
@@ -24,7 +24,7 @@ export default function Travel() {
   )
 
   return (
-    <Screen title={moduleLabel(s, 'travel').title} back accent="travel"
+    <Screen title={moduleLabel(s, 'travel').title} back={back} accent="travel"
       right={<GlassButton icon="plus" label={t('newTrip')} onClick={() => setEdit({ ...base(s.me), title: '', destination: '', start: addDays(d, 30), end: addDays(d, 35), plan: [], packing: [], docs: [] })} />}>
       {trips.length === 0 && <Empty emoji="🧳" text={t('empty')} />}
       {upcoming.length > 0 && <Section big header={t('upcomingTrips')}>{upcoming.map(row)}</Section>}

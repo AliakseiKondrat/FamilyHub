@@ -43,15 +43,17 @@ export function guessCategory(title: string) {
   return 'other'
 }
 
-export const BUDGET_CATS = ['groceries', 'eating', 'home', 'transport', 'fun', 'pet', 'health', 'travel', 'gifts', 'subscriptions', 'other'] as const
+export const BUDGET_CATS = ['groceries', 'eating', 'home', 'transport', 'fun', 'pet', 'health', 'travel', 'gifts', 'subscriptions', 'salary', 'other'] as const
 export const BUDGET_EMOJI: Record<string, string> = {
   groceries: '🛒', eating: '🍽️', home: '🏠', transport: '🚗', fun: '🎉', pet: '🐶', health: '💊',
-  travel: '✈️', gifts: '🎁', subscriptions: '📺', other: '💸',
+  travel: '✈️', gifts: '🎁', subscriptions: '📺', salary: '💼', other: '💸',
 }
 export const BUDGET_COLOR: Record<string, string> = {
   groceries: 'var(--green)', eating: 'var(--orange)', home: 'var(--blue)', transport: 'var(--teal)', fun: 'var(--purple)',
-  pet: 'var(--brown)', health: 'var(--red)', travel: 'var(--indigo)', gifts: 'var(--pink)', subscriptions: 'var(--gray)', other: 'var(--gray)',
+  pet: 'var(--brown)', health: 'var(--red)', travel: 'var(--indigo)', gifts: 'var(--pink)', subscriptions: 'var(--yellow)', salary: 'var(--green)', other: 'var(--gray)',
 }
+/** Colors for custom categories, assigned by position. */
+export const EXTRA_COLORS = ['#ff6482', '#64d2ff', '#ffd426', '#bf5af2', '#30d158', '#ff9f0a', '#5e5ce6', '#ac8e68']
 
 export const PET_EMOJI: Record<string, string> = { vaccine: '💉', parasite: '🕷️', vet: '🩺', groom: '✂️', other: '📌' }
 /** Default interval (days) to the next time, by record kind. */

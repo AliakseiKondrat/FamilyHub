@@ -5,7 +5,7 @@ export type Country = 'PL' | 'ES'
 export type Theme = 'auto' | 'light' | 'dark'
 
 export type ModuleId =
-  | 'today' | 'groceries' | 'tasks' | 'calendar' | 'budget' | 'watch' | 'recipes'
+  | 'today' | 'groceries' | 'tasks' | 'calendar' | 'budget' | 'watch' | 'recipes' | 'music'
   | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle'
 
 /** Fields every record carries: author plus the two visibility rules (surprise, private). */
@@ -36,12 +36,31 @@ export interface CalEvent extends Base {
 export interface Expense extends Base {
   title: string; amount: number; currency: string; category: string
   paidBy: UserId; shared: boolean; date: string; settlement?: boolean
+  /** Money coming in (salary etc.) rather than spent. */
+  income?: boolean
+  /** Generated from a recurring payment. */
+  recurringId?: string
 }
 
+/** A monthly payment (rent, subscriptions) that adds itself to the budget on its day. */
+export interface Recurring extends Base {
+  title: string; amount: number; category: string; paidBy: UserId; shared: boolean; day: number; active: boolean
+}
+
+/** Savings goal ("piggy bank"). */
+export interface Goal extends Base { title: string; emoji: string; target: number; saved: number; deadline?: string }
+
 export type WatchStatus = 'want' | 'watching' | 'done'
+export interface WatchLink { service: string; url: string; label?: string }
 export interface WatchItem extends Base {
   title: string; kind: 'movie' | 'series' | 'other'; status: WatchStatus
   rating?: Partial<Record<UserId, number>>; url?: string; notes?: string
+  links?: WatchLink[]; poster?: string; year?: string
+}
+
+export interface Track extends Base {
+  title: string; artist: string; artwork?: string; preview?: string; url?: string
+  album?: string; note?: string; likes: UserId[]
 }
 
 export interface Recipe extends Base {
@@ -71,7 +90,40 @@ export interface Photo extends Base { album: string; caption?: string; width: nu
 
 export interface Period { id: string; start: string; end?: string }
 
-export interface ModuleSettings { title?: string; emoji?: string }
+export interface ModuleSettings { title?: string; emoji?: string; hidden?: boolean }
+
+/** An editable category (groceries, budget): built-ins can be renamed/hidden, custom ones deleted. */
+export interface Category { id: string; title?: string; emoji: string; hidden?: boolean; custom?: boolean }
+
+export type TodayBlock = 'events' | 'tasks' | 'trip' | 'pet' | 'music' | 'memories' | 'dateIdea' | 'budget' | 'tomorrow'
+
+export interface Design {
+  /** Per-section header gradient overrides (preset id). */
+  accents: Partial<Record<string, string>>
+  glass: 'strong' | 'normal' | 'off'
+  radius: 'compact' | 'normal' | 'round'
+  textSize: 's' | 'm' | 'l'
+  header: 'gradient' | 'mesh' | 'solid'
+  cards: 'shadow' | 'flat'
+  tabLabels: boolean
+  reduceMotion: boolean
+  haptics: boolean
+  tabTint: 'blue' | 'accent' | 'mono'
+}
+
+export interface Prefs {
+  /** Four tabs in the bottom bar; "More" is always fifth. */
+  tabs: ModuleId[]
+  todayActions: ModuleId[]
+  todayBlocks: { id: TodayBlock; on: boolean }[]
+  weekStart: 1 | 0
+  startTab: ModuleId
+  swipeTabs: boolean
+  groceryQuickChips: boolean
+  groceryCollapsed: string[]
+  showCompletedTasks: boolean
+  budgetFilter: 'all' | 'shared' | 'mine'
+}
 
 export interface State {
   version: 1
@@ -80,14 +132,23 @@ export interface State {
   lang: Lang
   country: Country
   theme: Theme
+  design: Design
+  prefs: Prefs
   pet: { name: string; emoji: string; birthday?: string; breed?: string }
   modules: Partial<Record<ModuleId, ModuleSettings>>
+  groceryCats: Category[]
+  budgetCats: Category[]
+  /** Share of a shared expense that user "a" covers, in percent (50 = half each). */
+  splitA: number
   budgets: Record<string, number>
   groceries: Grocery[]
   tasks: Task[]
   events: CalEvent[]
   expenses: Expense[]
+  recurring: Recurring[]
+  goals: Goal[]
   watch: WatchItem[]
+  music: Track[]
   recipes: Recipe[]
   petRecords: PetRecord[]
   weights: Weight[]

@@ -5,7 +5,7 @@ import { Empty, GlassButton, Marks, Row, Screen, Section, Sheet, Swipe, TextRow,
 import { guessCategory } from '../lib/categories'
 import type { Recipe } from '../types'
 
-export default function Recipes() {
+export default function Recipes({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [tag, setTag] = useState<string | null>(null)
@@ -24,7 +24,7 @@ export default function Recipes() {
   )
 
   return (
-    <Screen title={moduleLabel(s, 'recipes').title} back accent="recipes"
+    <Screen title={moduleLabel(s, 'recipes').title} back={back} accent="recipes"
       right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', tags: [], ingredients: [], someday: false, cooked: 0 })} />}
       head={<div className="chips" style={{ paddingTop: 0 }}>
         <button className={'chip' + (!tag ? ' on' : '')} onClick={() => setTag(null)}>{t('all')}</button>

@@ -13,7 +13,7 @@ import { newTask } from './Tasks'
 const ICON: Record<NoteModule, string> = { home: '🏠', inbox: '📥', archive: '🗂️', dates: '💕' }
 
 /** Home, Inbox, Archive and Dates share one list screen with small per-module twists. */
-export default function Notes({ module }: { module: NoteModule }) {
+export default function Notes({ module, back }: { module: NoteModule; back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [edit, setEdit] = useState<Note | null>(null)
@@ -50,7 +50,7 @@ export default function Notes({ module }: { module: NoteModule }) {
   )
 
   return (
-    <Screen title={moduleLabel(s, module as ModuleId).title} back accent={module}
+    <Screen title={moduleLabel(s, module as ModuleId).title} back={back} accent={module}
       right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), module, title: '' })} />}
       actions={module === 'dates' ? [{ icon: '🎲', label: t('randomIdea'), onClick: random }] : undefined}
       head={<>

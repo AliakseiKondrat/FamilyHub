@@ -35,7 +35,10 @@ export default function Calendar({ back }: { back?: boolean }) {
 
   // Monday-first grid covering the whole month.
   const first = fromISO(month + '-01')
-  const offset = (first.getDay() + 6) % 7
+  const ws = s.prefs.weekStart
+  const offset = (first.getDay() - ws + 7) % 7
+  const wdNames = weekdayNames(s.lang)
+  const weekdays = ws === 0 ? [wdNames[6], ...wdNames.slice(0, 6)] : wdNames
   const gridStart = addDays(toISO(first), -offset)
   const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
   const cells = Math.ceil((offset + daysInMonth) / 7) * 7
@@ -66,7 +69,7 @@ export default function Calendar({ back }: { back?: boolean }) {
           </div>
         </div>
         <div className={'cal-grid ' + slide} key={month}>
-          {weekdayNames(s.lang).map((w) => <div key={w} className="cal-wd">{w}</div>)}
+          {weekdays.map((w) => <div key={w} className="cal-wd">{w}</div>)}
           {Array.from({ length: cells }, (_, i) => {
             const day = addDays(gridStart, i)
             const a = dayAgenda(s, day)

@@ -1,5 +1,6 @@
 import type { Base, State, UserId } from './types'
 import { addDays, today } from './lib/date'
+import { defaultBudgetCats, defaultDesign, defaultGroceryCats, defaultPrefs } from './defaults'
 
 let n = 0
 const b = (by: UserId = 'a', extra: Partial<Base> = {}): Base => ({
@@ -12,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -29,9 +30,27 @@ export function demoState(): State {
     lang: 'ru',
     country: 'PL',
     theme: 'auto',
+    design: defaultDesign(),
+    prefs: defaultPrefs(),
     pet: { name: 'Честер', emoji: '🐶', birthday: '2022-04-12' },
     modules: {},
+    groceryCats: defaultGroceryCats(),
+    budgetCats: defaultBudgetCats(),
+    splitA: 50,
     budgets: { groceries: 2000, eating: 600, home: 800, pet: 300, fun: 400 },
+    recurring: [
+      { ...b('a'), title: 'Аренда', amount: 3200, category: 'home', paidBy: 'a', shared: true, day: 1, active: true },
+      { ...b('j'), title: 'Spotify Duo', amount: 29.99, category: 'subscriptions', paidBy: 'j', shared: true, day: 12, active: true },
+    ],
+    goals: [
+      { ...b('a'), title: 'Переезд в Испанию', emoji: '🇪🇸', target: 20000, saved: 7400 },
+      { ...b('j'), title: 'Отпуск', emoji: '🏝️', target: 6000, saved: 2150 },
+    ],
+    music: [
+      { ...b('j'), title: 'Espresso', artist: 'Sabrina Carpenter', likes: ['a'] },
+      { ...b('a'), title: 'Blinding Lights', artist: 'The Weeknd', likes: [] },
+      { ...b('j'), title: 'La Vie en rose', artist: 'Édith Piaf', note: 'Наша песня 💕', likes: ['a', 'j'] },
+    ],
     groceries: [
       { ...b('j'), title: 'Молоко', category: 'dairy', done: false },
       { ...b('a'), title: 'Бананы', category: 'produce', done: false },
@@ -64,7 +83,7 @@ export function demoState(): State {
     ],
     watch: [
       { ...b('j'), title: 'Дюна: Часть вторая', kind: 'movie', status: 'want' },
-      { ...b('a'), title: 'Severance', kind: 'series', status: 'watching' },
+      { ...b('a'), title: 'Severance', kind: 'series', status: 'watching', links: [{ service: 'appletv', url: 'https://tv.apple.com/show/severance/umc.cmc.1srk2goyh2q2zdxcx605w8vtx' }] },
       { ...b('j'), title: 'Прошлые жизни', kind: 'movie', status: 'done', rating: { a: 4, j: 5 } },
       { ...b('a'), title: 'Шоу Трумана', kind: 'movie', status: 'want' },
     ],

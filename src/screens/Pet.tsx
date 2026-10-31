@@ -8,7 +8,7 @@ import type { PetKind, PetRecord } from '../types'
 
 const KINDS: PetKind[] = ['vaccine', 'parasite', 'vet', 'groom', 'other']
 
-export default function Pet() {
+export default function Pet({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [edit, setEdit] = useState<PetRecord | null>(null)
@@ -36,7 +36,7 @@ export default function Pet() {
   })
 
   return (
-    <Screen title={s.pet.name} back accent="pet"
+    <Screen title={s.pet.name} back={back} accent="pet"
       right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), kind: 'vaccine', title: '', date: d, nextDue: addDays(d, 365) })} />}
       hero={<div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
         <span className="circle lg" style={{ width: 76, height: 76, fontSize: 42 }}>{s.pet.emoji}</span>

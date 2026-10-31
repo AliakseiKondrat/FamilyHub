@@ -5,11 +5,11 @@ import { addDays, diffDays, fmtDate, today } from '../lib/date'
 import { avgCycle, cycleDay, nextStart } from '../lib/cycle'
 
 /** Julia's private tracker. Her partner never gets here; they only see period days in the calendar. */
-export default function Cycle() {
+export default function Cycle({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const title = moduleLabel(s, 'cycle').title
-  if (s.me !== 'j') return <Screen title={title} back accent="cycle"><Empty emoji="🔒" text={t('privateHint')} /></Screen>
+  if (s.me !== 'j') return <Screen title={title} back={back} accent="cycle"><Empty emoji="🔒" text={t('privateHint')} /></Screen>
 
   const d = today()
   const periods = [...s.periods].sort((a, b) => b.start.localeCompare(a.start))
@@ -19,7 +19,7 @@ export default function Cycle() {
   const cyc = avgCycle(s)
 
   return (
-    <Screen title={title} back accent="cycle"
+    <Screen title={title} back={back} accent="cycle"
       hero={<div style={{ textAlign: 'center' }}>
         <div className="hero-sub" style={{ marginTop: 0 }}>{current ? t('inPeriod') : '🌸'}</div>
         <div className="hero-big" style={{ fontSize: 40, marginTop: 4 }}>

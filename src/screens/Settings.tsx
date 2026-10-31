@@ -1,87 +1,298 @@
-import { useState } from 'react'
-import { getState, replaceState, update, useApp } from '../store'
-import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT } from '../i18n'
-import { Row, Screen, Section, Segmented, SelectRow, Sheet, TextRow, emojiList } from '../ui'
+﻿import { useRef, useState, type ReactNode } from 'react'
+import { getState, replaceState, uid, update, useApp } from '../store'
+import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
+import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
 import { demoState } from '../demo'
 import { SYNC_ENABLED } from '../config'
 import { signOut, useSync } from '../sync'
-import type { Lang, ModuleId, Theme, UserId } from '../types'
+import { useNav, type SettingsPage } from '../nav'
+import { ALL_MODULES, defaultDesign } from '../defaults'
+import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
+import { catTitle } from '../lib/cats'
+import type { Category, Design, Lang, ModuleId, State, Theme, TodayBlock, UserId } from '../types'
 
-const ALL: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'photos', 'watch', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']
+const setDesign = (patch: Partial<Design>) => update((st) => { st.design = { ...st.design, ...patch } })
+const setPrefs = (patch: Partial<State['prefs']>) => update((st) => { st.prefs = { ...st.prefs, ...patch } })
 
-export default function Settings() {
+function move<T>(list: T[], i: number, d: number) {
+  const next = [...list]
+  const j = i + d
+  if (j < 0 || j >= next.length) return next
+  ;[next[i], next[j]] = [next[j], next[i]]
+  return next
+}
+
+function Order({ i, n, onMove }: { i: number; n: number; onMove: (d: number) => void }) {
+  return (
+    <div className="order-btns" onClick={(e) => e.stopPropagation()}>
+      <button disabled={i === 0} onClick={() => onMove(-1)} aria-label="Up">▲</button>
+      <button disabled={i === n - 1} onClick={() => onMove(1)} aria-label="Down">▼</button>
+    </div>
+  )
+}
+
+/** One settings segmented control with a title above it. */
+function Choice<T extends string>({ label, value, options, onChange }: { label: ReactNode; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+  return (
+    <div style={{ margin: '0 14px 6px' }}>
+      <div className="section-header" style={{ padding: '6px 16px 8px' }}>{label}</div>
+      <Segmented inSheet value={value} onChange={onChange} options={options} />
+    </div>
+  )
+}
+
+export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
+  switch (page) {
+    case 'design': return <DesignPage />
+    case 'tabs': return <TabsPage />
+    case 'today': return <TodayPage />
+    case 'sections': return <SectionsPage />
+    case 'groceryCats': return <CategoriesPage kind="grocery" />
+    case 'budget': return <BudgetPage />
+    case 'people': return <PeoplePage />
+    case 'region': return <RegionPage />
+    case 'data': return <DataPage />
+    default: return <RootPage />
+  }
+}
+
+function RootPage() {
   const s = useApp()
   const t = useT()
+  const nav = useNav()
   const sync = useSync()
-  const [mod, setMod] = useState<ModuleId | null>(null)
-  const [person, setPerson] = useState<UserId | null>(null)
-
-  const exportData = () => {
-    const blob = new Blob([JSON.stringify(getState(), null, 2)], { type: 'application/json' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `vdvoem-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-  }
-
+  const link = (icon: string, bg: string, title: ReactNode, page: SettingsPage, detail?: ReactNode) => (
+    <Row icon={icon} iconBg={bg} title={title} detail={detail} chevron onClick={() => nav.settings(page)} />
+  )
   return (
-    <Screen title={t('settings')} back accent="settings">
+    <Screen title={t('settings')} back accent="settings"
+      hero={<div className="settings-hero">
+        <span className="circle lg">{s.users[s.me].emoji}</span>
+        <div>
+          <div className="hero-num">{s.users[s.me].name}</div>
+          <div className="hero-sub" style={{ marginTop: 0 }}>{SYNC_ENABLED ? sync.email : t('prototype').split(':')[0]}</div>
+        </div>
+      </div>}>
       {SYNC_ENABLED ? (
-        <Section header={t('account')} footer={t('installHint')}>
-          <Row icon={s.users[s.me].emoji} title={s.users[s.me].name} sub={sync.email} />
+        <Section footer={t('installHint')}>
           <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'}
             title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} />
           <button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button>
         </Section>
-      ) : <>
-        <Section footer={t('prototype')}>
-          <Row icon="🧪" title={<span style={{ fontSize: 15, color: 'var(--label2)' }}>{t('install')}</span>} sub={t('installHint')} />
-        </Section>
-        <div style={{ margin: '0 16px' }}>
-          <div className="section-header">{t('iAm')}</div>
-          <Segmented inSheet value={s.me} onChange={(me) => update((st) => { st.me = me })}
+      ) : (
+        <>
+          <Choice label={t('iAm')} value={s.me} onChange={(me) => update((st) => { st.me = me })}
             options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
-          <div className="section-footer" style={{ marginTop: -12, marginBottom: 24 }}>{t('iAmHint')}</div>
-        </div>
-      </>}
+          <div className="section-footer" style={{ margin: '-10px 14px 18px' }}>{t('iAmHint')}</div>
+        </>
+      )}
 
-      <Section header={t('people')}>
-        {(['a', 'j'] as UserId[]).map((u) => (
-          <Row key={u} icon={s.users[u].emoji} title={s.users[u].name} chevron onClick={() => setPerson(u)} />
-        ))}
+      <Section header={t('design')}>
+        {link('🎨', 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)', t('design'), 'design', t(`theme.${s.theme}`))}
+        {link('🧭', 'color-mix(in srgb, var(--blue) 20%, transparent)', t('tabBar'), 'tabs', s.prefs.tabs.map((m) => moduleLabel(s, m).emoji).join(''))}
+        {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
       </Section>
 
-      <Section>
-        <SelectRow label={`🌐 ${t('language')}`} value={s.lang} onChange={(lang) => update((st) => { st.lang = lang })}
-          options={(Object.keys(LANG_NAMES) as Lang[]).map((l) => ({ value: l, label: LANG_NAMES[l] }))} />
-        <SelectRow label={`📍 ${t('country')}`} value={s.country} onChange={(country) => update((st) => { st.country = country })}
-          options={[{ value: 'PL', label: `🇵🇱 ${t('poland')} · PLN` }, { value: 'ES', label: `🇪🇸 ${t('spain')} · EUR` }]} />
-        <SelectRow label={`🎨 ${t('theme')}`} value={s.theme} onChange={(theme) => update((st) => { st.theme = theme })}
-          options={(['auto', 'light', 'dark'] as Theme[]).map((x) => ({ value: x, label: t(`theme.${x}`) }))} />
+      <Section header={t('lists')}>
+        {link('🗂️', 'var(--fill)', t('sections'), 'sections')}
+        {link('🛒', 'color-mix(in srgb, var(--green) 20%, transparent)', t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length)}
+        {link('💰', 'color-mix(in srgb, var(--teal) 20%, transparent)', t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`)}
       </Section>
 
-      <Section header={t('sections')} footer={t('sectionsHint')}>
-        {ALL.filter((m) => m !== 'cycle' || s.me === 'j').map((m) => {
-          const l = moduleLabel(s, m)
-          return <Row key={m} icon={l.emoji} title={l.title} chevron onClick={() => setMod(m)} />
-        })}
+      <Section header={t('general')}>
+        {link('👥', 'color-mix(in srgb, var(--pink) 20%, transparent)', t('people'), 'people', `${s.users.a.emoji}${s.users.j.emoji}`)}
+        <Row icon={s.pet.emoji} iconBg="color-mix(in srgb, var(--brown) 20%, transparent)" title={t('pet')} detail={s.pet.name} chevron onClick={() => nav.open('pet')} />
+        {link('🌐', 'color-mix(in srgb, var(--indigo) 20%, transparent)', t('regionLang'), 'region', LANG_NAMES[s.lang])}
       </Section>
 
       <Section header={t('integrations')}>
-        <Row icon={<span style={{ fontWeight: 700, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} detail={t('soon')} />
+        <Row icon={<span style={{ fontWeight: 800, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} detail={t('soon')} />
         <Row icon="🎙️" title={t('siri')} detail={t('soon')} />
         <Row icon="🧩" title={t('widgets')} detail={t('soon')} />
         <Row icon="🔔" title={t('push')} detail={t('soon')} />
       </Section>
 
-      <Section header={t('data')}>
-        <button className="row tap accent" onClick={exportData}>⬇️ {t('export')}</button>
-        {!SYNC_ENABLED && <button className="row tap destructive" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>{t('reset')}</button>}
+      <Section>
+        {link('💾', 'var(--fill)', t('data'), 'data')}
       </Section>
-
-      {mod && <ModuleSheet id={mod} onClose={() => setMod(null)} />}
-      {person && <PersonSheet id={person} onClose={() => setPerson(null)} />}
+      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.3</div>
     </Screen>
+  )
+}
+
+/* ---------- Appearance ---------- */
+function DesignPage() {
+  const s = useApp()
+  const t = useT()
+  const d = s.design
+  const [colorFor, setColorFor] = useState<Accent | null>(null)
+  const accents: Accent[] = [...ALL_MODULES, 'more', 'settings']
+  return (
+    <Screen title={t('design')} back accent="settings" subtitle={t('designHint')}>
+      <Choice label={t('theme')} value={s.theme} onChange={(theme) => update((st) => { st.theme = theme })}
+        options={(['auto', 'light', 'dark'] as Theme[]).map((x) => ({ value: x, label: t(`theme.${x}`) }))} />
+      <Choice label={t('glass')} value={d.glass} onChange={(glass) => setDesign({ glass })}
+        options={(['strong', 'normal', 'off'] as const).map((x) => ({ value: x, label: t(`glass.${x}`) }))} />
+      <Choice label={t('headerStyle')} value={d.header} onChange={(header) => setDesign({ header })}
+        options={(['gradient', 'mesh', 'solid'] as const).map((x) => ({ value: x, label: t(`header.${x}`) }))} />
+      <Choice label={t('cardsStyle')} value={d.cards} onChange={(cards) => setDesign({ cards })}
+        options={(['shadow', 'flat'] as const).map((x) => ({ value: x, label: t(`cards.${x}`) }))} />
+      <Choice label={t('radius')} value={d.radius} onChange={(radius) => setDesign({ radius })}
+        options={(['compact', 'normal', 'round'] as const).map((x) => ({ value: x, label: t(`radius.${x}`) }))} />
+      <Choice label={t('textSize')} value={d.textSize} onChange={(textSize) => setDesign({ textSize })}
+        options={(['s', 'm', 'l'] as const).map((x) => ({ value: x, label: t(`text.${x}`) }))} />
+      <Choice label={t('tabTint')} value={d.tabTint} onChange={(tabTint) => setDesign({ tabTint })}
+        options={(['blue', 'accent', 'mono'] as const).map((x) => ({ value: x, label: t(`tint.${x}`) }))} />
+      <div style={{ height: 14 }} />
+      <Section>
+        <ToggleRow icon="🏷️" label={t('tabLabels')} on={d.tabLabels} onChange={(tabLabels) => setDesign({ tabLabels })} />
+        <ToggleRow icon="🐢" label={t('reduceMotion')} on={d.reduceMotion} onChange={(reduceMotion) => setDesign({ reduceMotion })} />
+        <ToggleRow icon="📳" label={t('haptics')} on={d.haptics} onChange={(haptics) => setDesign({ haptics })} />
+      </Section>
+      <Section big header={t('sectionColors')}>
+        {accents.filter((a) => a !== 'cycle' || s.me === 'j').map((a) => {
+          const [c1, c2] = accentColors(a, s)
+          const label = a === 'more' ? t('more') : a === 'settings' ? t('settings') : moduleLabel(s, a as ModuleId).title
+          return <Row key={a} title={label} onClick={() => setColorFor(a)} chevron
+            right={<span className="swatch" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} />} />
+        })}
+      </Section>
+      <Section>
+        <button className="row tap destructive" onClick={() => update((st) => { st.design = defaultDesign() })}>{t('reset2')}</button>
+      </Section>
+      {colorFor && <ColorSheet accent={colorFor} onClose={() => setColorFor(null)} />}
+    </Screen>
+  )
+}
+
+function ColorSheet({ accent, onClose }: { accent: Accent; onClose: () => void }) {
+  const s = useApp()
+  const t = useT()
+  const current = s.design.accents[accent] ?? DEFAULT_ACCENT[accent]
+  const pick = (id: string) => update((st) => { st.design = { ...st.design, accents: { ...st.design.accents, [accent]: id === DEFAULT_ACCENT[accent] ? undefined : id } } })
+  const [c1, c2] = PRESETS[current]
+  return (
+    <Sheet title={t('color')} onClose={onClose}>
+      <div style={{ margin: '0 14px 16px', height: 110, borderRadius: 'var(--radius)', background: `radial-gradient(80% 60% at 90% -5%, rgba(255,255,255,.32), transparent 60%), linear-gradient(160deg, ${c1}, ${c2})`, color: '#fff', display: 'flex', alignItems: 'flex-end', padding: 16, fontSize: 26, fontWeight: 800 }}>
+        {accent === 'more' ? t('more') : accent === 'settings' ? t('settings') : moduleLabel(s, accent as ModuleId).title}
+      </div>
+      <div className="list" style={{ margin: '0 14px' }}>
+        <div className="preset-grid">
+          {Object.entries(PRESETS).map(([id, [a, b]]) => (
+            <button key={id} className={'preset' + (id === current ? ' on' : '')} style={{ background: `linear-gradient(135deg, ${a}, ${b})` }} onClick={() => pick(id)} aria-label={id} />
+          ))}
+        </div>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- Tab bar ---------- */
+function TabsPage() {
+  const s = useApp()
+  const t = useT()
+  const tabs = s.prefs.tabs
+  const available = ALL_MODULES.filter((m) => !tabs.includes(m) && (m !== 'cycle' || s.me === 'j'))
+  return (
+    <Screen title={t('tabBar')} back accent="settings" subtitle={t('chosen', { n: tabs.length, max: 4 })}>
+      <Section footer={t('tabBarHint')}>
+        {tabs.map((m, i) => {
+          const l = moduleLabel(s, m)
+          return (
+            <Row key={m} icon={l.emoji} title={l.title}
+              right={<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Order i={i} n={tabs.length} onMove={(d) => setPrefs({ tabs: move(tabs, i, d) })} />
+                <button className="order-btns" style={{ border: 0, background: 'none', padding: 0 }} disabled={tabs.length <= 1}
+                  onClick={() => setPrefs({ tabs: tabs.filter((x) => x !== m) })}><span style={{ width: 32, height: 32, borderRadius: 10, background: 'color-mix(in srgb, var(--red) 15%, transparent)', color: 'var(--red)', display: 'grid', placeItems: 'center' }}>−</span></button>
+              </div>} />
+          )
+        })}
+        <Row icon="⋯" title={t('more')} dim />
+      </Section>
+      {tabs.length < 4 && (
+        <Section header={t('add')}>
+          {available.map((m) => {
+            const l = moduleLabel(s, m)
+            return <Row key={m} icon={l.emoji} title={l.title} onClick={() => setPrefs({ tabs: [...tabs, m] })}
+              right={<span style={{ width: 32, height: 32, borderRadius: 10, background: 'color-mix(in srgb, var(--green) 15%, transparent)', color: 'var(--green)', display: 'grid', placeItems: 'center', fontWeight: 700 }}>+</span>} />
+          })}
+        </Section>
+      )}
+      <Section>
+        <ToggleRow icon="👆" label={t('swipeTabs')} on={s.prefs.swipeTabs} onChange={(swipeTabs) => setPrefs({ swipeTabs })} />
+        <SelectRow label={`🚀 ${t('startTab')}`} value={s.prefs.startTab} onChange={(startTab) => setPrefs({ startTab })}
+          options={tabs.map((m) => ({ value: m, label: moduleLabel(s, m).title }))} />
+      </Section>
+    </Screen>
+  )
+}
+
+/* ---------- Today ---------- */
+const BLOCK_LABEL: Record<TodayBlock, { emoji: string; key: TKey }> = {
+  events: { emoji: '📅', key: 'todayEvents' }, tasks: { emoji: '✅', key: 'todayTasks' }, trip: { emoji: '✈️', key: 'mod.travel' },
+  budget: { emoji: '💰', key: 'mod.budget' }, pet: { emoji: '🐶', key: 'mod.pet' }, music: { emoji: '🎧', key: 'mod.music' },
+  memories: { emoji: '📸', key: 'onThisDay' }, dateIdea: { emoji: '💕', key: 'dateIdea' }, tomorrow: { emoji: '📆', key: 'tomorrow' },
+}
+
+function TodayPage() {
+  const s = useApp()
+  const t = useT()
+  const blocks = s.prefs.todayBlocks
+  const actions = s.prefs.todayActions
+  const candidates = ALL_MODULES.filter((m) => m !== 'today' && !s.prefs.tabs.includes(m) && (m !== 'cycle' || s.me === 'j'))
+  return (
+    <Screen title={t('todayScreen')} back accent="today">
+      <Section header={t('shortcuts')} footer={t('shortcutsHint')}>
+        {candidates.map((m) => {
+          const l = moduleLabel(s, m)
+          const on = actions.includes(m)
+          return (
+            <Row key={m} icon={l.emoji} title={l.title}
+              right={<Switch on={on} onChange={(v) => setPrefs({ todayActions: v ? [...actions.filter((x) => candidates.includes(x)), m].slice(-4) : actions.filter((x) => x !== m) })} />} />
+          )
+        })}
+      </Section>
+      <Section header={t('blocks')}>
+        {blocks.map((b, i) => (
+          <Row key={b.id} icon={BLOCK_LABEL[b.id].emoji} title={t(BLOCK_LABEL[b.id].key)} dim={!b.on}
+            right={<div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Order i={i} n={blocks.length} onMove={(d) => setPrefs({ todayBlocks: move(blocks, i, d) })} />
+              <Switch on={b.on} onChange={(on) => setPrefs({ todayBlocks: blocks.map((x) => (x.id === b.id ? { ...x, on } : x)) })} />
+            </div>} />
+        ))}
+      </Section>
+    </Screen>
+  )
+}
+
+/* ---------- Sections ---------- */
+function SectionsPage() {
+  const s = useApp()
+  const t = useT()
+  const [mod, setMod] = useState<ModuleId | null>(null)
+  return (
+    <Screen title={t('sections')} back accent="settings" subtitle={t('sectionsHint')}>
+      <Section>
+        {ALL_MODULES.filter((m) => m !== 'cycle' || s.me === 'j').map((m) => {
+          const l = moduleLabel(s, m)
+          const [c1, c2] = accentColors(m, s)
+          return <Row key={m} icon={l.emoji} iconBg={`linear-gradient(135deg, ${c1}, ${c2})`} title={l.title} dim={s.modules[m]?.hidden}
+            detail={s.modules[m]?.hidden ? t('hidden') : undefined} chevron onClick={() => setMod(m)} />
+        })}
+      </Section>
+      {mod && <ModuleSheet id={mod} onClose={() => setMod(null)} />}
+    </Screen>
+  )
+}
+
+function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
+  return (
+    <>
+      <div className="emoji-grid">
+        {[...new Set([...extra, ...emojiList()])].map((e) => <button key={e} className={e === value ? 'on' : ''} onClick={() => onChange(e)}>{e}</button>)}
+      </div>
+      <TextRow value={value} onChange={(v) => onChange([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
+    </>
   )
 }
 
@@ -90,23 +301,138 @@ function ModuleSheet({ id, onClose }: { id: ModuleId; onClose: () => void }) {
   const t = useT()
   const [title, setTitle] = useState(s.modules[id]?.title ?? '')
   const [emoji, setEmoji] = useState(moduleLabel(s, id).emoji)
-  const def = t(`mod.${id}` as 'mod.today')
+  const [hidden, setHidden] = useState(!!s.modules[id]?.hidden)
+  const [accent, setAccent] = useState(s.design.accents[id] ?? DEFAULT_ACCENT[id])
+  const def = t(`mod.${id}` as TKey)
   return (
     <Sheet title={`${emoji} ${title || def}`} onClose={onClose}
-      onDone={() => update((st) => { st.modules[id] = { title: title.trim() || undefined, emoji: emoji === DEFAULT_EMOJI[id] ? undefined : emoji } })}>
+      onDone={() => update((st) => {
+        st.modules[id] = { title: title.trim() || undefined, emoji: emoji === DEFAULT_EMOJI[id] ? undefined : emoji, hidden: hidden || undefined }
+        st.design = { ...st.design, accents: { ...st.design.accents, [id]: accent === DEFAULT_ACCENT[id] ? undefined : accent } }
+      })}>
       <Section footer={`${t('defaultName')}: ${def}`}>
-        <TextRow value={title} onChange={setTitle} placeholder={def} autoFocus />
+        <TextRow value={title} onChange={setTitle} placeholder={def} />
       </Section>
-      <Section header={t('emoji')}>
-        <div className="emoji-grid">
-          {emojiList().map((e) => <button key={e} className={e === emoji ? 'on' : ''} onClick={() => setEmoji(e)}>{e}</button>)}
+      {!s.prefs.tabs.includes(id) && <Section><ToggleRow icon="👁️" label={t('showInMore')} on={!hidden} onChange={(v) => setHidden(!v)} /></Section>}
+      <Section header={t('color')}>
+        <div className="preset-grid">
+          {Object.entries(PRESETS).map(([pid, [a, b]]) => (
+            <button key={pid} className={'preset' + (pid === accent ? ' on' : '')} style={{ background: `linear-gradient(135deg, ${a}, ${b})` }} onClick={() => setAccent(pid)} aria-label={pid} />
+          ))}
         </div>
-        <TextRow value={emoji} onChange={(v) => setEmoji([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
       </Section>
+      <Section header={t('emoji')}><EmojiPicker value={emoji} onChange={setEmoji} /></Section>
       <Section>
-        <button className="row tap destructive" onClick={() => { update((st) => { delete st.modules[id] }); onClose() }}>{t('defaultName')}</button>
+        <button className="row tap destructive" onClick={() => {
+          update((st) => { delete st.modules[id]; st.design = { ...st.design, accents: { ...st.design.accents, [id]: undefined } } })
+          onClose()
+        }}>{t('reset2')}</button>
       </Section>
     </Sheet>
+  )
+}
+
+/* ---------- Categories (groceries / budget) ---------- */
+function CategoriesPage({ kind }: { kind: 'grocery' | 'budget' }) {
+  const t = useT()
+  return (
+    <Screen title={kind === 'grocery' ? t('groceryCats') : t('budgetCats')} back accent={kind === 'grocery' ? 'groceries' : 'budget'}>
+      <CategoryList kind={kind} />
+    </Screen>
+  )
+}
+
+function CategoryList({ kind }: { kind: 'grocery' | 'budget' }) {
+  const s = useApp()
+  const t = useT()
+  const [edit, setEdit] = useState<Category | null>(null)
+  const key = kind === 'grocery' ? 'groceryCats' : 'budgetCats'
+  const list = s[key]
+  const save = (next: Category[]) => update((st) => { st[key] = next })
+  return (
+    <>
+      <Section>
+        {list.map((c, i) => (
+          <Row key={c.id} icon={c.emoji} title={catTitle(s, kind, c.id)} dim={c.hidden} onClick={() => setEdit(c)}
+            right={<div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Order i={i} n={list.length} onMove={(d) => save(move(list, i, d))} />
+              <Switch on={!c.hidden} onChange={(on) => save(list.map((x) => (x.id === c.id ? { ...x, hidden: !on || undefined } : x)))} />
+            </div>} />
+        ))}
+        <button className="row tap accent" onClick={() => setEdit({ id: 'c-' + uid().slice(0, 8), emoji: '🏷️', custom: true, title: '' })}>＋ {t('newCategory')}</button>
+      </Section>
+      {edit && <CategorySheet kind={kind} cat={edit} onClose={() => setEdit(null)} />}
+    </>
+  )
+}
+
+function CategorySheet({ kind, cat, onClose }: { kind: 'grocery' | 'budget'; cat: Category; onClose: () => void }) {
+  const s = useApp()
+  const t = useT()
+  const key = kind === 'grocery' ? 'groceryCats' : 'budgetCats'
+  const isNew = !s[key].some((c) => c.id === cat.id)
+  const [v, setV] = useState(cat)
+  const def = isNew ? '' : catTitle({ ...s, [key]: s[key].map((c) => (c.id === cat.id ? { ...c, title: undefined } : c)) }, kind, cat.id)
+  return (
+    <Sheet title={`${v.emoji} ${v.title || def}`} onClose={onClose} doneDisabled={isNew && !v.title?.trim()}
+      onDone={() => update((st) => {
+        const x = { ...v, title: v.title?.trim() || undefined }
+        st[key] = isNew ? [...st[key], x] : st[key].map((c) => (c.id === x.id ? x : c))
+      })}>
+      <Section footer={def ? `${t('defaultName')}: ${def}` : undefined}>
+        <TextRow value={v.title ?? ''} onChange={(title) => setV({ ...v, title })} placeholder={def || t('title')} autoFocus={isNew} />
+      </Section>
+      <Section header={t('emoji')}>
+        <EmojiPicker value={v.emoji} onChange={(emoji) => setV({ ...v, emoji })}
+          extra={kind === 'grocery' ? ['🥦', '🍎', '🧀', '🥩', '🐟', '🍞', '🧊', '🥤', '🍷', '🥫', '🍝', '🧂', '🧻', '🧴', '🐾', '👶', '💊', '🌿'] : ['🛒', '🍽️', '🏠', '🚗', '🎉', '🐶', '💊', '✈️', '🎁', '📺', '💼', '👗', '📚', '🏋️', '💄', '🧾']} />
+      </Section>
+      {cat.custom && !isNew && (
+        <Section>
+          <button className="row tap destructive" onClick={() => { update((st) => { st[key] = st[key].filter((c) => c.id !== cat.id) }); onClose() }}>{t('delete')}</button>
+        </Section>
+      )}
+    </Sheet>
+  )
+}
+
+/* ---------- Budget ---------- */
+function BudgetPage() {
+  const s = useApp()
+  const t = useT()
+  return (
+    <Screen title={t('budgetSettings')} back accent="budget">
+      <Section header={t('split')} footer={t('splitHint', { a: s.users.a.name, b: s.users.j.name, pa: s.splitA, pb: 100 - s.splitA })}>
+        <div className="row" style={{ gap: 14 }}>
+          <span>{s.users.a.emoji}</span>
+          <input type="range" min={0} max={100} step={5} value={s.splitA} style={{ accentColor: 'var(--blue)' }}
+            onChange={(e) => update((st) => { st.splitA = Number(e.target.value) })} />
+          <span>{s.users.j.emoji}</span>
+        </div>
+      </Section>
+      <Section>
+        <SelectRow label={`💱 ${t('currency')}`} value={s.country} onChange={(country) => update((st) => { st.country = country })}
+          options={[{ value: 'PL', label: 'PLN · zł' }, { value: 'ES', label: 'EUR · €' }]} />
+      </Section>
+      <div className="section-header" style={{ padding: '6px 30px 8px' }}>{t('budgetCats')}</div>
+      <CategoryList kind="budget" />
+    </Screen>
+  )
+}
+
+/* ---------- People ---------- */
+function PeoplePage() {
+  const s = useApp()
+  const t = useT()
+  const [person, setPerson] = useState<UserId | null>(null)
+  return (
+    <Screen title={t('people')} back accent="dates">
+      <Section>
+        {(['a', 'j'] as UserId[]).map((u) => (
+          <Row key={u} icon={s.users[u].emoji} iconBg={`color-mix(in srgb, var(--${u}) 20%, transparent)`} title={s.users[u].name} chevron onClick={() => setPerson(u)} />
+        ))}
+      </Section>
+      {person && <PersonSheet id={person} onClose={() => setPerson(null)} />}
+    </Screen>
   )
 }
 
@@ -116,16 +442,63 @@ function PersonSheet({ id, onClose }: { id: UserId; onClose: () => void }) {
   const [v, setV] = useState(s.users[id])
   return (
     <Sheet title={v.name} onClose={onClose} onDone={() => update((st) => { st.users[id] = v })}>
-      <Section>
-        <TextRow value={v.name} onChange={(name) => setV({ ...v, name })} placeholder={t('name')} />
-      </Section>
+      <Section><TextRow value={v.name} onChange={(name) => setV({ ...v, name })} placeholder={t('name')} /></Section>
       <Section header={t('emoji')}>
-        <div className="emoji-grid">
-          {['🧔', '👨', '🧑', '👱‍♂️', '👩', '👱‍♀️', '👩‍🦰', '🧑‍🦱', '🐻', '🦊', '🐰', '🐱', '🌸', '⭐️', '🌙', '☀️'].map((e) => (
-            <button key={e} className={e === v.emoji ? 'on' : ''} onClick={() => setV({ ...v, emoji: e })}>{e}</button>
-          ))}
-        </div>
+        <EmojiPicker value={v.emoji} onChange={(emoji) => setV({ ...v, emoji })}
+          extra={['🧔', '👨', '🧑', '👱‍♂️', '👩', '👱‍♀️', '👩‍🦰', '🧑‍🦱', '🐻', '🦊', '🐰', '🐱', '🌸', '⭐️', '🌙', '☀️']} />
       </Section>
     </Sheet>
+  )
+}
+
+/* ---------- Language & region ---------- */
+function RegionPage() {
+  const s = useApp()
+  const t = useT()
+  return (
+    <Screen title={t('regionLang')} back accent="settings">
+      <Section>
+        <SelectRow label={`🌐 ${t('language')}`} value={s.lang} onChange={(lang) => update((st) => { st.lang = lang })}
+          options={(Object.keys(LANG_NAMES) as Lang[]).map((l) => ({ value: l, label: LANG_NAMES[l] }))} />
+        <SelectRow label={`📍 ${t('country')}`} value={s.country} onChange={(country) => update((st) => { st.country = country })}
+          options={[{ value: 'PL', label: `🇵🇱 ${t('poland')} · PLN` }, { value: 'ES', label: `🇪🇸 ${t('spain')} · EUR` }]} />
+        <SelectRow label={`📅 ${t('weekStart')}`} value={String(s.prefs.weekStart) as '0' | '1'} onChange={(v) => setPrefs({ weekStart: v === '0' ? 0 : 1 })}
+          options={[{ value: '1', label: t('monday') }, { value: '0', label: t('sunday') }]} />
+      </Section>
+    </Screen>
+  )
+}
+
+/* ---------- Data ---------- */
+function DataPage() {
+  const s = useApp()
+  const t = useT()
+  const file = useRef<HTMLInputElement>(null)
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify(getState(), null, 2)], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `family-hub-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+  }
+  const importData = async (f?: File) => {
+    if (!f) return
+    try {
+      const data = JSON.parse(await f.text()) as Partial<State>
+      // Go through update() so every imported record is synced too; who "I am" never changes.
+      update((st) => { const me = st.me; Object.assign(st, data); st.me = me })
+      toast(t('importDone'))
+    } catch { toast('⚠︎') }
+  }
+  return (
+    <Screen title={t('data')} back accent="settings">
+      <Section>
+        <button className="row tap accent" onClick={exportData}>⬇️ {t('export')}</button>
+        <button className="row tap accent" onClick={() => file.current?.click()}>⬆️ {t('importData')}</button>
+        {!SYNC_ENABLED && <button className="row tap destructive" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>{t('reset')}</button>}
+      </Section>
+      <input ref={file} type="file" accept="application/json" hidden onChange={(e) => importData(e.target.files?.[0])} />
+      {!SYNC_ENABLED && <div className="section-footer" style={{ margin: '0 14px' }}>{t('prototype')}</div>}
+    </Screen>
   )
 }

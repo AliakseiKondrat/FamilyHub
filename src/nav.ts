@@ -1,12 +1,19 @@
 import { useSyncExternalStore } from 'react'
 import type { ModuleId } from './types'
+import { getState } from './store'
 
-export type Tab = 'today' | 'calendar' | 'tasks' | 'groceries' | 'more'
-/** A pushed screen: a section, a trip detail, or settings. */
-export type Route = { mod: ModuleId } | { trip: string } | { settings: true }
+/** A tab is any section the person put in the bottom bar, or "More". */
+export type Tab = ModuleId | 'more'
+export type SettingsPage = 'root' | 'design' | 'tabs' | 'today' | 'sections' | 'groceryCats' | 'budget' | 'people' | 'region' | 'data'
+/** A pushed screen: a section, a trip detail, or a settings page. */
+export type Route = { mod: ModuleId } | { trip: string } | { settings: SettingsPage }
 
 interface NavState { tab: Tab; stack: Route[] }
-let nav: NavState = { tab: 'today', stack: [] }
+const startTab = (): Tab => {
+  const p = getState().prefs
+  return p.tabs.includes(p.startTab) ? p.startTab : p.tabs[0] ?? 'more'
+}
+let nav: NavState = { tab: startTab(), stack: [] }
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((l) => l())
 
@@ -26,11 +33,12 @@ const actions = {
   setTab: (tab: Tab) => set({ tab, stack: [] }),
   push: (r: Route) => set({ ...nav, stack: [...nav.stack, r] }, true),
   pop: () => { if (nav.stack.length) history.back() },
-  /** Jump to a module: tab modules switch tab, others push onto More. */
+  /** Jump to a module: one in the tab bar switches tab, others push onto the current tab. */
   open: (mod: ModuleId) => {
-    if (mod === 'today' || mod === 'calendar' || mod === 'tasks' || mod === 'groceries') set({ tab: mod, stack: [] })
-    else set({ tab: 'more', stack: [{ mod }] }, true)
+    if (getState().prefs.tabs.includes(mod)) set({ tab: mod, stack: [] })
+    else set({ ...nav, stack: [...nav.stack, { mod }] }, true)
   },
+  settings: (page: SettingsPage = 'root') => set({ ...nav, stack: [...nav.stack, { settings: page }] }, true),
 }
 
 /** After an edge-swipe the screen is already off-screen, so the pop must not animate again. */

@@ -25,7 +25,7 @@ export function PhotoThumb({ photo, onClick }: { photo: Photo; onClick: () => vo
   return <button className="photo" onClick={onClick}>{url && <img src={url} alt={photo.caption ?? ''} loading="lazy" />}</button>
 }
 
-export default function Photos() {
+export default function Photos({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [album, setAlbum] = useState<string>('all')
@@ -55,7 +55,7 @@ export default function Photos() {
   }
 
   return (
-    <Screen title={moduleLabel(s, 'photos').title} back accent="photos"
+    <Screen title={moduleLabel(s, 'photos').title} back={back} accent="photos"
       subtitle={busy ? t('uploading') + ` (${busy})` : `${photos.length} 📷`}
       right={<GlassButton icon="plus" label={t('addPhotos')} onClick={() => input.current?.click()} />}
       head={<div className="chips" style={{ paddingTop: 0 }}>
