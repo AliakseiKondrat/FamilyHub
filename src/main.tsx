@@ -21,28 +21,6 @@ if (vv) {
   vv.addEventListener('scroll', onViewport)
 }
 
-// iOS home-screen apps: the layout viewport can end short of the physical screen bottom,
-// leaving a black strip under fixed full-screen layers. Measure the gap so CSS can stretch
-// them down to the real screen edge (--vp-gap). Only when the window spans the full screen.
-const standalone =
-  window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
-const fitScreen = () => {
-  let gap = 0
-  if (standalone) {
-    const sw = Math.min(screen.width, screen.height)
-    const sh = Math.max(screen.width, screen.height)
-    const portrait = window.innerHeight >= window.innerWidth
-    const fullW = portrait ? sw : sh
-    const fullH = portrait ? sh : sw
-    const d = fullH - window.innerHeight
-    if (Math.abs(window.innerWidth - fullW) <= 1 && d > 0 && d < 160) gap = d
-  }
-  document.documentElement.style.setProperty('--vp-gap', `${gap}px`)
-}
-fitScreen()
-window.addEventListener('resize', fitScreen)
-window.addEventListener('orientationchange', () => setTimeout(fitScreen, 300))
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
