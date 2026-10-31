@@ -3,7 +3,8 @@ import { update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { useNav } from '../nav'
 import { GlassButton, Icon, Screen, haptic, toast } from '../ui'
-import { today } from '../lib/date'
+import { LOCALES, today } from '../lib/date'
+import { currencyOf, monthSpending } from './Budget'
 import { ALL_MODULES } from '../defaults'
 import { accentColors } from '../theme'
 import type { ModuleId, State } from '../types'
@@ -20,6 +21,11 @@ function count(s: State, id: ModuleId): number | string {
     case 'tasks': return visible(s.tasks, me).filter((k) => !k.done).length
     case 'groceries': return visible(s.groceries, me).filter((g) => !g.done).length
     case 'cycle': return '🔒'
+    case 'budget': {
+      // This month's spending, short enough for a tile ("4,1 тыс. zł").
+      const { spent } = monthSpending(s, today().slice(0, 7))
+      return new Intl.NumberFormat(LOCALES[s.lang], { style: 'currency', currency: currencyOf(s), notation: spent >= 10000 ? 'compact' : 'standard', maximumFractionDigits: spent >= 10000 ? 1 : 0 }).format(spent)
+    }
     case 'home': case 'dates': case 'inbox': case 'archive':
       return visible(s.notes, me).filter((n) => n.module === id && !n.done).length
     default: return ''
@@ -72,7 +78,7 @@ function Tile({ id, big, editing }: { id: ModuleId; big?: boolean; editing: bool
         <span className="card-emoji" style={big ? undefined : { background: `linear-gradient(135deg, ${c1}, ${c2})` }}>{l.emoji}</span>
         {editing
           ? <span className={'fav-star' + (fav ? ' on' : '')}><Icon name="star" /></span>
-          : <span className="card-num">{n}</span>}
+          : <span className={'card-num' + (typeof n === 'string' && n.length > 3 ? ' small' : '')}>{n}</span>}
       </div>
       <span className="card-label">{l.title}</span>
     </button>

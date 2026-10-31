@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { Base, Repeat, UserId, Who } from './types'
-import { getState, other, useApp } from './store'
+import { getState, other, update, useApp } from './store'
 import { translate, useT } from './i18n'
 import { popWithoutAnimation, useNav } from './nav'
 import { today } from './lib/date'
@@ -240,7 +240,8 @@ export function Swipe({ children, onDelete, onComplete }: { children: ReactNode;
   const W = 88
   const remove = () => {
     if (!confirmDelete()) { setX(0); return }
-    haptic(); setRemoving(true); setX(-window.innerWidth); setTimeout(onDelete, 260)
+    const prev = getState()
+    haptic(); setRemoving(true); setX(-window.innerWidth); setTimeout(() => { onDelete(); offerUndo(prev) }, 260)
   }
   return (
     <div className={'swipe' + (removing ? ' removing' : '')}>
@@ -348,7 +349,9 @@ if (typeof document !== 'undefined') {
   document.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement).closest?.('.row.destructive')
     if (!el || el.textContent?.trim() !== translate(getState().lang, 'delete')) return
-    if (!confirmDelete()) { e.stopPropagation(); e.preventDefault() }
+    if (!confirmDelete()) { e.stopPropagation(); e.preventDefault(); return }
+    const prev = getState()
+    setTimeout(() => offerUndo(prev), 0)
   }, true)
 }
 
@@ -532,14 +535,54 @@ export function Avatar({ who }: { who: Who }) {
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
-export function toast(text: string) {
+export function toast(text: string, action?: { label: string; onClick: () => void }, ms = 1800) {
   document.querySelector('.toast')?.remove()
   const el = document.createElement('div')
-  el.className = 'toast lg'
-  el.textContent = text
+  el.className = 'toast lg' + (action ? ' with-action' : '')
+  const span = document.createElement('span')
+  span.textContent = text
+  el.appendChild(span)
+  const hide = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260) }
+  if (action) {
+    const b = document.createElement('button')
+    b.textContent = action.label
+    b.onclick = () => { clearTimeout(toastTimer); hide(); action.onClick() }
+    el.appendChild(b)
+  }
   document.body.appendChild(el)
   clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260) }, 1800)
+  toastTimer = setTimeout(hide, ms)
+}
+
+/* ---------- Undo delete ---------- */
+type Removed = { key: string; item: { id: string }; index: number }[]
+/** Records that were in `prev` but are gone now, in every list of the state. */
+function removedSince(prev: object): Removed {
+  const now = getState() as unknown as Record<string, unknown>
+  const out: Removed = []
+  for (const [key, before] of Object.entries(prev)) {
+    const after = now[key]
+    if (!Array.isArray(before) || !Array.isArray(after) || !before.length || typeof before[0]?.id !== 'string') continue
+    const ids = new Set(after.map((x: { id: string }) => x.id))
+    before.forEach((item: { id: string }, index) => { if (!ids.has(item.id)) out.push({ key, item, index }) })
+  }
+  return out
+}
+/** After a delete, show "Deleted · Undo" for a few seconds; Undo puts the records back where they were. */
+export function offerUndo(prev: object) {
+  const gone = removedSince(prev)
+  if (!gone.length) return
+  const lang = getState().lang
+  toast(translate(lang, 'deletedN'), {
+    label: translate(lang, 'undo'),
+    onClick: () => {
+      update((st) => {
+        const s = st as unknown as Record<string, { id: string }[]>
+        for (const g of gone) if (!s[g.key].some((x) => x.id === g.item.id)) s[g.key].splice(Math.min(g.index, s[g.key].length), 0, g.item)
+      })
+      toast(translate(lang, 'restored'))
+    },
+  }, 4500)
 }
 
 export function Stars({ value, onChange }: { value?: number; onChange?: (v: number) => void }) {

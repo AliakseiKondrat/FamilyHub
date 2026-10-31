@@ -580,6 +580,8 @@ a { color: var(--blue); text-decoration: none; }
 .cal-nav button:active { transform: scale(0.88); }
 .cal-nav svg { width: 16px; height: 16px; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; }
+.cal-grid.weeknums { grid-template-columns: 20px repeat(7, 1fr); }
+.cal-wk { font-size: 11px; font-weight: 700; color: var(--label3); text-align: center; padding-top: 12px; font-variant-numeric: tabular-nums; }
 .cal-grid.slide-l { animation: slide-l 0.32s var(--ease); }
 .cal-grid.slide-r { animation: slide-r 0.32s var(--ease); }
 @keyframes slide-l { from { transform: translateX(30px); opacity: 0; } }
@@ -633,6 +635,8 @@ a { color: var(--blue); text-decoration: none; }
 .mod-tile .card-label { color: var(--label); font-size: 16px; }
 .mod-tile { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .mod-tile .card-num { font-size: 22px; color: var(--label2); }
+.mod-tile .card-num.small { font-size: 16px; letter-spacing: -0.3px; margin-top: 4px; white-space: nowrap; }
+.mod-tile.fav .card-num.small { font-size: 18px; }
 /* Favorites: big tiles painted in the section's own gradient */
 .mod-tile.fav {
   min-height: 118px; color: #fff; position: relative; overflow: hidden;
@@ -653,6 +657,8 @@ a { color: var(--blue); text-decoration: none; }
 
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tab-h) + var(--tab-bottom) + 16px); z-index: 70; padding: 12px 20px; border-radius: 22px; font-size: 15px; font-weight: 600; animation: toast-in 0.4s var(--spring); white-space: nowrap; }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } }
+.toast.with-action { display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 20px; }
+.toast.with-action button { border: 0; border-radius: 16px; padding: 7px 14px; font-weight: 700; background: var(--blue); color: #fff; }
 .toast.out { animation: toast-out 0.25s var(--ease) forwards; }
 @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 10px) scale(0.95); } }
 
