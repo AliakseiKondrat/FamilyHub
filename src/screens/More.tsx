@@ -32,7 +32,11 @@ export default function More() {
   // Everything not already in the tab bar; the cycle tracker only exists for Julia.
   const mods = ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j'))
   return (
-    <Screen title={t('more')} accent="more" right={<GlassButton icon="gear" label={t('settings')} onClick={() => nav.settings()} />}>
+    <Screen title={t('more')} accent="more" searchable={false} right={<GlassButton icon="gear" label={t('settings')} onClick={() => nav.settings()} />}
+      head={<button className="quick lg" style={{ border: 0, width: 'calc(100% - 28px)', textAlign: 'left', color: 'rgba(255,255,255,.75)' }} onClick={nav.search}>
+        <span style={{ position: 'relative', zIndex: 2 }}><Icon name="search" style={{ width: 18, height: 18 }} /></span>
+        <span style={{ position: 'relative', zIndex: 2, fontWeight: 500 }}>{t('searchAll')}</span>
+      </button>}>
       <div className="cards">
         {mods.map((id) => {
           const l = moduleLabel(s, id)
@@ -54,6 +58,10 @@ export default function More() {
             <div className="row-icon" style={{ background: 'var(--gray)', color: '#fff' }}><Icon name="gear" style={{ width: 20, height: 20 }} /></div>
             <div className="row-main"><div className="row-title">{t('settings')}</div></div>
           </button>
+          <a className="row tap with-icon" href="findmy://" style={{ color: 'inherit' }}>
+            <div className="row-icon" style={{ background: 'linear-gradient(135deg,#34c759,#30b0c7)' }}>📍</div>
+            <div className="row-main"><div className="row-title">{t('openFindMy')}</div></div>
+          </a>
           <button className="row tap with-icon" onClick={() => nav.settings('design')}>
             <div className="row-icon" style={{ background: 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)' }}>🎨</div>
             <div className="row-main"><div className="row-title">{t('design')}</div></div>

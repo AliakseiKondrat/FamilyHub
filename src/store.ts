@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import type { Base, State, UserId } from './types'
 import { today } from './lib/date'
-import { demoState } from './demo'
+import { blankState, demoState } from './demo'
 import { SYNC_ENABLED } from './config'
+import { upgradePrefs } from './defaults'
 
 // Demo mode keeps its own copy so it never mixes with an account's data.
 const KEY = SYNC_ENABLED ? 'familyhub:v1' : 'familyhub:demo'
@@ -13,10 +14,11 @@ function load(): State {
     if (raw) {
       // Fill in settings added in newer versions of the app.
       const d = demoState(), p = JSON.parse(raw)
-      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: { ...d.prefs, ...p.prefs, notify: { ...d.prefs.notify, ...p.prefs?.notify } } }
+      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: upgradePrefs(p.prefs) }
     }
-  } catch { /* storage unavailable: fall back to demo data */ }
-  return demoState()
+  } catch { /* storage unavailable: fall back to defaults */ }
+  // Signed-in mode starts empty: demo data must never reach the real account (it once booked demo rent).
+  return SYNC_ENABLED ? blankState() : demoState()
 }
 
 let state: State = load()

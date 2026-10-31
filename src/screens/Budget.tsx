@@ -4,16 +4,21 @@ import { moduleLabel, useT } from '../i18n'
 import { DateRow, GlassButton, Icon, Marks, Row, Screen, Section, Segmented, Sheet, Swipe, Switch, TextRow, VisibilityFields, emojiList } from '../ui'
 import { diffDays, fmtDate, fmtMoney, fromISO, LOCALES, toISO, today } from '../lib/date'
 import { budgetColor, catEmoji, catTitle } from '../lib/cats'
-import type { Expense, Goal, Recurring, State, UserId } from '../types'
+import type { Expense, Goal, Recurring, State, UserId, Who } from '../types'
 
 export const currencyOf = (s: State) => (s.country === 'ES' ? 'EUR' : 'PLN')
+const payer = (s: State, w: Who) => (w === 'both' ? '💞' : s.users[w].emoji)
+const payOptions = (s: State, both: string) => [
+  ...(['a', 'j'] as UserId[]).map((u) => ({ value: u as Who, label: ` ${s.users[u].name}` })),
+  { value: 'both' as Who, label: `💞 ${both}` },
+]
 const pct = (s: State, u: UserId) => (u === 'a' ? s.splitA : 100 - s.splitA) / 100
 
 /** Positive: partner owes me. Shared costs split by the configured ratio; settlements move money directly. */
 function balance(s: State, me: UserId) {
   let b = 0
   for (const e of visible(s.expenses, me)) {
-    if (!e.shared || e.income) continue
+    if (!e.shared || e.income || e.paidBy === 'both') continue
     if (e.settlement) { b += e.paidBy === me ? e.amount : -e.amount; continue }
     b += e.paidBy === me ? e.amount * pct(s, other(me)) : -e.amount * pct(s, me)
   }
@@ -103,7 +108,10 @@ export default function Budget({ back }: { back?: boolean }) {
   const delta = prevSpent ? Math.round(((isCurrent ? forecast : spent) / prevSpent - 1) * 100) : null
 
   const sharedSpent = { a: 0, j: 0 }
-  for (const e of expenses) if (e.shared) sharedSpent[e.paidBy] += e.amount
+  for (const e of expenses) {
+    if (!e.shared) continue
+    if (e.paidBy === 'both') { sharedSpent.a += e.amount * pct(s, 'a'); sharedSpent.j += e.amount * pct(s, 'j') } else sharedSpent[e.paidBy] += e.amount
+  }
   const sharedTotal = sharedSpent.a + sharedSpent.j
 
   const bal = balance(s, s.me)
@@ -215,7 +223,7 @@ export default function Budget({ back }: { back?: boolean }) {
         {recurring.length === 0 && <Row title={<span style={{ color: 'var(--label2)' }}>{t('empty')}</span>} />}
         {recurring.map((r) => (
           <Row key={r.id} icon={catEmoji(s, 'budget', r.category)} title={r.title} dim={!r.active} onClick={() => setRec(r)}
-            sub={`${t('monthlyOn', { n: r.day })} · ${s.users[r.paidBy].emoji} ${r.shared ? t('shared') : t('personal')}`}
+            sub={`${t('monthlyOn', { n: r.day })} · ${payer(s, r.paidBy)} ${r.shared ? t('shared') : t('personal')}`}
             detail={<span className="money" style={{ color: 'var(--label)' }}>{money(r.amount)}</span>} />
         ))}
       </Section>
@@ -226,7 +234,7 @@ export default function Budget({ back }: { back?: boolean }) {
             <Swipe key={e.id} onDelete={() => update((st) => { st.expenses = st.expenses.filter((x) => x.id !== e.id) })}>
               <Row icon={catEmoji(s, 'budget', e.category)} iconBg={`color-mix(in srgb, ${budgetColor(s, e.category)} 18%, transparent)`}
                 title={<>{e.title} <Marks x={e} />{e.recurringId && ' 🔁'}</>}
-                sub={<>{s.users[e.paidBy].emoji} {e.income ? t('income') : e.shared ? t('shared') : t('personal')}</>}
+                sub={<>{payer(s, e.paidBy)} {e.income ? t('income') : e.shared ? t('shared') : t('personal')}</>}
                 detail={<span className="money" style={{ color: e.income ? 'var(--green)' : 'var(--label)' }}>{e.income ? '+' : ''}{money(e.amount)}</span>}
                 onClick={() => setEdit(e)} />
             </Swipe>
@@ -248,7 +256,7 @@ function newExpense(s: State): Expense {
 
 const parseAmount = (v: string) => parseFloat(v.replace(',', '.'))
 const AmountInput = ({ value, onChange, autoFocus, placeholder = '0' }: { value: string; onChange: (v: string) => void; autoFocus?: boolean; placeholder?: string }) => (
-  <input className="amount-input money" inputMode="decimal" placeholder={placeholder} value={value} autoFocus={autoFocus}
+  <input className="amount-input money" inputMode="decimal" placeholder={placeholder} value={value} data-autofocus={autoFocus || undefined}
     onChange={(e) => onChange(e.target.value.replace(/[^\d.,]/g, ''))} />
 )
 
@@ -294,9 +302,9 @@ function ExpenseEditor({ expense, onClose }: { expense: Expense; onClose: () => 
       </Section>
       <div style={{ margin: '0 14px' }}>
         <div className="section-header">{v.income ? t('who') : t('paidBy')}</div>
-        <Segmented inSheet value={v.paidBy} onChange={(paidBy) => setV({ ...v, paidBy })}
-          options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
-        {!v.surpriseFor && <Segmented inSheet value={v.shared ? 'shared' : 'personal'} onChange={(x) => setV({ ...v, shared: x === 'shared' })}
+        <Segmented inSheet value={v.paidBy} onChange={(paidBy) => setV({ ...v, paidBy, shared: paidBy === 'both' ? true : v.shared })}
+          options={v.income ? payOptions(s, t('both')).slice(0, 2) : payOptions(s, t('both'))} />
+        {!v.surpriseFor && v.paidBy !== 'both' && <Segmented inSheet value={v.shared ? 'shared' : 'personal'} onChange={(x) => setV({ ...v, shared: x === 'shared' })}
           options={[{ value: 'shared', label: `💞 ${t('shared')}` }, { value: 'personal', label: `👤 ${t('personal')}` }]} />}
       </div>
       {!v.income && <VisibilityFields value={v} onChange={setV} />}
@@ -394,8 +402,8 @@ function RecurringSheet({ rec, onClose }: { rec: Recurring; onClose: () => void 
       </Section>
       <div style={{ margin: '0 14px' }}>
         <div className="section-header">{t('paidBy')}</div>
-        <Segmented inSheet value={v.paidBy} onChange={(paidBy) => setV({ ...v, paidBy })}
-          options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
+        <Segmented inSheet value={v.paidBy} onChange={(paidBy) => setV({ ...v, paidBy, shared: paidBy === 'both' ? true : v.shared })}
+          options={payOptions(s, t('both'))} />
         <Segmented inSheet value={v.shared ? 'shared' : 'personal'} onChange={(x) => setV({ ...v, shared: x === 'shared' })}
           options={[{ value: 'shared', label: `💞 ${t('shared')}` }, { value: 'personal', label: `👤 ${t('personal')}` }]} />
       </div>

@@ -31,11 +31,22 @@ export interface Task extends Base {
 export interface CalEvent extends Base {
   title: string; date: string; endDate?: string; time?: string; endTime?: string
   who: Who; notes?: string; repeat: Repeat
+  /** Set on events mirrored from Google: which calendar, its color, and whether we may edit it. */
+  source?: 'google'; calendar?: string; color?: string; readonly?: boolean; busy?: boolean
 }
+
+/** What someone is up to right now ("Working", "Driving"); `together` statuses apply to both. */
+export interface Status extends Base {
+  text: string; emoji?: string; together?: boolean; at: string
+  /** The preset it came from ("drive"); `auto` = set by a phone automation, not by hand. */
+  preset?: string; auto?: boolean
+}
+export interface StatusPreset { id: string; emoji: string; label: string; together?: boolean }
 
 export interface Expense extends Base {
   title: string; amount: number; currency: string; category: string
-  paidBy: UserId; shared: boolean; date: string; settlement?: boolean
+  /** 'both' = paid together (each covers their share), so it doesn't change who owes whom. */
+  paidBy: Who; shared: boolean; date: string; settlement?: boolean
   /** Money coming in (salary etc.) rather than spent. */
   income?: boolean
   /** Generated from a recurring payment. */
@@ -44,7 +55,7 @@ export interface Expense extends Base {
 
 /** A monthly payment (rent, subscriptions) that adds itself to the budget on its day. */
 export interface Recurring extends Base {
-  title: string; amount: number; category: string; paidBy: UserId; shared: boolean; day: number; active: boolean
+  title: string; amount: number; category: string; paidBy: Who; shared: boolean; day: number; active: boolean
 }
 
 /** Savings goal ("piggy bank"). */
@@ -61,11 +72,14 @@ export interface WatchItem extends Base {
 export interface Track extends Base {
   title: string; artist: string; artwork?: string; preview?: string; url?: string
   album?: string; note?: string; likes: UserId[]
+  /** Where the link points (Spotify / YouTube) and its embeddable player. */
+  service?: 'spotify' | 'youtube' | 'apple'; embed?: string
 }
 
 export interface Recipe extends Base {
   title: string; url?: string; tags: string[]; ingredients: string[]; someday: boolean
   cooked: number; notes?: string
+  image?: string; steps?: string[]; minutes?: number; servings?: string
 }
 
 export type PetKind = 'vaccine' | 'parasite' | 'vet' | 'groom' | 'other'
@@ -76,11 +90,13 @@ export type NoteModule = 'home' | 'inbox' | 'archive' | 'dates'
 export interface Note extends Base {
   module: NoteModule; title: string; notes?: string; url?: string
   due?: string; repeat?: Repeat; done?: boolean; tags?: string[]
+  /** Picture for the link: web image URL or "photo:<key>"; '' = none. */
+  cover?: string; site?: string
 }
 
 export interface Check { id: string; title: string; done: boolean }
 export interface PlanItem { id: string; date: string; time?: string; title: string }
-export interface DocLink { id: string; title: string; url: string }
+export interface DocLink { id: string; title: string; url: string; cover?: string; site?: string }
 export interface Trip extends Base {
   title: string; destination: string; start: string; end: string; notes?: string
   plan: PlanItem[]; packing: Check[]; docs: DocLink[]
@@ -127,6 +143,14 @@ export interface Prefs {
   notify: { activity: boolean; reminders: boolean; morning: boolean; morningTime: string; eventLead: number }
   /** Large-screen layout: auto picks by width, phone forces the single column. */
   layout: 'auto' | 'phone' | 'wide'
+  /** My status buttons on Today, and how long a status stays before it fades. */
+  statusPresets: StatusPreset[]
+  statusHours: number
+  /** Ids of newer default status presets already offered, so deleting one keeps it deleted. */
+  presetsAdded?: string[]
+  /** Fetch a picture and title for pasted links. */
+  linkPreviews: boolean
+  showStatuses: boolean
 }
 
 export interface State {
@@ -160,6 +184,7 @@ export interface State {
   trips: Trip[]
   photos: Photo[]
   periods: Period[]
+  statuses: Status[]
   /** Period days published by Julia's device — the only cycle data her partner receives. */
   sharedPeriodDays?: string[]
   cycleLength: number

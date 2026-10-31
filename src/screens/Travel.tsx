@@ -1,10 +1,11 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import { base, uid, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { useNav } from '../nav'
 import { Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields } from '../ui'
 import { addDays, diffDays, fmtDate, today } from '../lib/date'
-import type { Trip } from '../types'
+import type { DocLink, Trip } from '../types'
+import { CoverPicker, Thumb, fromPreview, hostOf, isUrl, relink, useAutoCovers } from '../cover'
 
 export default function Travel({ back }: { back?: boolean }) {
   const s = useApp()
@@ -127,29 +128,47 @@ export function TripDetail({ id }: { id: string }) {
 
 function DocsTab({ trip, onChange }: { trip: Trip; onChange: (fn: (x: Trip) => void) => void }) {
   const t = useT()
-  const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
+  const [edit, setEdit] = useState<DocLink | null>(null)
+  useAutoCovers(trip.docs, (id, p) => onChange((x) => { const d = x.docs.find((k) => k.id === id); if (d) Object.assign(d, fromPreview(d, p)) }))
+  const save = (d: DocLink) => onChange((x) => { x.docs = x.docs.some((k) => k.id === d.id) ? x.docs.map((k) => (k.id === d.id ? d : k)) : [...x.docs, d] })
   return <>
     {trip.docs.length > 0 && (
       <Section>
         {trip.docs.map((dc) => (
           <Swipe key={dc.id} onDelete={() => onChange((x) => { x.docs = x.docs.filter((k) => k.id !== dc.id) })}>
-            <a href={dc.url} target="_blank" rel="noreferrer" style={{ color: 'inherit' } as CSSProperties}>
-              <Row icon="🎫" title={dc.title} sub={new URL(dc.url, location.href).hostname} chevron />
-            </a>
+            <Row left={dc.cover ? <Thumb src={dc.cover} /> : undefined} icon={dc.cover ? undefined : '🎫'}
+              title={dc.title} sub={dc.site || hostOf(dc.url)} chevron onClick={() => setEdit(dc)} />
           </Swipe>
         ))}
       </Section>
     )}
     <Section header={t('add')}>
-      <TextRow value={title} onChange={setTitle} placeholder={t('title')} />
       <TextRow value={url} onChange={setUrl} placeholder={`🔗 ${t('link')}`} />
-      <button className="row tap accent" disabled={!title.trim() || !url.trim()} style={{ opacity: !title.trim() || !url.trim() ? 0.4 : 1 }}
-        onClick={() => { onChange((x) => { x.docs.push({ id: uid(), title: title.trim(), url: url.trim() }) }); setTitle(''); setUrl('') }}>
+      <button className="row tap accent" disabled={!url.trim()} style={{ opacity: !url.trim() ? 0.4 : 1 }}
+        onClick={() => { setEdit({ id: uid(), title: '', url: url.trim() }); setUrl('') }}>
         + {t('add')}
       </button>
     </Section>
+    {edit && <DocSheet doc={edit} onClose={() => setEdit(null)} onSave={save} />}
   </>
+}
+
+/** A ticket, booking or map link shown as a picture with a caption; the picture can be swapped for your own. */
+function DocSheet({ doc, onClose, onSave }: { doc: DocLink; onClose: () => void; onSave: (d: DocLink) => void }) {
+  const t = useT()
+  const [v, setV] = useState(doc)
+  return (
+    <Sheet title={v.title || t('docs')} onClose={onClose} doneDisabled={!v.url.trim()}
+      onDone={() => onSave({ ...v, title: v.title.trim() || v.site || hostOf(v.url), url: v.url.trim() })}>
+      <CoverPicker id={v.id} url={v.url} cover={v.cover} title={v.title} emoji="🎫" onChange={(p) => setV((x) => ({ ...x, ...p }))} />
+      <Section>
+        <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('caption')} autoFocus={!doc.title} />
+        <TextRow value={v.url} onChange={(url) => setV({ ...v, url, ...relink(v, url) })} placeholder={`🔗 ${t('link')}`} />
+      </Section>
+      {isUrl(v.url) && <Section><a className="row tap accent" href={v.url} target="_blank" rel="noreferrer">🔗 {t('open_link')}</a></Section>}
+    </Sheet>
+  )
 }
 
 function PlanSheet({ date, onClose, onAdd }: { date: string; onClose: () => void; onAdd: (title: string, time?: string) => void }) {

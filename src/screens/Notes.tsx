@@ -9,6 +9,7 @@ import { fmtDate, nextRepeat, today } from '../lib/date'
 import { guessCategory } from '../lib/categories'
 import type { ModuleId, Note, NoteModule, State } from '../types'
 import { newTask } from './Tasks'
+import { CoverPicker, Thumb, fromPreview, hostOf, relink, useAutoCovers } from '../cover'
 
 const ICON: Record<NoteModule, string> = { home: '🏠', inbox: '📥', archive: '🗂️', dates: '💕' }
 
@@ -23,6 +24,7 @@ export default function Notes({ module, back }: { module: NoteModule; back?: boo
   const list = module === 'dates' ? all.filter((n) => !!n.done === been) : all
   const reminders = module === 'home' ? list.filter((n) => n.due).sort((a, b) => a.due!.localeCompare(b.due!)) : []
   const rest = list.filter((n) => !reminders.includes(n))
+  useAutoCovers(all, (id, p) => update((st) => { const x = st.notes.find((k) => k.id === id); if (x) Object.assign(x, fromPreview(x, p)) }))
 
   const toggle = (n: Note) => update((st) => {
     const x = st.notes.find((k) => k.id === n.id)!
@@ -37,12 +39,13 @@ export default function Notes({ module, back }: { module: NoteModule; back?: boo
   const row = (n: Note) => (
     <Swipe key={n.id} onDelete={() => update((st) => { st.notes = st.notes.filter((k) => k.id !== n.id) })}>
       <Row
-        left={module === 'home' && n.due ? <Check on={!!n.done} onChange={() => toggle(n)} /> : undefined}
-        icon={module === 'home' && n.due ? undefined : n.url ? '🔗' : ICON[module]}
+        left={module === 'home' && n.due ? <Check on={!!n.done} onChange={() => toggle(n)} /> : n.cover ? <Thumb src={n.cover} /> : undefined}
+        icon={module === 'home' && n.due || n.cover ? undefined : n.url ? '🔗' : ICON[module]}
         title={<>{n.title} <Marks x={n} /></>} dim={module === 'home' && n.done}
-        sub={(n.due || n.tags?.length || n.notes) && <>
+        sub={(n.due || n.tags?.length || n.notes || n.url) && <>
           {n.due && <span className={!n.done && n.due < today() ? 'red' : ''}>{fmtDate(n.due, s.lang)}{n.repeat && n.repeat !== 'none' ? ' 🔁' : ''}</span>}
           {n.tags?.map((x) => <span key={x} className="tag">{x}</span>)}
+          {!n.due && !n.notes && n.url && <span>{n.site || hostOf(n.url)}</span>}
           {!n.due && n.notes && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{n.notes}</span>}
         </>}
         chevron onClick={() => setEdit(n)} />
@@ -106,11 +109,12 @@ function NoteEditor({ note, onClose }: { note: Note; onClose: () => void }) {
   return (
     <Sheet title={isNew ? t('add') : v.title} onClose={onClose} onDone={save} doneDisabled={!v.title.trim()}>
       <Section>
-        <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('title')} autoFocus={isNew} />
-        <TextRow value={v.url ?? ''} onChange={(url) => setV({ ...v, url })} placeholder={`🔗 ${t('link')}`} />
+        <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={v.url ? t('caption') : t('title')} autoFocus={isNew} />
+        <TextRow value={v.url ?? ''} onChange={(url) => setV({ ...v, url: url || undefined, ...relink(v, url) })} placeholder={`🔗 ${t('link')}`} />
         {(v.module === 'dates' || v.module === 'archive') && <TextRow value={tags} onChange={setTags} placeholder={`# ${t('tags')}`} />}
         <TextRow value={v.notes ?? ''} onChange={(notes) => setV({ ...v, notes })} placeholder={t('notes')} multiline />
       </Section>
+      {(v.url || v.cover) && <CoverPicker id={v.id} url={v.url} cover={v.cover} title={v.title} emoji={ICON[v.module]} onChange={(p) => setV((x) => ({ ...x, ...p }))} />}
       {v.module === 'home' && (
         <Section>
           <DateRow label={`⏰ ${t('date')}`} value={v.due} onChange={(due) => setV({ ...v, due })} />

@@ -3,6 +3,7 @@ import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { Empty, GlassButton, Marks, Row, Screen, Section, Segmented, Sheet, Stars, TextRow, VisibilityFields } from '../ui'
 import type { UserId, WatchItem, WatchLink, WatchStatus } from '../types'
+import { CoverBox, CoverPicker } from '../cover'
 
 const KIND_EMOJI = { movie: '🎬', series: '📺', other: '🎞️' }
 
@@ -89,10 +90,9 @@ export default function Watch({ back }: { back?: boolean }) {
       <div className="poster-grid">
         {list.map((w) => (
           <button key={w.id} className="poster" onClick={() => setEdit(w)}>
-            <div className="poster-img" style={w.poster ? { backgroundImage: `url("${w.poster}")` } : undefined}>
-              {!w.poster && KIND_EMOJI[w.kind]}
+            <CoverBox className="poster-img" src={w.poster} fallback={KIND_EMOJI[w.kind]}>
               <ServiceBadges links={w.links} />
-            </div>
+            </CoverBox>
             <div className="poster-title">{w.title} <Marks x={w} /></div>
             <div className="poster-sub">
               {w.status === 'done' && w.rating
@@ -106,7 +106,7 @@ export default function Watch({ back }: { back?: boolean }) {
       {pick && (
         <Sheet title={t('randomPick')} onClose={() => setPick(null)}>
           <div style={{ textAlign: 'center', padding: '8px 20px 20px' }}>
-            <div className="poster-img" style={{ width: 160, margin: '0 auto', ...(pick.poster ? { backgroundImage: `url("${pick.poster}")` } : {}) }}>{!pick.poster && KIND_EMOJI[pick.kind]}</div>
+            <CoverBox className="poster-img" style={{ width: 160, margin: '0 auto' }} src={pick.poster} fallback={KIND_EMOJI[pick.kind]} />
             <div className="ts-title">{pick.title}</div>
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -137,10 +137,11 @@ function WatchEditor({ item, onClose }: { item: WatchItem; onClose: () => void }
     <Sheet title={isNew ? t('add') : v.title} onClose={onClose} doneDisabled={!v.title.trim()}
       onDone={() => update((st) => {
         // A renamed title gets its poster looked up again.
-        const x = { ...v, poster: v.title !== item.title ? undefined : v.poster }
+        const x = { ...v, poster: v.title !== item.title && v.poster === item.poster && !v.poster?.startsWith('photo:') ? undefined : v.poster }
         if (isNew) st.watch.unshift(x); else st.watch = st.watch.map((w) => (w.id === x.id ? x : w))
       })}>
-      {v.poster && <div className="poster-img" style={{ width: 150, margin: '4px auto 18px', backgroundImage: `url("${v.poster}")` }} />}
+      {v.poster && <CoverBox className="poster-img" style={{ width: 150, margin: '4px auto 6px' }} src={v.poster} />}
+      {v.title.trim() && <CoverPicker compact auto={false} id={v.id} url={v.links?.[0]?.url} cover={v.poster} title={v.title} onChange={(p) => setV((x) => ({ ...x, ...(p.cover !== undefined ? { poster: p.cover } : {}) }))} />}
       <Section>
         <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('title')} autoFocus={isNew} />
       </Section>

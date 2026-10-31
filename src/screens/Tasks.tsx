@@ -29,7 +29,7 @@ export function TaskRow({ task, onOpen }: { task: Task; onOpen: (t: Task) => voi
   const due = task.due
   const dueLabel = due ? (due === d ? t('today') : due === addDays(d, 1) ? t('tomorrow') : due === addDays(d, -1) ? t('yesterday') : fmtDate(due, s.lang)) : null
   return (
-    <Swipe onDelete={() => update((st) => { st.tasks = st.tasks.filter((k) => k.id !== task.id) })}>
+    <Swipe onDelete={() => update((st) => { st.tasks = st.tasks.filter((k) => k.id !== task.id) })} onComplete={() => toggleTask(task.id)}>
       <Row
         left={<Check on={task.done} onChange={() => toggleTask(task.id)} />}
         title={<>{task.title} <Marks x={task} /></>}

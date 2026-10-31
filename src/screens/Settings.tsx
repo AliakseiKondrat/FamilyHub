@@ -1,7 +1,8 @@
-﻿import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
 import { API_BASE, widgetScript } from '../lib/widget'
+import { PRESETS as SHORTCUTS, presetSteps } from '../lib/shortcuts'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
@@ -13,7 +14,7 @@ import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign } from '../defaults'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
-import type { Category, Design, Lang, ModuleId, State, Theme, TodayBlock, UserId } from '../types'
+import type { Category, Design, Lang, ModuleId, State, StatusPreset, Theme, TodayBlock, UserId } from '../types'
 
 const setDesign = (patch: Partial<Design>) => update((st) => { st.design = { ...st.design, ...patch } })
 const setPrefs = (patch: Partial<State['prefs']>) => update((st) => { st.prefs = { ...st.prefs, ...patch } })
@@ -60,6 +61,8 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'siri': return <SiriPage />
     case 'widget': return <WidgetPage />
     case 'google': return <GooglePage />
+    case 'statuses': return <StatusesPage />
+    case 'shortcuts': return <ShortcutsPage />
     default: return <RootPage />
   }
 }
@@ -99,12 +102,16 @@ function RootPage() {
         {link('🎨', 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)', t('design'), 'design', t(`theme.${s.theme}`))}
         {link('🧭', 'color-mix(in srgb, var(--blue) 20%, transparent)', t('tabBar'), 'tabs', s.prefs.tabs.map((m) => moduleLabel(s, m).emoji).join(''))}
         {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
+        {link('💬', 'color-mix(in srgb, var(--green) 20%, transparent)', t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'))}
       </Section>
 
       <Section header={t('lists')}>
         {link('🗂️', 'var(--fill)', t('sections'), 'sections')}
         {link('🛒', 'color-mix(in srgb, var(--green) 20%, transparent)', t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length)}
         {link('💰', 'color-mix(in srgb, var(--teal) 20%, transparent)', t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`)}
+      </Section>
+      <Section footer={t('linkPreviewsHint')}>
+        <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
       </Section>
 
       <Section header={t('general')}>
@@ -115,6 +122,7 @@ function RootPage() {
 
       <Section header={t('integrations')}>
         {link('🔔', 'color-mix(in srgb, var(--red) 20%, transparent)', t('push'), 'notifications')}
+        {link('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length)}
         {link('🎙️', 'color-mix(in srgb, var(--purple) 20%, transparent)', t('siriTitle'), 'siri')}
         {link('🧩', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('widgets'), 'widget')}
         {link('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google')}
@@ -610,7 +618,11 @@ function WidgetPage() {
   )
 }
 
-interface GoogleStatus { configured: boolean; connected: boolean; email?: string; share_events?: boolean; sync_tasks?: boolean; last_sync?: string | null; last_error?: string | null }
+interface GoogleCalendar { id: string; summary: string; color: string; primary: boolean; writable: boolean; mode: 'full' | 'busy' | 'off' }
+interface GoogleStatus {
+  configured: boolean; connected: boolean; email?: string; share_events?: boolean; sync_tasks?: boolean
+  last_sync?: string | null; last_error?: string | null; calendars?: GoogleCalendar[]; write_calendar?: string
+}
 
 function GooglePage() {
   const s = useApp()
@@ -645,9 +657,29 @@ function GooglePage() {
           <Section footer={st.last_error ? `⚠︎ ${st.last_error}` : undefined}>
             <Row icon="✅" title={t('gConnected', { email: st.email ?? 'Google' })} sub={`${t('gLastSync')}: ${when}`} />
           </Section>
+          {st.calendars && st.calendars.length > 0 && (
+            <Section header={t('gCalendars')} footer={t('gOtherAccount')}>
+              {st.calendars.map((c) => {
+                return (
+                  <Row key={c.id} left={<span className="swatch" style={{ background: c.color, width: 14, height: 14 }} />}
+                    title={c.summary} sub={c.primary ? 'Google' : undefined}
+                    right={<Switch on={c.mode !== 'off'} onChange={(on) => run(() => {
+                      // Send the full on/off map; the server forgets calendars switched off and imports new ones.
+                      const map = Object.fromEntries(st.calendars!.map((x) => [x.primary ? 'primary' : x.id, x.id === c.id ? (on ? 'full' : 'off') : x.mode === 'off' ? 'off' : 'full']))
+                      return call('settings', { calendars: map })
+                    })} />} />
+                )
+              })}
+              {st.calendars.filter((c) => c.writable).length > 1 && (
+                <SelectRow label={`✍️ ${t('gWriteTo')}`} value={st.write_calendar ?? 'primary'}
+                  onChange={(v) => run(() => call('settings', { write_calendar: v }))}
+                  options={st.calendars.filter((c) => c.writable).map((c) => ({ value: c.primary ? 'primary' : c.id, label: c.summary }))} />
+              )}
+            </Section>
+          )}
           <Section>
-            <ToggleRow icon="💞" label={t('gShare')} on={!!st.share_events} onChange={(v) => run(() => call('settings', { share_events: v, sync_tasks: st.sync_tasks }))} />
-            <ToggleRow icon="✅" label={t('gTasks')} on={!!st.sync_tasks} onChange={(v) => run(() => call('settings', { share_events: st.share_events, sync_tasks: v }))} />
+            <ToggleRow icon="💞" label={t('gShare')} on={!!st.share_events} onChange={(v) => run(() => call('settings', { share_events: v }))} />
+            <ToggleRow icon="✅" label={t('gTasks')} on={!!st.sync_tasks} onChange={(v) => run(() => call('settings', { sync_tasks: v }))} />
           </Section>
           <Section>
             <button className="row tap destructive" onClick={() => run(() => call('disconnect'))}>{t('gDisconnect')}</button>
@@ -662,6 +694,93 @@ function GooglePage() {
           <Section><CopyRow label={t('gRedirect')} value={redirect} /></Section>
         </>
       )}
+    </Screen>
+  )
+}
+
+/* ---------- Statuses ---------- */
+function StatusesPage() {
+  const s = useApp()
+  const t = useT()
+  const nav = useNav()
+  const [edit, setEdit] = useState<StatusPreset | null>(null)
+  const list = s.prefs.statusPresets
+  const save = (next: StatusPreset[]) => setPrefs({ statusPresets: next })
+  return (
+    <Screen title={t('statuses')} back accent="today" subtitle={t('statusHint')}>
+      <Section>
+        <ToggleRow icon="👀" label={t('showStatuses')} on={s.prefs.showStatuses} onChange={(showStatuses) => setPrefs({ showStatuses })} />
+        <SelectRow label={`⏳ ${t('statusHours')}`} value={String(s.prefs.statusHours)} onChange={(v) => setPrefs({ statusHours: Number(v) })}
+          options={[2, 4, 8, 12, 24, 48].map((h) => ({ value: String(h), label: t('hoursN', { n: h }) }))} />
+      </Section>
+      {([false, true] as const).map((together) => (
+        <Section key={String(together)} header={together ? `💞 ${t('together')}` : t('myStatus')}>
+          {list.map((p, i) => ({ p, i })).filter(({ p }) => !!p.together === together).map(({ p, i }) => (
+            <Row key={p.id} icon={p.emoji} title={p.label} onClick={() => setEdit(p)}
+              right={<Order i={i} n={list.length} onMove={(d) => save(move(list, i, d))} />} />
+          ))}
+          <button className="row tap accent" onClick={() => setEdit({ id: 's-' + uid().slice(0, 6), emoji: '✨', label: '', together })}>＋ {t('newStatus')}</button>
+        </Section>
+      ))}
+      <Section header={t('statusSourceTitle')} footer={t('statusSource')}>
+        <Row icon="⚡️" title={t('presets')} chevron onClick={() => nav.settings('shortcuts')} />
+      </Section>
+      {edit && (
+        <Sheet title={`${edit.emoji} ${edit.label || t('newStatus')}`} onClose={() => setEdit(null)} doneDisabled={!edit.label.trim()}
+          onDone={() => save(list.some((p) => p.id === edit.id) ? list.map((p) => (p.id === edit.id ? edit : p)) : [...list, edit])}>
+          <Section>
+            <TextRow value={edit.label} onChange={(label) => setEdit({ ...edit, label })} placeholder={t('title')} autoFocus />
+            <ToggleRow icon="💞" label={t('together')} on={!!edit.together} onChange={(together) => setEdit({ ...edit, together: together || undefined })} />
+          </Section>
+          {!edit.together && (
+            <Section footer={t('autoCodeHint', { id: edit.id })}>
+              <CopyRow label={t('autoCode')} value={edit.id} />
+            </Section>
+          )}
+          <Section header={t('emoji')}>
+            <EmojiPicker value={edit.emoji} onChange={(emoji) => setEdit({ ...edit, emoji })}
+              extra={['💼', '⛔️', '🟢', '🚗', '🚙', '🏠', '🏃', '🛒', '😴', '🍽️', '🍿', '🐶', '✈️', '🎮', '📚', '🧘', '🤒', '🎉']} />
+          </Section>
+          {list.some((p) => p.id === edit.id) && (
+            <Section><button className="row tap destructive" onClick={() => { save(list.filter((p) => p.id !== edit.id)); setEdit(null) }}>{t('delete')}</button></Section>
+          )}
+        </Sheet>
+      )}
+    </Screen>
+  )
+}
+
+/* ---------- Ready-made Shortcuts ---------- */
+function ShortcutsPage() {
+  const s = useApp()
+  const t = useT()
+  const api = useApiKey()
+  const [open, setOpen] = useState<string | null>(null)
+  const ru = s.lang === 'ru'
+  return (
+    <Screen title={t('presets')} back accent="watch" subtitle={t('presetsHint')}>
+      <KeySection api={api} />
+      {SHORTCUTS.map((p) => {
+        const tx = p.text[ru ? 'ru' : 'en']
+        const isOpen = open === p.id
+        const url = p.route === 'list' ? `${API_BASE}/list?${p.query}&key=${api.key ?? '…'}` : `${API_BASE}/add`
+        const body = p.route === 'add' ? JSON.stringify({ key: api.key ?? '…', ...p.fields, ...Object.fromEntries(Object.keys(p.input ?? {}).map((k) => [k, '…'])) }, null, 1) : null
+        return (
+          <div key={p.id} className="section">
+            <div className="list">
+              <Row icon={p.emoji} title={tx.title} sub={tx.desc} chevron onClick={() => setOpen(isOpen ? null : p.id)} />
+              {isOpen && (
+                <>
+                  <Row icon="📍" title={<span style={{ fontWeight: 400 }}>{t('runFrom')}: {tx.runFrom}</span>} />
+                  {presetSteps(p, s.lang).map((step, i) => <Row key={i} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
+                  <CopyRow label={t('apiUrl')} value={api.key || p.route === 'add' ? url : t('needKey')} />
+                  {body && <CopyRow label="JSON" value={body} />}
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </Screen>
   )
 }
@@ -692,7 +811,18 @@ function DataPage() {
       <Section>
         <button className="row tap accent" onClick={exportData}>⬇️ {t('export')}</button>
         <button className="row tap accent" onClick={() => file.current?.click()}>⬆️ {t('importData')}</button>
-        {!SYNC_ENABLED && <button className="row tap destructive" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>{t('reset')}</button>}
+        {!SYNC_ENABLED && <button className="row tap accent" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>↺ {t('reset')}</button>}
+        {/* Empties every list but keeps people, sections, design and the rest of the settings. In sync mode
+            this goes through update() so the deletions reach the other phone too. */}
+        <button className="row tap destructive" onClick={() => {
+          if (!confirm(SYNC_ENABLED ? t('clearConfirmSync') : t('clearConfirm'))) return
+          update((st) => {
+            for (const k of ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods'] as const) {
+              ;(st[k] as { privateTo?: string; createdBy?: string }[]) = (st[k] as { privateTo?: string }[]).filter((x) => x.privateTo && x.privateTo !== st.me)
+            }
+          })
+          toast('🧹 ✓')
+        }}>🧹 {t('clearData')}</button>
       </Section>
       <input ref={file} type="file" accept="application/json" hidden onChange={(e) => importData(e.target.files?.[0])} />
       {!SYNC_ENABLED && <div className="section-footer" style={{ margin: '0 14px' }}>{t('prototype')}</div>}

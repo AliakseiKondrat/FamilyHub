@@ -1,8 +1,8 @@
-import { useState, type CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import {
-  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker,
+  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker, haptic,
 } from '../ui'
 import { addDays, fmtDate, fromISO, LOCALES, occursOn, toISO, today, weekdayNames } from '../lib/date'
 import { periodDays } from '../lib/cycle'
@@ -43,6 +43,8 @@ export default function Calendar({ back }: { back?: boolean }) {
   const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
   const cells = Math.ceil((offset + daysInMonth) / 7) * 7
   const [slide, setSlide] = useState<'slide-l' | 'slide-r' | ''>('')
+  const swipe = useRef<{ x: number; y: number } | null>(null)
+  const swallow = useRef(false)
   const shiftMonth = (n: number) => {
     const d = new Date(first.getFullYear(), first.getMonth() + n, 1)
     setSlide(n > 0 ? 'slide-l' : 'slide-r')
@@ -51,6 +53,16 @@ export default function Calendar({ back }: { back?: boolean }) {
 
   const ag = dayAgenda(s, sel)
   const isPeriod = period.has(sel)
+  const upcoming = Array.from({ length: 7 }, (_, k) => addDays(sel, k + 1)).map((day) => {
+    const a = dayAgenda(s, day)
+    const items = [
+      ...a.trips.map((x) => ({ text: `✈️ ${x.title}`, color: 'var(--indigo)' })),
+      ...a.events.map((e) => ({ text: `${e.time ? e.time + ' ' : ''}${e.busy ? t('busy') : e.title}`, color: e.color ?? whoColor(e.who) })),
+      ...a.tasks.filter((x) => !x.done).map((x) => ({ text: `○ ${x.title}`, color: 'var(--orange)' })),
+      ...a.pet.map((r) => ({ text: `🐾 ${r.title}`, color: 'var(--brown)' })),
+    ]
+    return { day, items }
+  }).filter((d) => d.items.length)
   const empty = !ag.events.length && !ag.tasks.length && !ag.trips.length && !ag.pet.length
 
   const { title } = moduleLabel(s, 'calendar')
@@ -68,20 +80,30 @@ export default function Calendar({ back }: { back?: boolean }) {
             <button onClick={() => shiftMonth(1)} aria-label="Next"><Icon name="fwd" /></button>
           </div>
         </div>
-        <div className={'cal-grid ' + slide} key={month}>
+        <div className={'cal-grid ' + slide} key={month} style={{ touchAction: 'pan-y' }}
+          onPointerDown={(e) => { swipe.current = { x: e.clientX, y: e.clientY } }}
+          onPointerUp={(e) => {
+            // Swipe left/right over the month to flip it, like the iOS calendar.
+            const st = swipe.current
+            swipe.current = null
+            if (!st) return
+            const dx = e.clientX - st.x, dy = e.clientY - st.y
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swallow.current = true; haptic(); shiftMonth(dx < 0 ? 1 : -1) }
+          }}
+          onClickCapture={(e) => { if (swallow.current) { swallow.current = false; e.stopPropagation() } }}>
           {weekdays.map((w) => <div key={w} className="cal-wd">{w}</div>)}
           {Array.from({ length: cells }, (_, i) => {
             const day = addDays(gridStart, i)
             const a = dayAgenda(s, day)
             const dots = [
-              ...a.events.slice(0, 2).map((e) => whoColor(e.who)),
+              ...a.events.slice(0, 2).map((e) => e.color ?? whoColor(e.who)),
               ...(a.tasks.length ? ['var(--orange)'] : []),
               ...(a.trips.length ? ['var(--indigo)'] : []),
               ...(a.pet.length ? ['var(--brown)'] : []),
             ].slice(0, 3)
             const cls = ['day', day.slice(0, 7) !== month && 'out', day === today() && 'today', day === sel && 'sel', period.has(day) && 'period']
             return (
-              <button key={day} className={cls.filter(Boolean).join(' ')} onClick={() => setSel(day)}>
+              <button key={day} className={cls.filter(Boolean).join(' ')} onClick={() => { setSel(day); if (day.slice(0, 7) !== month) shiftMonth(day < month ? -1 : 1) }}>
                 <span className="num">{fromISO(day).getDate()}</span>
                 <span className="dots">{dots.map((c, k) => <i key={k} style={{ '--c': c } as CSSProperties} />)}</span>
               </button>
@@ -96,8 +118,8 @@ export default function Calendar({ back }: { back?: boolean }) {
         {ag.trips.map((tr) => <Row key={tr.id} icon="✈️" title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
-            left={<div className="color-bar" style={{ '--c': whoColor(e.who) } as CSSProperties} />}
-            title={<>{e.title} <Marks x={e} />{(e as { source?: string }).source === 'google' && <span className="badge" style={{ '--c': '#4285f4' } as CSSProperties}>G</span>}</>}
+            left={<div className="color-bar" style={{ '--c': e.color ?? whoColor(e.who) } as CSSProperties} />}
+            title={<>{e.busy ? t('busy') : e.title} <Marks x={e} />{e.source === 'google' && <span className="badge" style={{ '--c': e.color ?? '#4285f4' } as CSSProperties}>{e.calendar ?? 'G'}</span>}</>}
             sub={e.time ? `${e.time}${e.endTime ? ` – ${e.endTime}` : ''}` : t('allDay')}
             right={<Avatar who={e.who} />} />
         ))}
@@ -105,6 +127,19 @@ export default function Calendar({ back }: { back?: boolean }) {
         {ag.tasks.map((k) => <TaskRow key={k.id} task={k} onOpen={setEditTask} />)}
         {empty && !isPeriod && <Row title={<span style={{ color: 'var(--label2)' }}>{t('noEvents')}</span>} />}
       </Section>
+
+      {/* The next week at a glance, so you don't have to tap through days. */}
+      {upcoming.length > 0 && (
+        <Section big header={t('upcomingDays')}>
+          {upcoming.map(({ day, items }) => (
+            <Row key={day} onClick={() => { setSel(day); if (day.slice(0, 7) !== month) shiftMonth(1) }}
+              left={<div className="up-day"><b>{fromISO(day).getDate()}</b><span>{fmtDate(day, s.lang, { weekday: 'short' })}</span></div>}
+              title={<span className="up-items">{items.slice(0, 3).map((it, k) => (
+                <span key={k}><i style={{ background: it.color }} />{it.text}</span>
+              ))}{items.length > 3 && <span className="up-more">+{items.length - 3}</span>}</span>} />
+          ))}
+        </Section>
+      )}
 
       <Section footer={t('gHow')}>
         <Row icon={<span style={{ fontWeight: 800, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} chevron onClick={() => nav.settings('google')} />
@@ -131,7 +166,9 @@ export function EventEditor({ event, onClose }: { event: CalEvent; onClose: () =
   })
   const allDay = !v.time
   return (
-    <Sheet title={isNew ? t('newEvent') : t('edit')} onClose={onClose} onDone={save} doneDisabled={!v.title.trim()}>
+    <Sheet title={isNew ? t('newEvent') : v.calendar ?? t('edit')} onClose={onClose} onDone={v.readonly ? undefined : save} doneDisabled={!v.title.trim()}>
+      {/* Events from a read-only Google calendar (someone else's, shared with us) can be viewed, not edited. */}
+      {v.readonly && <div className="section-footer" style={{ margin: '-4px 14px 12px' }}>🔒 {v.calendar}</div>}
       <Section>
         <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('title')} autoFocus={isNew} />
       </Section>

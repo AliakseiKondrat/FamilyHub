@@ -77,7 +77,7 @@ export default function Groceries({ back }: { back?: boolean }) {
               <div className="cat-body">
                 <div>
                   {items.map((g) => (
-                    <Swipe key={g.id} onDelete={() => remove(g.id)}>
+                    <Swipe key={g.id} onDelete={() => remove(g.id)} onComplete={() => toggle(g.id)}>
                       <Row left={<Check on={false} onChange={() => toggle(g.id)} color="var(--green)" />}
                         title={<>{g.title} <Marks x={g} /></>} onClick={() => setEdit(g)} />
                     </Swipe>

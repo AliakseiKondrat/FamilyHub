@@ -3,7 +3,7 @@ import { useApp } from './store'
 import { moduleLabel, useT } from './i18n'
 import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
 import { ALL_MODULES } from './defaults'
-import { Icon, toast } from './ui'
+import { Icon, haptic, toast } from './ui'
 import { accentColors, applyDesign } from './theme'
 import type { ModuleId } from './types'
 import Today from './screens/Today'
@@ -22,6 +22,7 @@ import Cycle from './screens/Cycle'
 import More from './screens/More'
 import Settings from './screens/Settings'
 import Login from './screens/Login'
+import Search from './screens/Search'
 import { useSync } from './sync'
 
 const TAB_ICONS: Partial<Record<ModuleId, string>> = { today: 'today', calendar: 'calendar', tasks: 'tasks', groceries: 'cart' }
@@ -47,6 +48,7 @@ function moduleScreen(id: ModuleId, back: boolean): ReactNode {
 function routeScreen(r: Route): ReactNode {
   if ('mod' in r) return moduleScreen(r.mod, true)
   if ('trip' in r) return <TripDetail id={r.trip} />
+  if ('search' in r) return <Search />
   return <Settings page={r.settings} />
 }
 
@@ -84,6 +86,9 @@ function Sidebar() {
         <span className="sb-logo">❤️</span>
         <div><b>Family Hub</b><span>{s.users[s.me].emoji} {s.users[s.me].name}</span></div>
       </div>
+      <button className={'sb-item' + (nav.stack.some((r) => 'search' in r) ? ' on' : '')} onClick={nav.search} style={{ marginBottom: 8 }}>
+        <span className="sb-ico" style={{ background: 'var(--fill2)' }}><Icon name="search" style={{ width: 16, height: 16 }} /></span><span>{t('search')}</span>
+      </button>
       <div className="sb-list">
         {mods.map((m, i) => {
           const l = moduleLabel(s, m)
@@ -164,7 +169,7 @@ export default function App() {
   const active = tabs.findIndex((tb) => tb.id === nav.tab)
   const go = (id: Tab) => {
     if (nav.tab === id && nav.stack.length) history.go(-nav.stack.length)
-    else if (nav.tab !== id) { setSquish((n) => n + 1); nav.setTab(id); if (s.design.haptics) navigator.vibrate?.(6) }
+    else if (nav.tab !== id) { setSquish((n) => n + 1); nav.setTab(id); haptic() }
   }
 
   // Slide a finger along the bar: the lens follows and the nearest tab opens on release.

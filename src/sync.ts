@@ -6,7 +6,7 @@ import { blankState } from './demo'
 import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
-import { defaultDesign, defaultPrefs, PERSONAL_KEYS, SHARED_KEYS } from './defaults'
+import { defaultDesign, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defaults'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -14,7 +14,7 @@ import { defaultDesign, defaultPrefs, PERSONAL_KEYS, SHARED_KEYS } from './defau
  * pull (on start / when the app comes back to the foreground) and by Realtime in between.
  */
 
-const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods'] as const
+const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods', 'statuses'] as const
 type Coll = (typeof COLLECTIONS)[number]
 const SETTINGS_ID = 'meta:settings'
 const PERIOD_DAYS_ID = 'meta:period_days'
@@ -62,7 +62,7 @@ function applyPersonal(next: State, data: unknown) {
   const d = data as Partial<State>
   Object.assign(next, d, {
     design: { ...defaultDesign(), ...d.design },
-    prefs: { ...defaultPrefs(), ...d.prefs, notify: { ...defaultPrefs().notify, ...d.prefs?.notify } },
+    prefs: upgradePrefs(d.prefs),
   })
 }
 
@@ -112,6 +112,7 @@ async function flush() {
       // Drop only what was sent; anything edited meanwhile stays queued.
       for (const r of rows) if (outbox[r.id] === r) delete outbox[r.id]
       saveOutbox()
+      if (rows.some((r) => r.collection === 'events' || r.collection === 'tasks')) syncGoogleSoon(1500)
     }
     await flushPhotoUploads()
     setAuth({ online: true })
@@ -139,8 +140,9 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
       if (r.id === PERIOD_DAYS_ID && !r.deleted) next.sharedPeriodDays = (r.data as { days: string[] }).days
       continue
     }
-    if (!COLLECTIONS.includes(r.collection as Coll)) continue
-    const c = r.collection as Coll
+    // The Shortcuts API writes statuses as "status"; the app keeps them under "statuses".
+    const c = (r.collection === 'status' ? 'statuses' : r.collection) as Coll
+    if (!COLLECTIONS.includes(c)) continue
     const list = (next[c] as Item[]).filter((x) => x.id !== r.id)
     if (!r.deleted) list.push(r.data as Item)
     ;(next[c] as Item[]) = list
@@ -239,8 +241,28 @@ export async function initSync() {
   window.addEventListener('online', () => { setAuth({ online: true }); flush() })
   window.addEventListener('offline', () => setAuth({ online: false }))
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && auth.status === 'ready') pull().then(() => flush()).catch(() => {})
+    if (document.visibilityState !== 'visible' || auth.status !== 'ready') return
+    pull().then(() => flush()).catch(() => {})
+    syncGoogleSoon(0)
   })
+}
+
+/**
+ * Two-way Google sync on demand: right after a local event/task edit (so it reaches Google within
+ * seconds) and when the app comes back to the foreground. Throttled; a no-op without a Google link.
+ */
+let googleTimer: ReturnType<typeof setTimeout> | undefined
+let lastGoogle = 0
+function syncGoogleSoon(delay: number) {
+  if (!supabase) return
+  clearTimeout(googleTimer)
+  googleTimer = setTimeout(async () => {
+    const wait = 20000 - (Date.now() - lastGoogle)
+    if (wait > 0) { syncGoogleSoon(wait); return }
+    lastGoogle = Date.now()
+    await supabase!.functions.invoke('google', { body: { action: 'sync' } }).catch(() => null)
+    pull().catch(() => {})
+  }, delay)
 }
 
 export async function signIn(email: string, password: string) {

@@ -24,6 +24,7 @@ const PATHS: Record<string, ReactNode> = {
   trash: <><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" /></>,
   photo: <><rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m3.5 17 5-4.5 4 3.5 3-2.5 5 4" /></>,
   link: <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />,
+  search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></>,
 }
 
 export function Icon({ name, style }: { name: string; style?: CSSProperties }) {
@@ -46,17 +47,47 @@ export interface Action { icon: ReactNode; label: string; onClick: () => void }
  * glass action buttons and extra header controls; the title collapses into a glass bar on scroll.
  * Pushed screens can be dismissed with a swipe from the left edge.
  */
-export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head, auraImage }: {
+/** Things the per-screen search can hide; forms (rows with inputs) always stay. */
+const SEARCH_ITEMS = '.swipe, .row:not(.swipe .row):not(:has(input, textarea, select)), .poster, .track-card, .goal, .mod-tile, .banner, .photo, .card'
+
+export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head, auraImage, searchable = true }: {
   title: ReactNode; accent: Accent; left?: ReactNode; right?: ReactNode; children: ReactNode; back?: boolean
   subtitle?: ReactNode; hero?: ReactNode; actions?: Action[]; head?: ReactNode
   /** Optional picture blurred into the header (album art on the Music screen). */
   auraImage?: string
+  /** Show the 🔍 button that filters this screen's content. */
+  searchable?: boolean
 }) {
   const nav = useNav()
+  const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [auraH, setAuraH] = useState(360)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [sq, setSq] = useState('')
+  useDelayedFocus(ref)
+  useDelayedFocus(headRef, searchOpen)
+
+  // Filter whatever this screen shows by its text, so every section gets search for free.
+  useEffect(() => {
+    const body = bodyRef.current
+    if (!body) return
+    const apply = () => {
+      const q = sq.trim().toLowerCase()
+      body.querySelectorAll<HTMLElement>(SEARCH_ITEMS).forEach((el) => el.classList.toggle('search-hide', !!q && !el.textContent!.toLowerCase().includes(q)))
+      body.querySelectorAll<HTMLElement>('.section, .cat-card').forEach((sec) => {
+        const items = [...sec.querySelectorAll<HTMLElement>(SEARCH_ITEMS)]
+        sec.classList.toggle('search-hide', !!q && items.length > 0 && items.every((i) => i.classList.contains('search-hide')))
+      })
+    }
+    apply()
+    if (!sq) return
+    const mo = new MutationObserver(apply)
+    mo.observe(body, { childList: true, subtree: true, characterData: true })
+    return () => mo.disconnect()
+  }, [sq])
 
   useEffect(() => {
     const el = ref.current!
@@ -100,7 +131,7 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
   }
 
   return (
-    <div className={'screen' + (back ? ' push' : '')} ref={ref} style={{ ...accentStyle(accent), '--aura-h': auraH + 'px' } as CSSProperties}
+    <div className={'screen' + (back ? ' push' : '') + (sq ? ' searching' : '')} ref={ref} style={{ ...accentStyle(accent), '--aura-h': auraH + 'px' } as CSSProperties}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
       <div className="aura">{auraImage && <div className="aura-img" style={{ backgroundImage: `url("${auraImage}")` }} />}</div>
       <div className={'navbar' + (scrolled ? ' scrolled' : '')}>
@@ -110,7 +141,17 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
             {left}
           </div>
           <div className="navbar-title">{title}</div>
-          <div className="navbar-side">{right}</div>
+          <div className="navbar-side">
+            {searchable && (
+              <button className="glass-btn lg" aria-label={t('search')} onClick={() => {
+                const open = !searchOpen
+                setSearchOpen(open)
+                if (!open) setSq('')
+                else ref.current?.scrollTo({ top: 0, behavior: 'smooth' })
+              }}><Icon name={searchOpen ? 'close' : 'search'} /></button>
+            )}
+            {right}
+          </div>
         </div>
       </div>
       <div className="head" ref={headRef}>
@@ -128,8 +169,17 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
           </div>
         )}
         {head && <div className="head-extra">{head}</div>}
+        {searchOpen && (
+          <div className="head-extra">
+            <div className="quick lg screen-search">
+              <span style={{ position: 'relative', zIndex: 2 }}>🔎</span>
+              <input data-autofocus value={sq} onChange={(e) => setSq(e.target.value)} placeholder={t('searchHere')} enterKeyHint="search" />
+              {sq && <button className="plus" onClick={() => setSq('')} aria-label="Clear"><Icon name="close" /></button>}
+            </div>
+          </div>
+        )}
       </div>
-      <div className="screen-body">{children}</div>
+      <div className="screen-body" ref={bodyRef}>{children}</div>
     </div>
   )
 }
@@ -179,19 +229,23 @@ export function Row({ icon, iconBg, title, sub, detail, onClick, chevron, left, 
 }
 
 /** Swipe left to reveal Delete (full swipe deletes); the row collapses away before it is removed. */
-export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: () => void }) {
+export function Swipe({ children, onDelete, onComplete }: { children: ReactNode; onDelete: () => void; onComplete?: () => void }) {
   const t = useT()
   const [x, setX] = useState(0)
   const [drag, setDrag] = useState(false)
   const [removing, setRemoving] = useState(false)
   const start = useRef<{ x: number; y: number; base: number; locked?: 'h' | 'v' } | null>(null)
   const W = 88
-  const remove = () => { setRemoving(true); setX(-window.innerWidth); setTimeout(onDelete, 260) }
+  const remove = () => { haptic(); setRemoving(true); setX(-window.innerWidth); setTimeout(onDelete, 260) }
   return (
     <div className={'swipe' + (removing ? ' removing' : '')}>
       <div className="swipe-actions">
         <button style={{ background: 'var(--red)' }} onClick={remove}>{t('delete')}</button>
       </div>
+      {/* Swipe right to tick off, like Reminders. */}
+      {onComplete && <div className="swipe-actions left" style={{ opacity: x > 0 ? 1 : 0 }}>
+        <button style={{ background: x > W ? 'var(--green)' : 'var(--gray)' }}>✓</button>
+      </div>}
       <div
         className={'swipe-content' + (drag ? ' dragging' : '')}
         style={{ transform: `translateX(${x}px)` }}
@@ -201,14 +255,16 @@ export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: (
           if (!s) return
           const dx = e.clientX - s.x, dy = e.clientY - s.y
           if (!s.locked && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) s.locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
-          if (s.locked === 'h') { e.stopPropagation(); setDrag(true); setX(Math.min(0, Math.max(-W * 2, s.base + dx))) }
+          if (s.locked === 'h') { e.stopPropagation(); setDrag(true); setX(Math.min(onComplete ? W * 1.6 : 0, Math.max(-W * 2, s.base + dx))) }
         }}
         onPointerUp={() => {
           const s = start.current
           start.current = null
           if (!s?.locked || s.locked === 'v') return
           setDrag(false)
-          if (x < -W * 1.6) remove(); else setX(x < -W / 2 ? -W : 0)
+          if (x > W && onComplete) { haptic(); onComplete(); setX(0) }
+          else if (x < -W * 1.6) remove()
+          else setX(x < -W / 2 ? -W : 0)
         }}
         onPointerCancel={() => { start.current = null; setDrag(false); setX(0) }}
         onClickCapture={(e) => { if (x !== 0) { e.stopPropagation(); setX(0) } }}
@@ -222,14 +278,14 @@ export function Swipe({ children, onDelete }: { children: ReactNode; onDelete: (
 export function Check({ on, onChange, color }: { on: boolean; onChange: () => void; color?: string }) {
   return (
     <button className={'check' + (on ? ' on' : '')} style={{ '--c': color } as CSSProperties}
-      onClick={(e) => { e.stopPropagation(); if (getState().design.haptics) navigator.vibrate?.(8); onChange() }} aria-pressed={on}>
+      onClick={(e) => { e.stopPropagation(); haptic(); onChange() }} aria-pressed={on}>
       <Icon name="check" />
     </button>
   )
 }
 
 export function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return <button className={'switch' + (on ? ' on' : '')} onClick={() => onChange(!on)} role="switch" aria-checked={on} />
+  return <button className={'switch' + (on ? ' on' : '')} onClick={() => { haptic(); onChange(!on) }} role="switch" aria-checked={on} />
 }
 
 /** Segmented control whose thumb slides with a spring. */
@@ -241,7 +297,7 @@ export function Segmented<T extends string>({ value, options, onChange, inSheet 
     <div className={'seg' + (inSheet ? ' in-sheet' : '')}>
       <div className="seg-thumb" style={{ width: `calc((100% - 6px) / ${options.length})`, transform: `translateX(${i * 100}%)` }} />
       {options.map((o) => (
-        <button key={o.value} className={o.value === value ? 'on' : ''} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} className={o.value === value ? 'on' : ''} onClick={() => { if (o.value !== value) haptic(); onChange(o.value) }}>{o.label}</button>
       ))}
     </div>
   )
@@ -263,6 +319,37 @@ export function QuickAdd({ placeholder, onAdd }: { placeholder: string; onAdd: (
   )
 }
 
+/**
+ * Focus the field marked data-autofocus once the slide-in has finished, without scrolling the page.
+ * Focusing during the animation made iOS shove the whole app up to make room for the keyboard.
+ */
+function useDelayedFocus(ref: React.RefObject<HTMLElement>, when: unknown = true) {
+  useEffect(() => {
+    if (!when) return
+    const id = setTimeout(() => ref.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true }), 460)
+    return () => clearTimeout(id)
+  }, [when]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/* ---------- Haptics ---------- */
+// iOS Safari has no Vibration API, but toggling a native <input switch> (iOS 18+) plays the system haptic.
+let hapticLabel: HTMLLabelElement | null = null
+export function haptic() {
+  if (!getState().design.haptics) return
+  if (navigator.vibrate) { navigator.vibrate(8); return }
+  if (!hapticLabel) {
+    hapticLabel = document.createElement('label')
+    hapticLabel.setAttribute('aria-hidden', 'true')
+    hapticLabel.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none'
+    const input = document.createElement('input')
+    input.type = 'checkbox'
+    input.setAttribute('switch', '')
+    hapticLabel.appendChild(input)
+    document.body.appendChild(hapticLabel)
+  }
+  hapticLabel.click()
+}
+
 /* ---------- Sheet (modal card from the bottom, drag down to dismiss) ---------- */
 export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   title?: ReactNode; onClose: () => void; onDone?: () => void; doneDisabled?: boolean; children: ReactNode
@@ -270,6 +357,8 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   const [closing, setClosing] = useState(false)
   const [dy, setDy] = useState(0)
   const start = useRef<number | null>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  useDelayedFocus(sheetRef)
   const close = (after?: () => void) => {
     setClosing(true)
     setTimeout(() => { after?.(); onClose() }, 240)
@@ -279,7 +368,7 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   return createPortal(
     <>
       <div className={'backdrop' + (closing ? ' closing' : '')} onClick={() => close()} />
-      <div className={'sheet' + (closing ? ' closing' : '') + (start.current != null ? ' dragging' : '')} style={style}>
+      <div ref={sheetRef} className={'sheet' + (closing ? ' closing' : '') + (start.current != null ? ' dragging' : '')} style={style}>
         <div
           onPointerDown={(e) => {
             // Centered cards on iPad/Mac close with the button, not by dragging.
@@ -315,7 +404,7 @@ export function TextRow({ value, onChange, placeholder, autoFocus, multiline }: 
     <div className="row">
       {multiline
         ? <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-        : <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoFocus={autoFocus} />}
+        : <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} data-autofocus={autoFocus || undefined} />}
     </div>
   )
 }

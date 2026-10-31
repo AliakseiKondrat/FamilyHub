@@ -12,6 +12,7 @@ import { newTask, TaskEditor, TaskRow } from './Tasks'
 import { PhotoThumb } from './Photos'
 import { currencyOf, monthSpending } from './Budget'
 import { Cover, player } from './Music'
+import { StatusChips } from './Statuses'
 
 export default function Today({ back }: { back?: boolean }) {
   const s = useApp()
@@ -74,7 +75,7 @@ export default function Today({ back }: { back?: boolean }) {
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
             left={<div className="time-col">{e.time ?? '—'}</div>}
-            title={<>{e.title} <Marks x={e} /></>} sub={e.endTime ? `→ ${e.endTime}` : undefined}
+            title={<>{e.busy ? t('busy') : e.title} <Marks x={e} /></>} sub={[e.endTime && `→ ${e.endTime}`, e.calendar].filter(Boolean).join(' · ') || undefined}
             right={<Avatar who={e.who} />} />
         ))}
       </Section>
@@ -136,9 +137,16 @@ export default function Today({ back }: { back?: boolean }) {
   return (
     <Screen title={t(greet as 'greet.day', { name: me.name })} accent="today" back={back}
       subtitle={<span className="cap" style={{ display: 'block' }}>{fmtDate(d, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
-      right={<GlassButton label={me.emoji} onClick={() => nav.settings()} />}
+      searchable={false}
+      right={<>
+        <GlassButton icon="search" label={t('searchAll')} onClick={nav.search} />
+        {/* Find My does the location sharing itself; we only jump to it. */}
+        <GlassButton label="📍" onClick={() => { location.href = 'findmy://' }} />
+        <GlassButton label={me.emoji} onClick={() => nav.settings()} />
+      </>}
       hero={<>
-        {cycleLine && <div className="hero-sub" style={{ marginTop: 0 }}>{cycleLine}</div>}
+        <StatusChips />
+        {cycleLine && <div className="hero-sub" style={{ marginTop: 12 }}>{cycleLine}</div>}
         <div className="hero-row" style={{ marginTop: cycleLine ? 12 : 0 }}>
           <div><div className="hero-num">{ag.events.length}</div><div className="hero-lbl">{t('todayEvents')}</div></div>
           <div><div className="hero-num">{tasksNow.length}</div><div className="hero-lbl">{t('todayTasks')}</div></div>

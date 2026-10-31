@@ -5,9 +5,9 @@ import { getState } from './store'
 /** A tab is any section the person put in the bottom bar, or "More". */
 export type Tab = ModuleId | 'more'
 export type SettingsPage = 'root' | 'design' | 'tabs' | 'today' | 'sections' | 'groceryCats' | 'budget' | 'people' | 'region' | 'data'
-  | 'notifications' | 'siri' | 'widget' | 'google'
+  | 'notifications' | 'siri' | 'widget' | 'google' | 'statuses' | 'shortcuts'
 /** A pushed screen: a section, a trip detail, or a settings page. */
-export type Route = { mod: ModuleId } | { trip: string } | { settings: SettingsPage }
+export type Route = { mod: ModuleId } | { trip: string } | { settings: SettingsPage } | { search: true }
 
 interface NavState { tab: Tab; stack: Route[] }
 const startTab = (): Tab => {
@@ -43,6 +43,7 @@ const actions = {
     if (wide || getState().prefs.tabs.includes(mod)) set({ tab: mod, stack: [] })
     else set({ ...nav, stack: [...nav.stack, { mod }] }, true)
   },
+  search: () => set({ ...nav, stack: [...nav.stack, { search: true }] }, true),
   settings: (page: SettingsPage = 'root') => set({ ...nav, stack: [...nav.stack, { settings: page }] }, true),
 }
 

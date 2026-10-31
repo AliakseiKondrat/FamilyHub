@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -26,7 +26,7 @@ export function demoState(): State {
   return {
     version: 1,
     me: 'a',
-    users: { a: { name: 'Алексей', emoji: '🧔' }, j: { name: 'Юля', emoji: '👩' } },
+    users: { a: { name: 'Лёша', emoji: '🧔' }, j: { name: 'Юля', emoji: '👩' } },
     lang: 'ru',
     country: 'PL',
     theme: 'auto',
@@ -89,7 +89,8 @@ export function demoState(): State {
     ],
     recipes: [
       { ...b('j'), title: 'Паэлья с морепродуктами', url: 'https://www.example.com/paella', tags: ['ужин', 'испания'], ingredients: ['Рис для паэльи', 'Креветки', 'Мидии', 'Шафран', 'Лимон'], someday: true, cooked: 0 },
-      { ...b('a'), title: 'Сырники', tags: ['завтрак'], ingredients: ['Творог', 'Яйца', 'Мука', 'Сметана'], someday: false, cooked: 6 },
+      { ...b('a'), title: 'Сырники', tags: ['завтрак'], ingredients: ['Творог 500 г', 'Яйца 2 шт', 'Мука 4 ст. л.', 'Сахар 2 ст. л.', 'Сметана'], someday: false, cooked: 6, minutes: 30, servings: '4',
+        steps: ['Разомни творог вилкой, добавь яйца и сахар.', 'Всыпь муку и замеси мягкое тесто.', 'Сформируй шайбы и обваляй в муке.', 'Обжарь на среднем огне по 3–4 минуты с каждой стороны.', 'Подавай со сметаной.'] },
       { ...b('j'), title: 'Рамен с нуля', tags: ['ужин', 'долго'], ingredients: ['Свиные кости', 'Лапша', 'Яйца', 'Мисо'], someday: true, cooked: 0 },
     ],
     petRecords: [
@@ -122,6 +123,7 @@ export function demoState(): State {
       },
     ],
     photos: [],
+    statuses: [{ ...b('j'), text: 'Работаю', emoji: '💼', at: new Date().toISOString() }],
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },
       { id: 'pr2', start: addDays(t, -32), end: addDays(t, -27) },

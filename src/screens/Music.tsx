@@ -3,6 +3,8 @@ import { base, getState, other, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { Avatar, Empty, GlassButton, Icon, Row, Screen, Section, Sheet, TextRow, VisibilityFields, toast } from '../ui'
 import type { Track, UserId } from '../types'
+import { API_BASE } from '../lib/widget'
+import { CoverBox, CoverPicker, useCoverUrl } from '../cover'
 
 /* ---------- Apple's public iTunes Search API: covers + 30-second previews, no key needed ---------- */
 interface ItunesSong { trackId: number; trackName: string; artistName: string; collectionName?: string; artworkUrl100?: string; previewUrl?: string; trackViewUrl?: string }
@@ -16,8 +18,17 @@ export async function searchSongs(q: string): Promise<ItunesSong[]> {
 const bigArt = (url?: string) => url?.replace(/\d+x\d+bb/, '600x600bb')
 
 function fromItunes(me: UserId, x: ItunesSong): Track {
-  return { ...base(me), title: x.trackName, artist: x.artistName, album: x.collectionName, artwork: bigArt(x.artworkUrl100), preview: x.previewUrl, url: x.trackViewUrl, likes: [] }
+  return { ...base(me), title: x.trackName, artist: x.artistName, album: x.collectionName, artwork: bigArt(x.artworkUrl100), preview: x.previewUrl, url: x.trackViewUrl, likes: [], service: 'apple' }
 }
+
+/** Title, artist, cover and player for a pasted Spotify / YouTube link (via our API). */
+async function fromLink(me: UserId, url: string): Promise<Track | null> {
+  const m = await fetch(`${API_BASE}/meta?url=${encodeURIComponent(url)}`).then((r) => r.json()).catch(() => null)
+  if (!m || m.error || !m.title) return null
+  return { ...base(me), title: m.title, artist: m.artist ?? '', artwork: m.artwork ?? '', url: m.url, embed: m.embed, service: m.service, likes: [] }
+}
+
+const isMusicLink = (v: string) => /^https?:\/\/(open\.spotify\.com|(www\.|m\.|music\.)?youtube\.com|youtu\.be)\//.test(v)
 
 /* ---------- Tiny global player for previews ---------- */
 type PlayerState = { track?: Track; playing: boolean; progress: number }
@@ -43,11 +54,12 @@ export const usePlayer = () => useSyncExternalStore((l) => { pl.add(l); return (
 
 /* ---------- Pieces ---------- */
 export function Cover({ track, size, radius }: { track: Track; size?: number; radius?: number }) {
+  const art = useCoverUrl(track.artwork)
   const style = { width: size, height: size, borderRadius: radius ?? (size && size < 60 ? 12 : 18) } as CSSProperties
   // Fallback art: a gradient seeded from the title.
   const hue = [...track.title].reduce((a, c) => a + c.charCodeAt(0), 0) % 360
-  return track.artwork
-    ? <img className="cover" src={track.artwork} alt="" style={style} loading="lazy" />
+  return art
+    ? <img className="cover" src={art} alt="" style={style} loading="lazy" />
     : <div className="cover" style={{ ...style, background: `linear-gradient(135deg, hsl(${hue} 80% 60%), hsl(${(hue + 60) % 360} 80% 45%))` }}>🎵</div>
 }
 
@@ -94,6 +106,7 @@ export default function Music({ back }: { back?: boolean }) {
   const all = visible(s.music, s.me)
   const list = all.filter((x) => filter === 'all' || (filter === 'fav' ? x.likes.includes(s.me) : x.createdBy === filter))
   const featured = all[0]
+  const featuredArt = useCoverUrl(featured?.artwork)
 
   // Fill in covers for tracks added by hand (once per track).
   useEffect(() => {
@@ -121,9 +134,14 @@ export default function Music({ back }: { back?: boolean }) {
       setBusy(false)
     }, 350)
   }
-  const submit = () => {
-    const v = q.trim()
-    if (/^https?:\/\//.test(v)) { setManual({ ...base(s.me), title: '', artist: '', url: v, likes: [] }); setQ('') }
+  const submit = async (raw = q) => {
+    const v = raw.trim()
+    if (!/^https?:\/\//.test(v)) return
+    setQ('')
+    // Spotify / YouTube links become a full card right away; anything else opens the manual form.
+    const tr = isMusicLink(v) ? await fromLink(s.me, v) : null
+    if (tr) { update((st) => { st.music.unshift(tr) }); toast(`🎧 ${tr.title} ✓`) }
+    else setManual({ ...base(s.me), title: '', artist: '', url: v, likes: [] })
   }
   const share = (x: ItunesSong) => {
     update((st) => { st.music.unshift(fromItunes(st.me, x)) })
@@ -135,7 +153,7 @@ export default function Music({ back }: { back?: boolean }) {
   const counts = { a: all.filter((x) => x.createdBy === 'a').length, j: all.filter((x) => x.createdBy === 'j').length }
 
   return (
-    <Screen title={moduleLabel(s, 'music').title} accent="music" back={back} auraImage={featured?.artwork || undefined}
+    <Screen title={moduleLabel(s, 'music').title} accent="music" back={back} auraImage={featuredArt}
       right={<GlassButton icon="plus" label={t('addManually')} onClick={() => setManual({ ...base(s.me), title: '', artist: '', likes: [] })} />}
       hero={featured && (
         <button className="music-hero" onClick={() => setOpen(featured)}>
@@ -155,7 +173,8 @@ export default function Music({ back }: { back?: boolean }) {
         <div className="quick lg">
           <span style={{ position: 'relative', zIndex: 2 }}>🔎</span>
           <input value={q} placeholder={t('music.search')} onChange={(e) => onQuery(e.target.value)} enterKeyHint="search"
-            onKeyDown={(e) => { if (e.key === 'Enter') submit() }} />
+            onKeyDown={(e) => { if (e.key === 'Enter') submit() }}
+            onPaste={(e) => { const v = e.clipboardData.getData('text').trim(); if (isMusicLink(v)) { e.preventDefault(); submit(v) } }} />
           {q && <button className="plus" onClick={() => { setQ(''); setResults(null) }} aria-label="Clear"><Icon name="close" /></button>}
         </div>
         {!results && (
@@ -193,6 +212,7 @@ export default function Music({ back }: { back?: boolean }) {
               <div className="tc-cover">
                 <Cover track={x} />
                 <div className="tc-play"><PlayButton track={x} /></div>
+                {(x.service === 'spotify' || x.service === 'youtube') && <span className={`svc svc-${x.service}`} style={{ position: 'absolute', left: 8, top: 8 }}>{x.service === 'spotify' ? '●' : '▶'}</span>}
               </div>
               <div className="tc-title">{x.title}</div>
               <div className="tc-sub">
@@ -230,16 +250,17 @@ function TrackSheet({ track, onClose }: { track: Track; onClose: () => void }) {
   const [note, setNote] = useState(live.note ?? '')
   const q = encodeURIComponent(`${live.artist} ${live.title}`)
   const partner = s.users[other(live.createdBy)]
+  // Spotify first — that's what we use; YouTube second, Apple Music last.
   const links = [
-    { name: 'Apple Music', icon: '🍎', url: live.url?.includes('apple.com') ? live.url : `https://music.apple.com/search?term=${q}` },
     { name: 'Spotify', icon: '🟢', url: live.url?.includes('spotify.com') ? live.url : `https://open.spotify.com/search/${q}` },
-    { name: 'YouTube Music', icon: '▶️', url: live.url?.includes('youtube.com') || live.url?.includes('youtu.be') ? live.url : `https://music.youtube.com/search?q=${q}` },
+    { name: 'YouTube', icon: '▶️', url: live.url?.includes('youtube.com') || live.url?.includes('youtu.be') ? live.url : `https://www.youtube.com/results?search_query=${q}` },
+    { name: 'Apple Music', icon: '🍎', url: live.url?.includes('apple.com') ? live.url : `https://music.apple.com/search?term=${q}` },
   ]
   return (
     <Sheet title={t('nowPlaying')} onClose={onClose}
       onDone={() => update((st) => { const m = st.music.find((x) => x.id === live.id); if (m) m.note = note || undefined })}>
       <div className="track-sheet-head">
-        {live.artwork && <div className="ts-bg" style={{ backgroundImage: `url("${live.artwork}")` }} />}
+        {live.artwork && <CoverBox className="ts-bg" src={live.artwork} />}
         <Cover track={live} size={220} radius={24} />
         <div className="ts-title">{live.title}</div>
         <div className="ts-artist">{live.artist}{live.album ? ` · ${live.album}` : ''}</div>
@@ -248,6 +269,21 @@ function TrackSheet({ track, onClose }: { track: Track; onClose: () => void }) {
           <LikeButton track={live} />
         </div>
       </div>
+      {live.embed && (
+        // The service's own player: Spotify plays a preview (or the full song when signed in), YouTube the video.
+        <div className={'embed ' + (live.service === 'youtube' ? 'embed-video' : 'embed-spotify')}>
+          <iframe src={live.embed + (live.service === 'spotify' ? '?theme=0' : '')} title={live.title} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+        </div>
+      )}
+      {live.url && live.service !== 'apple' && (
+        <div style={{ margin: '0 14px 16px' }}>
+          <a className={`svc-btn ${live.service === 'youtube' ? 'youtube' : 'spotify'}`} href={live.url} target="_blank" rel="noreferrer" style={{ width: '100%' }}>
+            ▶︎ {live.service === 'youtube' ? 'YouTube' : 'Spotify'}
+          </a>
+        </div>
+      )}
+      <CoverPicker compact auto={false} id={live.id} url={live.url} cover={live.artwork} title={live.title}
+        onChange={(p) => { if ('cover' in p) update((st) => { const m = st.music.find((x) => x.id === live.id); if (m) m.artwork = p.cover ?? '' }) }} />
       <Section header={t('listenOn')}>
         {links.map((l) => (
           <a key={l.name} className="row tap with-icon" href={l.url} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>
@@ -278,9 +314,11 @@ function ManualSheet({ track, onClose }: { track: Track; onClose: () => void }) 
       <Section>
         <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('title')} autoFocus />
         <TextRow value={v.artist} onChange={(artist) => setV({ ...v, artist })} placeholder={t('artist')} />
-        <TextRow value={v.url ?? ''} onChange={(url) => setV({ ...v, url })} placeholder={`🔗 ${t('link')}`} />
+        <TextRow value={v.url ?? ''} onChange={(url) => setV({ ...v, url: url || undefined })} placeholder={`🔗 ${t('link')}`} />
         <TextRow value={v.note ?? ''} onChange={(note) => setV({ ...v, note })} placeholder={t('comment')} multiline />
       </Section>
+      <CoverPicker id={v.id} url={v.url} cover={v.artwork || undefined} title={v.title} emoji="🎵"
+        onChange={(p) => setV((x) => ({ ...x, ...('cover' in p ? { artwork: p.cover ?? '' } : {}), ...(p.title && !x.title.trim() ? { title: p.title } : {}) }))} />
       <VisibilityFields value={v} onChange={setV} />
     </Sheet>
   )

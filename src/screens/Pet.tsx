@@ -131,7 +131,7 @@ function WeightSheet({ onClose }: { onClose: () => void }) {
   return (
     <Sheet title={t('addWeight')} onClose={onClose} doneDisabled={!(kg > 0)}
       onDone={() => update((st) => { st.weights.push({ id: uid(), date: today(), kg }) })}>
-      <input className="amount-input" inputMode="decimal" placeholder="0.0" value={v} autoFocus onChange={(e) => setV(e.target.value.replace(/[^\d.,]/g, ''))} />
+      <input className="amount-input" inputMode="decimal" placeholder="0.0" value={v} data-autofocus onChange={(e) => setV(e.target.value.replace(/[^\d.,]/g, ''))} />
       <div style={{ textAlign: 'center', marginTop: -14, color: 'var(--label2)' }}>{t('kg')}</div>
     </Sheet>
   )
