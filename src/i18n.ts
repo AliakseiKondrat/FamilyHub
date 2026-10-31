@@ -169,6 +169,10 @@ const ru = {
   undo: 'Вернуть',
   deletedN: 'Удалено',
   restored: 'Восстановлено ✓',
+  hideBought: 'Скрыть купленное',
+  showBought: 'Показать купленное',
+  setGroceryEmoji: 'Эмодзи у продуктов',
+  autoEmoji: 'Авто',
 }
 
 type Dict = typeof ru
@@ -341,6 +345,10 @@ const en: Dict = {
   undo: 'Undo',
   deletedN: 'Deleted',
   restored: 'Restored ✓',
+  hideBought: 'Hide bought',
+  showBought: 'Show bought',
+  setGroceryEmoji: 'Emoji next to groceries',
+  autoEmoji: 'Auto',
 }
 
 const pl: Dict = {
@@ -511,6 +519,10 @@ const pl: Dict = {
   undo: 'Cofnij',
   deletedN: 'Usunięto',
   restored: 'Przywrócono ✓',
+  hideBought: 'Ukryj kupione',
+  showBought: 'Pokaż kupione',
+  setGroceryEmoji: 'Emoji przy produktach',
+  autoEmoji: 'Auto',
 }
 
 const es: Dict = {
@@ -681,6 +693,10 @@ const es: Dict = {
   undo: 'Deshacer',
   deletedN: 'Eliminado',
   restored: 'Restaurado ✓',
+  hideBought: 'Ocultar comprado',
+  showBought: 'Mostrar comprado',
+  setGroceryEmoji: 'Emoji junto a los productos',
+  autoEmoji: 'Auto',
 }
 
 export const DICTS: Record<Lang, Dict> = { ru, en, pl, es }

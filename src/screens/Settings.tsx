@@ -113,6 +113,7 @@ function RootPage() {
       <Section header={t('behavior')} footer={`${t('linkPreviewsHint')} ${t('behaviorHint')}`}>
         <ToggleRow icon="✅" label={t('setShowDone')} on={s.prefs.showCompletedTasks} onChange={(showCompletedTasks) => setPrefs({ showCompletedTasks })} />
         <ToggleRow icon="🛒" label={t('setQuickChips')} on={s.prefs.groceryQuickChips} onChange={(groceryQuickChips) => setPrefs({ groceryQuickChips })} />
+        <ToggleRow icon="🥑" label={t('setGroceryEmoji')} on={s.prefs.groceryEmoji} onChange={(groceryEmoji) => setPrefs({ groceryEmoji })} />
         <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
         <ToggleRow icon="🪙" label={t('setRoundMoney')} on={s.prefs.roundMoney} onChange={(roundMoney) => setPrefs({ roundMoney })} />
         <ToggleRow icon="🗑️" label={t('setConfirmDelete')} on={s.prefs.confirmDelete} onChange={(confirmDelete) => setPrefs({ confirmDelete })} />
@@ -308,7 +309,7 @@ function SectionsPage() {
   )
 }
 
-function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
+export function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
   return (
     <>
       <div className="emoji-grid">
