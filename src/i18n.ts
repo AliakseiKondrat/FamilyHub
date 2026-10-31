@@ -165,6 +165,10 @@ const ru = {
   setConfirmDelete: 'Спрашивать перед удалением',
   confirmDelete: 'Удалить? Это нельзя отменить.',
   behaviorHint: 'Округление влияет только на отображение — суммы хранятся точно.',
+  setWeekNumbers: 'Номера недель в календаре',
+  undo: 'Вернуть',
+  deletedN: 'Удалено',
+  restored: 'Восстановлено ✓',
 }
 
 type Dict = typeof ru
@@ -333,6 +337,10 @@ const en: Dict = {
   setConfirmDelete: 'Ask before deleting',
   confirmDelete: 'Delete? This can’t be undone.',
   behaviorHint: 'Rounding only changes how amounts look — they’re stored exactly.',
+  setWeekNumbers: 'Week numbers in calendar',
+  undo: 'Undo',
+  deletedN: 'Deleted',
+  restored: 'Restored ✓',
 }
 
 const pl: Dict = {
@@ -499,6 +507,10 @@ const pl: Dict = {
   setConfirmDelete: 'Pytaj przed usunięciem',
   confirmDelete: 'Usunąć? Tego nie można cofnąć.',
   behaviorHint: 'Zaokrąglanie zmienia tylko wygląd — kwoty są zapisane dokładnie.',
+  setWeekNumbers: 'Numery tygodni w kalendarzu',
+  undo: 'Cofnij',
+  deletedN: 'Usunięto',
+  restored: 'Przywrócono ✓',
 }
 
 const es: Dict = {
@@ -665,6 +677,10 @@ const es: Dict = {
   setConfirmDelete: 'Preguntar antes de borrar',
   confirmDelete: '¿Borrar? No se puede deshacer.',
   behaviorHint: 'El redondeo solo cambia cómo se ven los importes: se guardan exactos.',
+  setWeekNumbers: 'Números de semana en el calendario',
+  undo: 'Deshacer',
+  deletedN: 'Eliminado',
+  restored: 'Restaurado ✓',
 }
 
 export const DICTS: Record<Lang, Dict> = { ru, en, pl, es }

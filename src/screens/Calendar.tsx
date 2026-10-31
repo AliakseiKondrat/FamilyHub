@@ -11,6 +11,14 @@ import { useNav } from '../nav'
 import type { CalEvent, State, Task, Who } from '../types'
 import { TaskEditor, TaskRow } from './Tasks'
 
+/** ISO-8601 week number of a YYYY-MM-DD date. */
+function isoWeek(iso: string) {
+  const d = fromISO(iso)
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7))
+  return Math.ceil(((t.getTime() - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7)
+}
+
 const whoColor = (w: Who) => (w === 'both' ? 'var(--purple)' : `var(--${w})`)
 
 /** Everything that lands on a given day, already filtered for the current user. */
@@ -80,7 +88,7 @@ export default function Calendar({ back }: { back?: boolean }) {
             <button onClick={() => shiftMonth(1)} aria-label="Next"><Icon name="fwd" /></button>
           </div>
         </div>
-        <div className={'cal-grid ' + slide} key={month} style={{ touchAction: 'pan-y' }}
+        <div className={'cal-grid ' + slide + (s.prefs.weekNumbers ? ' weeknums' : '')} key={month} style={{ touchAction: 'pan-y' }}
           onPointerDown={(e) => { swipe.current = { x: e.clientX, y: e.clientY } }}
           onPointerUp={(e) => {
             // Swipe left/right over the month to flip it, like the iOS calendar.
@@ -91,9 +99,12 @@ export default function Calendar({ back }: { back?: boolean }) {
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swallow.current = true; haptic(); shiftMonth(dx < 0 ? 1 : -1) }
           }}
           onClickCapture={(e) => { if (swallow.current) { swallow.current = false; e.stopPropagation() } }}>
+          {s.prefs.weekNumbers && <div className="cal-wd" />}
           {weekdays.map((w) => <div key={w} className="cal-wd">{w}</div>)}
           {Array.from({ length: cells }, (_, i) => {
             const day = addDays(gridStart, i)
+            // Each row starts with its ISO week number (taken from the row's Monday).
+            const wk = s.prefs.weekNumbers && i % 7 === 0 && <div key={'w' + day} className="cal-wk">{isoWeek(addDays(day, ws === 0 ? 1 : 0))}</div>
             const a = dayAgenda(s, day)
             const dots = [
               ...a.events.slice(0, 2).map((e) => e.color ?? whoColor(e.who)),
@@ -102,12 +113,11 @@ export default function Calendar({ back }: { back?: boolean }) {
               ...(a.pet.length ? ['var(--brown)'] : []),
             ].slice(0, 3)
             const cls = ['day', day.slice(0, 7) !== month && 'out', day === today() && 'today', day === sel && 'sel', period.has(day) && 'period']
-            return (
+            return [wk,
               <button key={day} className={cls.filter(Boolean).join(' ')} onClick={() => { setSel(day); if (day.slice(0, 7) !== month) shiftMonth(day < month ? -1 : 1) }}>
                 <span className="num">{fromISO(day).getDate()}</span>
                 <span className="dots">{dots.map((c, k) => <i key={k} style={{ '--c': c } as CSSProperties} />)}</span>
-              </button>
-            )
+              </button>]
           })}
         </div>
       </div>

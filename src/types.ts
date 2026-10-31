@@ -157,6 +157,8 @@ export interface Prefs {
   roundMoney: boolean
   /** Ask before Delete buttons and full swipes remove something. */
   confirmDelete: boolean
+  /** ISO week numbers in front of each calendar row. */
+  weekNumbers: boolean
 }
 
 export interface State {

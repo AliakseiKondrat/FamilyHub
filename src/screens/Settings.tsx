@@ -487,6 +487,7 @@ function RegionPage() {
           options={[{ value: 'PL', label: `🇵🇱 ${t('poland')} · PLN` }, { value: 'ES', label: `🇪🇸 ${t('spain')} · EUR` }]} />
         <SelectRow label={`📅 ${t('weekStart')}`} value={String(s.prefs.weekStart) as '0' | '1'} onChange={(v) => setPrefs({ weekStart: v === '0' ? 0 : 1 })}
           options={[{ value: '1', label: t('monday') }, { value: '0', label: t('sunday') }]} />
+        <ToggleRow icon="#️⃣" label={t('setWeekNumbers')} on={s.prefs.weekNumbers} onChange={(weekNumbers) => setPrefs({ weekNumbers })} />
       </Section>
     </Screen>
   )
