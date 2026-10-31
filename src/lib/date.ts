@@ -43,8 +43,13 @@ export function fmtDate(iso: string, lang: Lang, opts: Intl.DateTimeFormatOption
   return new Intl.DateTimeFormat(LOCALES[lang], opts).format(fromISO(iso))
 }
 
+/** Mirrors the "amounts without cents" setting; the store keeps it current. */
+let roundMoney = false
+export const setMoneyRounding = (v: boolean) => { roundMoney = v }
+
 export function fmtMoney(amount: number, currency: string, lang: Lang) {
-  return new Intl.NumberFormat(LOCALES[lang], { style: 'currency', currency, maximumFractionDigits: amount % 1 ? 2 : 0 }).format(amount)
+  const round = roundMoney
+  return new Intl.NumberFormat(LOCALES[lang], { style: 'currency', currency, maximumFractionDigits: !round && amount % 1 ? 2 : 0 }).format(round ? Math.round(amount) : amount)
 }
 
 /** Monday-first weekday names. */

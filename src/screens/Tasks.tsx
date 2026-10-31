@@ -52,7 +52,8 @@ export default function Tasks({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [filter, setFilter] = useState<'all' | 'mine' | 'shared'>('all')
-  const [showDone, setShowDone] = useState(false)
+  const showDone = s.prefs.showCompletedTasks
+  const setShowDone = (v: boolean) => update((st) => { st.prefs.showCompletedTasks = v })
   const [edit, setEdit] = useState<Task | null>(null)
   const d = today()
 

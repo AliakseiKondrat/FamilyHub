@@ -151,6 +151,12 @@ export interface Prefs {
   /** Fetch a picture and title for pasted links. */
   linkPreviews: boolean
   showStatuses: boolean
+  /** Sections pinned as big tiles at the top of "More". */
+  favorites: ModuleId[]
+  /** Show amounts rounded to whole units (display only). */
+  roundMoney: boolean
+  /** Ask before Delete buttons and full swipes remove something. */
+  confirmDelete: boolean
 }
 
 export interface State {

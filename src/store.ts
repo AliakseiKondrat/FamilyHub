@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { Base, State, UserId } from './types'
-import { today } from './lib/date'
+import { setMoneyRounding, today } from './lib/date'
 import { blankState, demoState } from './demo'
 import { SYNC_ENABLED } from './config'
 import { upgradePrefs } from './defaults'
@@ -22,6 +22,7 @@ function load(): State {
 }
 
 let state: State = load()
+setMoneyRounding(state.prefs.roundMoney)
 const listeners = new Set<() => void>()
 
 function save() {
@@ -38,6 +39,7 @@ export function update(fn: (s: State) => void) {
   const next = structuredClone(state)
   fn(next)
   state = next
+  setMoneyRounding(next.prefs.roundMoney)
   save()
   listeners.forEach((l) => l())
   onLocalChange?.(prev, next)
@@ -46,6 +48,7 @@ export function update(fn: (s: State) => void) {
 /** Replace the state without treating it as a local edit (used for demo reset and data from the server). */
 export function replaceState(s: State) {
   state = s
+  setMoneyRounding(s.prefs.roundMoney)
   save()
   listeners.forEach((l) => l())
 }
