@@ -129,7 +129,7 @@ export function Screen({ title, accent, left, right, children, back, subtitle, h
         )}
         {head && <div className="head-extra">{head}</div>}
       </div>
-      {children}
+      <div className="screen-body">{children}</div>
     </div>
   )
 }
@@ -281,7 +281,11 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
       <div className={'backdrop' + (closing ? ' closing' : '')} onClick={() => close()} />
       <div className={'sheet' + (closing ? ' closing' : '') + (start.current != null ? ' dragging' : '')} style={style}>
         <div
-          onPointerDown={(e) => { start.current = e.clientY; (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) }}
+          onPointerDown={(e) => {
+            // Centered cards on iPad/Mac close with the button, not by dragging.
+            if (document.documentElement.dataset.layout === 'wide') return
+            start.current = e.clientY; (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+          }}
           onPointerMove={(e) => { if (start.current != null) setDy(Math.max(0, e.clientY - start.current)) }}
           onPointerUp={() => { start.current = null; if (dy > 110) close(); else setDy(0) }}
           onPointerCancel={() => { start.current = null; setDy(0) }}

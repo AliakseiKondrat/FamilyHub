@@ -17,6 +17,8 @@ export const defaultPrefs = (): Prefs => ({
   groceryCollapsed: [],
   showCompletedTasks: false,
   budgetFilter: 'all',
+  notify: { activity: true, reminders: true, morning: true, morningTime: '09:00', eventLead: 30 },
+  layout: 'auto',
 })
 
 export const defaultGroceryCats = (): Category[] => GROCERY_CATS.map((id) => ({ id, emoji: GROCERY_EMOJI[id] }))

@@ -13,7 +13,7 @@ function load(): State {
     if (raw) {
       // Fill in settings added in newer versions of the app.
       const d = demoState(), p = JSON.parse(raw)
-      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: { ...d.prefs, ...p.prefs } }
+      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: { ...d.prefs, ...p.prefs, notify: { ...d.prefs.notify, ...p.prefs?.notify } } }
     }
   } catch { /* storage unavailable: fall back to demo data */ }
   return demoState()

@@ -123,6 +123,10 @@ export interface Prefs {
   groceryCollapsed: string[]
   showCompletedTasks: boolean
   budgetFilter: 'all' | 'shared' | 'mine'
+  /** Read by the server when sending pushes. */
+  notify: { activity: boolean; reminders: boolean; morning: boolean; morningTime: string; eventLead: number }
+  /** Large-screen layout: auto picks by width, phone forces the single column. */
+  layout: 'auto' | 'phone' | 'wide'
 }
 
 export interface State {

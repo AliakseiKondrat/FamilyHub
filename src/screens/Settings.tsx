@@ -1,4 +1,7 @@
-﻿import { useRef, useState, type ReactNode } from 'react'
+﻿import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { supabase } from '../lib/supabase'
+import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
+import { API_BASE, widgetScript } from '../lib/widget'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
@@ -52,6 +55,10 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'people': return <PeoplePage />
     case 'region': return <RegionPage />
     case 'data': return <DataPage />
+    case 'notifications': return <NotificationsPage />
+    case 'siri': return <SiriPage />
+    case 'widget': return <WidgetPage />
+    case 'google': return <GooglePage />
     default: return <RootPage />
   }
 }
@@ -106,10 +113,10 @@ function RootPage() {
       </Section>
 
       <Section header={t('integrations')}>
-        <Row icon={<span style={{ fontWeight: 800, color: '#4285f4' }}>G</span>} title={t('connectGoogle')} detail={t('soon')} />
-        <Row icon="🎙️" title={t('siri')} detail={t('soon')} />
-        <Row icon="🧩" title={t('widgets')} detail={t('soon')} />
-        <Row icon="🔔" title={t('push')} detail={t('soon')} />
+        {link('🔔', 'color-mix(in srgb, var(--red) 20%, transparent)', t('push'), 'notifications')}
+        {link('🎙️', 'color-mix(in srgb, var(--purple) 20%, transparent)', t('siriTitle'), 'siri')}
+        {link('🧩', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('widgets'), 'widget')}
+        {link('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google')}
       </Section>
 
       <Section>
@@ -131,6 +138,9 @@ function DesignPage() {
     <Screen title={t('design')} back accent="settings" subtitle={t('designHint')}>
       <Choice label={t('theme')} value={s.theme} onChange={(theme) => update((st) => { st.theme = theme })}
         options={(['auto', 'light', 'dark'] as Theme[]).map((x) => ({ value: x, label: t(`theme.${x}`) }))} />
+      <Choice label={`🖥️ ${t('layout')}`} value={s.prefs.layout} onChange={(layout) => setPrefs({ layout })}
+        options={(['auto', 'phone', 'wide'] as const).map((x) => ({ value: x, label: t(`layout.${x}`) }))} />
+      <div className="section-footer" style={{ margin: '-8px 14px 4px' }}>{t('layoutHint')}</div>
       <Choice label={t('glass')} value={d.glass} onChange={(glass) => setDesign({ glass })}
         options={(['strong', 'normal', 'off'] as const).map((x) => ({ value: x, label: t(`glass.${x}`) }))} />
       <Choice label={t('headerStyle')} value={d.header} onChange={(header) => setDesign({ header })}
@@ -465,6 +475,145 @@ function RegionPage() {
         <SelectRow label={`📅 ${t('weekStart')}`} value={String(s.prefs.weekStart) as '0' | '1'} onChange={(v) => setPrefs({ weekStart: v === '0' ? 0 : 1 })}
           options={[{ value: '1', label: t('monday') }, { value: '0', label: t('sunday') }]} />
       </Section>
+    </Screen>
+  )
+}
+
+/* ---------- Notifications ---------- */
+function NotificationsPage() {
+  const s = useApp()
+  const t = useT()
+  const support = pushSupport()
+  const [status, setStatus] = useState<'on' | 'off' | 'denied' | '…'>('…')
+  const [busy, setBusy] = useState(false)
+  const n = s.prefs.notify
+  const setN = (patch: Partial<typeof n>) => setPrefs({ notify: { ...n, ...patch } })
+  useEffect(() => { pushStatus().then(setStatus) }, [])
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true)
+    try { await fn() } catch (e) { toast('⚠︎ ' + ((e as Error).message ?? '')) }
+    setStatus(await pushStatus())
+    setBusy(false)
+  }
+  return (
+    <Screen title={t('push')} back accent="calendar"
+      hero={<div className="hero-sub" style={{ marginTop: 0, fontSize: 17 }}>
+        {support === 'needs-install' ? t('pushInstall') : support === 'unsupported' ? t('pushUnsupported')
+          : status === 'on' ? `✅ ${t('pushOn')}` : status === 'denied' ? `⛔️ ${t('pushDenied')}` : `🔕 ${t('pushOff')}`}
+      </div>}
+      actions={support === 'ok' ? [
+        status === 'on'
+          ? { icon: '🔔', label: t('pushTest'), onClick: () => run(async () => { await testPush(t('pushTest'), t('pushTestSent')); toast(t('pushTestSent')) }) }
+          : { icon: '🔔', label: t('pushEnable'), onClick: () => run(enablePush) },
+      ] : undefined}>
+      {busy && <div className="empty" style={{ padding: 12 }}>…</div>}
+      <Section header={t('what')}>
+        <ToggleRow icon="💞" label={t('nActivity', { name: s.users[s.me === 'a' ? 'j' : 'a'].name })} on={n.activity} onChange={(activity) => setN({ activity })} />
+        <ToggleRow icon="⏰" label={t('nReminders')} on={n.reminders} onChange={(reminders) => setN({ reminders })} />
+        <SelectRow label={`📅 ${t('nLead')}`} value={String(n.eventLead)} onChange={(v) => setN({ eventLead: Number(v) })}
+          options={[5, 10, 15, 30, 60, 120].map((m) => ({ value: String(m), label: `${m} ${t('min')}` }))} />
+        <ToggleRow icon="☀️" label={t('nMorning')} on={n.morning} onChange={(morning) => setN({ morning })} />
+        {n.morning && (
+          <div className="row"><span className="label">{t('nMorningTime')}</span>
+            <input className="pill-input" type="time" value={n.morningTime} onChange={(e) => e.target.value && setN({ morningTime: e.target.value })} style={{ width: 'auto' }} />
+          </div>
+        )}
+      </Section>
+      {support === 'ok' && status === 'on' && (
+        <Section>
+          <button className="row tap destructive" onClick={() => run(disablePush)}>{t('pushDisable')}</button>
+        </Section>
+      )}
+    </Screen>
+  )
+}
+
+/* ---------- Siri & widget ---------- */
+const KEY_STORE = 'familyhub:apikey'
+function useApiKey() {
+  const [key, setKey] = useState<string | null>(() => { try { return localStorage.getItem(KEY_STORE) } catch { return null } })
+  const [exists, setExists] = useState<boolean | null>(null)
+  useEffect(() => { supabase?.rpc('has_api_token').then(({ data }) => setExists(!!data)) }, [])
+  const create = async () => {
+    const { data, error } = await supabase!.rpc('create_api_token')
+    if (error) { toast('⚠︎ ' + error.message); return }
+    try { localStorage.setItem(KEY_STORE, data as string) } catch { /* ignore */ }
+    setKey(data as string)
+    setExists(true)
+  }
+  return { key: exists === false ? null : key, exists, create }
+}
+
+function CopyRow({ label, value }: { label: ReactNode; value: string }) {
+  const t = useT()
+  return (
+    <div className="row" style={{ alignItems: 'flex-start' }}>
+      <div className="row-main">
+        <div className="row-sub" style={{ marginTop: 0 }}>{label}</div>
+        <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13, wordBreak: 'break-all', marginTop: 4, userSelect: 'text' }}>{value}</div>
+      </div>
+      <button className="chip" style={{ background: 'var(--fill)', boxShadow: 'none', marginTop: 10 }}
+        onClick={() => navigator.clipboard.writeText(value).then(() => toast(t('copied')))}>{t('copy')}</button>
+    </div>
+  )
+}
+
+function KeySection({ api }: { api: ReturnType<typeof useApiKey> }) {
+  const t = useT()
+  const { key, exists, create } = api
+  if (!SYNC_ENABLED) return <Section><Row title={t('prototype')} /></Section>
+  return (
+    <Section header={t('apiKey')} footer={key ? t('apiKeyShown') : undefined}>
+      {key && <CopyRow label="key" value={key} />}
+      <button className="row tap accent" onClick={create}>🔑 {exists ? t('apiKeyNew') : t('apiKeyCreate')}</button>
+    </Section>
+  )
+}
+
+function SiriPage() {
+  const t = useT()
+  const api = useApiKey()
+  const { key } = api
+  return (
+    <Screen title={t('siriTitle')} back accent="watch" subtitle={t('siriIntro')}>
+      <KeySection api={api} />
+      <Section>
+        {(['siri1', 'siri2', 'siri3', 'siri4', 'siri5', 'siri6'] as const).map((k, i) => (
+          <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />
+        ))}
+      </Section>
+      <Section>
+        <CopyRow label={t('apiUrl')} value={`${API_BASE}/add`} />
+        <CopyRow label="JSON" value={`{ "key": "${key ?? '…'}", "list": "groceries", "text": "…" }`} />
+      </Section>
+      <Section footer={t('siriRead')}>
+        <CopyRow label={t('listUrl')} value={key ? `${API_BASE}/list?name=groceries&key=${key}` : t('needKey')} />
+      </Section>
+    </Screen>
+  )
+}
+
+function WidgetPage() {
+  const t = useT()
+  const api = useApiKey()
+  const { key } = api
+  return (
+    <Screen title={t('widgetTitle')} back accent="recipes" subtitle={t('widgetIntro')}>
+      <KeySection api={api} />
+      <Section>
+        {(['w1', 'w2', 'w3', 'w4'] as const).map((k, i) => <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
+        <button className="row tap accent" disabled={!key} style={{ opacity: key ? 1 : 0.4 }}
+          onClick={() => key && navigator.clipboard.writeText(widgetScript(key, t('nothingToday'))).then(() => toast(t('copied')))}>📋 {key ? t('copyScript') : t('needKey')}</button>
+      </Section>
+    </Screen>
+  )
+}
+
+function GooglePage() {
+  const t = useT()
+  return (
+    <Screen title={t('connectGoogle')} back accent="calendar">
+      <Section footer={t('googleSoon')}><Row icon="G" title={t('connectGoogle')} detail={t('soon')} /></Section>
     </Screen>
   )
 }

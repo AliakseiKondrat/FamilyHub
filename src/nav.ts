@@ -5,6 +5,7 @@ import { getState } from './store'
 /** A tab is any section the person put in the bottom bar, or "More". */
 export type Tab = ModuleId | 'more'
 export type SettingsPage = 'root' | 'design' | 'tabs' | 'today' | 'sections' | 'groceryCats' | 'budget' | 'people' | 'region' | 'data'
+  | 'notifications' | 'siri' | 'widget' | 'google'
 /** A pushed screen: a section, a trip detail, or a settings page. */
 export type Route = { mod: ModuleId } | { trip: string } | { settings: SettingsPage }
 
@@ -29,13 +30,17 @@ window.addEventListener('popstate', () => {
   if (nav.stack.length > depth) { nav = { ...nav, stack: nav.stack.slice(0, depth) }; emit() }
 })
 
+/** In the wide (iPad/Mac) layout every section sits in the sidebar, so opening one is a tab switch. */
+let wide = false
+export const setWideNav = (v: boolean) => { wide = v }
+
 const actions = {
   setTab: (tab: Tab) => set({ tab, stack: [] }),
   push: (r: Route) => set({ ...nav, stack: [...nav.stack, r] }, true),
   pop: () => { if (nav.stack.length) history.back() },
   /** Jump to a module: one in the tab bar switches tab, others push onto the current tab. */
   open: (mod: ModuleId) => {
-    if (getState().prefs.tabs.includes(mod)) set({ tab: mod, stack: [] })
+    if (wide || getState().prefs.tabs.includes(mod)) set({ tab: mod, stack: [] })
     else set({ ...nav, stack: [...nav.stack, { mod }] }, true)
   },
   settings: (page: SettingsPage = 'root') => set({ ...nav, stack: [...nav.stack, { settings: page }] }, true),

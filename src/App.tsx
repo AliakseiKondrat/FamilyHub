@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useApp } from './store'
 import { moduleLabel, useT } from './i18n'
-import { consumeSkipLeave, useNav, type Route, type Tab } from './nav'
+import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
+import { ALL_MODULES } from './defaults'
 import { Icon } from './ui'
 import { accentColors, applyDesign } from './theme'
 import type { ModuleId } from './types'
@@ -60,6 +61,49 @@ function useResolvedTheme(theme: 'auto' | 'light' | 'dark') {
   return theme === 'auto' ? (sysDark ? 'dark' : 'light') : theme
 }
 
+function useWidth() {
+  const [w, setW] = useState(window.innerWidth)
+  useEffect(() => {
+    const on = () => setW(window.innerWidth)
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return w
+}
+
+/** iPad / Mac: every section in a glass sidebar instead of the tab bar. */
+function Sidebar() {
+  const s = useApp()
+  const t = useT()
+  const nav = useNav()
+  const mods = [...s.prefs.tabs, ...ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m))]
+    .filter((m) => (!s.modules[m]?.hidden || s.prefs.tabs.includes(m)) && (m !== 'cycle' || s.me === 'j'))
+  return (
+    <aside className="sidebar lg">
+      <div className="sb-head">
+        <span className="sb-logo">❤️</span>
+        <div><b>Family Hub</b><span>{s.users[s.me].emoji} {s.users[s.me].name}</span></div>
+      </div>
+      <div className="sb-list">
+        {mods.map((m, i) => {
+          const l = moduleLabel(s, m)
+          const [c1, c2] = accentColors(m, s)
+          return (
+            <button key={m} className={'sb-item' + (nav.tab === m ? ' on' : '') + (i === s.prefs.tabs.length - 1 ? ' sep' : '')}
+              onClick={() => (nav.tab === m && nav.stack.length ? history.go(-nav.stack.length) : nav.setTab(m))}>
+              <span className="sb-ico" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>{l.emoji}</span>
+              <span>{l.title}</span>
+            </button>
+          )
+        })}
+      </div>
+      <button className={'sb-item' + (nav.stack.some((r) => 'settings' in r) ? ' on' : '')} onClick={() => nav.settings()}>
+        <span className="sb-ico" style={{ background: 'linear-gradient(135deg, #3f3f46, #71717a)' }}>⚙️</span><span>{t('settings')}</span>
+      </button>
+    </aside>
+  )
+}
+
 /** Keeps the popped screen mounted for its slide-out animation. */
 function useLeaving(stack: Route[]) {
   const prev = useRef(stack)
@@ -89,6 +133,12 @@ export default function App() {
   const drag = useRef<{ x: number; moved: boolean } | null>(null)
   const swallowClick = useRef(false)
 
+  const width = useWidth()
+  const wide = s.prefs.layout === 'wide' || (s.prefs.layout === 'auto' && width >= 900)
+  setWideNav(wide)
+  useEffect(() => { document.documentElement.dataset.layout = wide ? 'wide' : 'phone' }, [wide])
+  // Leaving the wide layout while on a section that isn't in the tab bar: fall back to "More".
+  useEffect(() => { if (!wide && nav.tab !== 'more' && !s.prefs.tabs.includes(nav.tab)) nav.setTab('more') }, [wide]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { applyDesign(s, theme) }, [s, theme])
   // Book this month's recurring payments once the data is ready.
   useEffect(() => { if (sync.status === 'ready') bookRecurring() }, [sync.status])
@@ -139,9 +189,8 @@ export default function App() {
 
   const layers = [...nav.stack.map((r, i) => ({ r, i, out: false })), ...(leaving ? [{ r: leaving, i: nav.stack.length, out: true }] : [])]
   const activeAccent = nav.tab === 'more' ? 'more' : nav.tab
-
-  return (
-    <div className="app" style={{ '--tab-accent': accentColors(activeAccent, s)[0] } as React.CSSProperties}>
+  const screens = (
+    <>
       <div className={nav.stack.length ? 'covered-wrap' : undefined} key={nav.tab}>
         {nav.tab === 'more' ? <More /> : moduleScreen(nav.tab, false)}
       </div>
@@ -149,6 +198,21 @@ export default function App() {
         <div key={i} className={out ? 'leaving-wrap' : i < nav.stack.length - 1 ? 'covered-wrap' : undefined}>{routeScreen(r)}</div>
       ))}
       <MiniPlayer />
+    </>
+  )
+
+  if (wide) {
+    return (
+      <div className="app wide-app">
+        <Sidebar />
+        <main className="main">{screens}</main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="app" style={{ '--tab-accent': accentColors(activeAccent, s)[0] } as React.CSSProperties}>
+      {screens}
       <nav className="tabbar lg" ref={barRef} onPointerDown={onBarDown} onPointerMove={onBarMove} onPointerUp={onBarUp}
         onPointerCancel={() => { drag.current = null }}
         onClickCapture={(e) => { if (swallowClick.current) { swallowClick.current = false; e.stopPropagation() } }}>

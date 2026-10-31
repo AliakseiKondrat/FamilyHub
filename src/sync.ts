@@ -6,7 +6,7 @@ import { blankState } from './demo'
 import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
-import { PERSONAL_KEYS, SHARED_KEYS } from './defaults'
+import { defaultDesign, defaultPrefs, PERSONAL_KEYS, SHARED_KEYS } from './defaults'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -57,6 +57,14 @@ const metaRow = (id: string, data: unknown, me: UserId): Row =>
   ({ id, collection: 'meta', data, created_by: me, private_to: null, surprise_for: null, reveal_at: null, deleted: false })
 const shared = (s: State) => Object.fromEntries(SHARED_KEYS.map((k) => [k, s[k]]))
 const personal = (s: State) => Object.fromEntries(PERSONAL_KEYS.map((k) => [k, s[k]]))
+/** Settings saved by an older app version lack newer fields; fill them from the defaults. */
+function applyPersonal(next: State, data: unknown) {
+  const d = data as Partial<State>
+  Object.assign(next, d, {
+    design: { ...defaultDesign(), ...d.design },
+    prefs: { ...defaultPrefs(), ...d.prefs, notify: { ...defaultPrefs().notify, ...d.prefs?.notify } },
+  })
+}
 
 function enqueue(rows: Row[]) {
   if (!rows.length) return
@@ -127,7 +135,7 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
     if (outbox[r.id] && !replace) continue // our own unsent edit is newer
     if (r.collection === 'meta') {
       if (r.id === SETTINGS_ID && !r.deleted) Object.assign(next, r.data)
-      if (r.id === prefsId(next.me) && !r.deleted) Object.assign(next, r.data)
+      if (r.id === prefsId(next.me) && !r.deleted) applyPersonal(next, r.data)
       if (r.id === PERIOD_DAYS_ID && !r.deleted) next.sharedPeriodDays = (r.data as { days: string[] }).days
       continue
     }
@@ -140,7 +148,11 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
   if (replace) {
     // Unsent local edits win over what the server returned.
     for (const r of Object.values(outbox)) {
-      if (r.collection === 'meta') { if (r.id === SETTINGS_ID || r.id === prefsId(next.me)) Object.assign(next, r.data); continue }
+      if (r.collection === 'meta') {
+        if (r.id === SETTINGS_ID) Object.assign(next, r.data)
+        if (r.id === prefsId(next.me)) applyPersonal(next, r.data)
+        continue
+      }
       const c = r.collection as Coll
       const list = (next[c] as Item[]).filter((x) => x.id !== r.id)
       if (!r.deleted) list.push(r.data as Item)
