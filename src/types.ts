@@ -20,7 +20,11 @@ export interface Base {
   privateTo?: UserId
 }
 
-export interface Grocery extends Base { title: string; category: string; done: boolean; doneAt?: string }
+export interface Grocery extends Base {
+  title: string; category: string; done: boolean; doneAt?: string
+  /** Picked by hand; otherwise guessed from the title ('' = none). */
+  emoji?: string
+}
 
 export type Repeat = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 export interface Task extends Base {
@@ -159,6 +163,9 @@ export interface Prefs {
   confirmDelete: boolean
   /** ISO week numbers in front of each calendar row. */
   weekNumbers: boolean
+  /** Bought items stay struck through in their category unless hidden. */
+  groceryHideBought: boolean
+  groceryEmoji: boolean
 }
 
 export interface State {
