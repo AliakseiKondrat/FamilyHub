@@ -110,8 +110,12 @@ function RootPage() {
         {link('🛒', 'color-mix(in srgb, var(--green) 20%, transparent)', t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length)}
         {link('💰', 'color-mix(in srgb, var(--teal) 20%, transparent)', t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`)}
       </Section>
-      <Section footer={t('linkPreviewsHint')}>
+      <Section header={t('behavior')} footer={`${t('linkPreviewsHint')} ${t('behaviorHint')}`}>
+        <ToggleRow icon="✅" label={t('setShowDone')} on={s.prefs.showCompletedTasks} onChange={(showCompletedTasks) => setPrefs({ showCompletedTasks })} />
+        <ToggleRow icon="🛒" label={t('setQuickChips')} on={s.prefs.groceryQuickChips} onChange={(groceryQuickChips) => setPrefs({ groceryQuickChips })} />
         <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
+        <ToggleRow icon="🪙" label={t('setRoundMoney')} on={s.prefs.roundMoney} onChange={(roundMoney) => setPrefs({ roundMoney })} />
+        <ToggleRow icon="🗑️" label={t('setConfirmDelete')} on={s.prefs.confirmDelete} onChange={(confirmDelete) => setPrefs({ confirmDelete })} />
       </Section>
 
       <Section header={t('general')}>
@@ -131,7 +135,7 @@ function RootPage() {
       <Section>
         {link('💾', 'var(--fill)', t('data'), 'data')}
       </Section>
-      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.3</div>
+      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.4</div>
     </Screen>
   )
 }
@@ -824,7 +828,7 @@ function DataPage() {
           toast('🧹 ✓')
         }}>🧹 {t('clearData')}</button>
       </Section>
-      <input ref={file} type="file" accept="application/json" hidden onChange={(e) => importData(e.target.files?.[0])} />
+      <input ref={file} type="file" accept="application/json" hidden onChange={(e) => { importData(e.target.files?.[0]); e.target.value = '' }} />
       {!SYNC_ENABLED && <div className="section-footer" style={{ margin: '0 14px' }}>{t('prototype')}</div>}
     </Screen>
   )

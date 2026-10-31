@@ -53,6 +53,9 @@ export const defaultPrefs = (): Prefs => ({
   statusHours: 8,
   showStatuses: true,
   linkPreviews: true,
+  favorites: [],
+  roundMoney: false,
+  confirmDelete: false,
 })
 
 export const defaultGroceryCats = (): Category[] => GROCERY_CATS.map((id) => ({ id, emoji: GROCERY_EMOJI[id] }))
