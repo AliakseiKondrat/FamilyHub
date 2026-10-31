@@ -6,7 +6,7 @@ import { ANDROID, PRESETS as SHORTCUTS, androidSteps, androidUrl, presetSteps } 
 import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
-import { Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, emojiList, toast } from '../ui'
+import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, toast } from '../ui'
 import { demoState } from '../demo'
 import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { LOCALES } from '../lib/date'
@@ -113,8 +113,13 @@ function RootPage() {
         {link('🛒', 'color-mix(in srgb, var(--green) 20%, transparent)', t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length)}
         {link('💰', 'color-mix(in srgb, var(--teal) 20%, transparent)', t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`)}
       </Section>
-      <Section footer={t('linkPreviewsHint')}>
+      <Section header={t('behavior')} footer={`${t('linkPreviewsHint')} ${t('behaviorHint')}`}>
+        <ToggleRow icon="✅" label={t('setShowDone')} on={s.prefs.showCompletedTasks} onChange={(showCompletedTasks) => setPrefs({ showCompletedTasks })} />
+        <ToggleRow icon="🛒" label={t('setQuickChips')} on={s.prefs.groceryQuickChips} onChange={(groceryQuickChips) => setPrefs({ groceryQuickChips })} />
+        <ToggleRow icon="🥑" label={t('setGroceryEmoji')} on={s.prefs.groceryEmoji} onChange={(groceryEmoji) => setPrefs({ groceryEmoji })} />
         <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
+        <ToggleRow icon="🪙" label={t('setRoundMoney')} on={s.prefs.roundMoney} onChange={(roundMoney) => setPrefs({ roundMoney })} />
+        <ToggleRow icon="🗑️" label={t('setConfirmDelete')} on={s.prefs.confirmDelete} onChange={(confirmDelete) => setPrefs({ confirmDelete })} />
       </Section>
 
       <Section header={t('general')}>
@@ -144,7 +149,7 @@ function RootPage() {
       <Section>
         {link('💾', 'var(--fill)', t('data'), 'data')}
       </Section>
-      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.3</div>
+      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.4</div>
     </Screen>
   )
 }
@@ -317,16 +322,6 @@ function SectionsPage() {
   )
 }
 
-function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
-  return (
-    <>
-      <div className="emoji-grid">
-        {[...new Set([...extra, ...emojiList()])].map((e) => <button key={e} className={e === value ? 'on' : ''} onClick={() => onChange(e)}>{e}</button>)}
-      </div>
-      <TextRow value={value} onChange={(v) => onChange([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
-    </>
-  )
-}
 
 function ModuleSheet({ id, onClose }: { id: ModuleId; onClose: () => void }) {
   const s = useApp()
@@ -496,6 +491,7 @@ function RegionPage() {
           options={[{ value: 'PL', label: `🇵🇱 ${t('poland')} · PLN` }, { value: 'ES', label: `🇪🇸 ${t('spain')} · EUR` }]} />
         <SelectRow label={`📅 ${t('weekStart')}`} value={String(s.prefs.weekStart) as '0' | '1'} onChange={(v) => setPrefs({ weekStart: v === '0' ? 0 : 1 })}
           options={[{ value: '1', label: t('monday') }, { value: '0', label: t('sunday') }]} />
+        <ToggleRow icon="#️⃣" label={t('setWeekNumbers')} on={s.prefs.weekNumbers} onChange={(weekNumbers) => setPrefs({ weekNumbers })} />
       </Section>
     </Screen>
   )
@@ -872,7 +868,7 @@ function DataPage() {
           toast('🧹 ✓')
         }}>🧹 {t('clearData')}</button>
       </Section>
-      <input ref={file} type="file" accept="application/json" hidden onChange={(e) => importData(e.target.files?.[0])} />
+      <input ref={file} type="file" accept="application/json" hidden onChange={(e) => { importData(e.target.files?.[0]); e.target.value = '' }} />
       {!SYNC_ENABLED && <div className="section-footer" style={{ margin: '0 14px' }}>{t('prototype')}</div>}
     </Screen>
   )

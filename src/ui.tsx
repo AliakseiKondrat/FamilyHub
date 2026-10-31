@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { Base, Repeat, UserId, Who } from './types'
-import { getState, other, useApp } from './store'
-import { useT } from './i18n'
+import { getState, other, update, useApp } from './store'
+import { translate, useT } from './i18n'
 import { popWithoutAnimation, useNav } from './nav'
 import { today } from './lib/date'
 import { accentStyle, type Accent } from './theme'
+import { guessEmoji, recordEmoji } from './lib/emoji'
 
 /* ---------- Icons (SF Symbols look-alikes) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -19,11 +20,13 @@ const PATHS: Record<string, ReactNode> = {
   fwd: <path d="M9 4.5 16.5 12 9 19.5" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
-  gear: <><circle cx="12" cy="12" r="3.2" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" /></>,
+  gear: <><path d="M10.3 3.2a1.8 1.8 0 0 1 3.4 0l.3.9a1.8 1.8 0 0 0 2.5 1l.8-.4a1.8 1.8 0 0 1 2.4 2.4l-.4.8a1.8 1.8 0 0 0 1 2.5l.9.3a1.8 1.8 0 0 1 0 3.4l-.9.3a1.8 1.8 0 0 0-1 2.5l.4.8a1.8 1.8 0 0 1-2.4 2.4l-.8-.4a1.8 1.8 0 0 0-2.5 1l-.3.9a1.8 1.8 0 0 1-3.4 0l-.3-.9a1.8 1.8 0 0 0-2.5-1l-.8.4a1.8 1.8 0 0 1-2.4-2.4l.4-.8a1.8 1.8 0 0 0-1-2.5l-.9-.3a1.8 1.8 0 0 1 0-3.4l.9-.3a1.8 1.8 0 0 0 1-2.5l-.4-.8a1.8 1.8 0 0 1 2.4-2.4l.8.4a1.8 1.8 0 0 0 2.5-1l.3-.9Z" /><circle cx="12" cy="12" r="3" /></>,
   dice: <><rect x="4" y="4" width="16" height="16" rx="4" /><circle cx="9" cy="9" r="1.1" fill="currentColor" /><circle cx="15" cy="15" r="1.1" fill="currentColor" /><circle cx="15" cy="9" r="1.1" fill="currentColor" /><circle cx="9" cy="15" r="1.1" fill="currentColor" /></>,
   trash: <><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" /></>,
   photo: <><rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m3.5 17 5-4.5 4 3.5 3-2.5 5 4" /></>,
   link: <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />,
+  pencil: <path d="M4.5 19.5 5.3 15.6 15.8 5.1a2 2 0 0 1 2.9 0l.2.2a2 2 0 0 1 0 2.9L8.4 18.7 4.5 19.5ZM13.8 7.1l3.1 3.1" />,
+  star: <path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.6Z" />,
   search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></>,
 }
 
@@ -236,7 +239,11 @@ export function Swipe({ children, onDelete, onComplete }: { children: ReactNode;
   const [removing, setRemoving] = useState(false)
   const start = useRef<{ x: number; y: number; base: number; locked?: 'h' | 'v' } | null>(null)
   const W = 88
-  const remove = () => { haptic(); setRemoving(true); setX(-window.innerWidth); setTimeout(onDelete, 260) }
+  const remove = () => {
+    if (!confirmDelete()) { setX(0); return }
+    const prev = getState()
+    haptic(); setRemoving(true); setX(-window.innerWidth); setTimeout(() => { onDelete(); offerUndo(prev) }, 260)
+  }
   return (
     <div className={'swipe' + (removing ? ' removing' : '')}>
       <div className="swipe-actions">
@@ -331,6 +338,24 @@ function useDelayedFocus(ref: React.RefObject<HTMLElement>, when: unknown = true
   }, [when]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
+/* ---------- Delete confirmation ---------- */
+/** True when it's fine to delete: the setting is off, or the person confirmed. */
+export function confirmDelete() {
+  const s = getState()
+  return !s.prefs.confirmDelete || window.confirm(translate(s.lang, 'confirmDelete'))
+}
+// Every "Delete" button in an editor is a .row.destructive labelled with the translated word;
+// catch them in one place instead of wiring each editor.
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest?.('.row.destructive')
+    if (!el || el.textContent?.trim() !== translate(getState().lang, 'delete')) return
+    if (!confirmDelete()) { e.stopPropagation(); e.preventDefault(); return }
+    const prev = getState()
+    setTimeout(() => offerUndo(prev), 0)
+  }, true)
+}
+
 /* ---------- Haptics ---------- */
 // iOS Safari has no Vibration API, but toggling a native <input switch> (iOS 18+) plays the system haptic.
 let hapticLabel: HTMLLabelElement | null = null
@@ -373,6 +398,8 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
           onPointerDown={(e) => {
             // Centered cards on iPad/Mac close with the button, not by dragging.
             if (document.documentElement.dataset.layout === 'wide') return
+            // Capturing the pointer on a button would steal its click (Close / Done stopped working).
+            if ((e.target as HTMLElement).closest('button')) return
             start.current = e.clientY; (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
           }}
           onPointerMove={(e) => { if (start.current != null) setDy(Math.max(0, e.clientY - start.current)) }}
@@ -509,14 +536,54 @@ export function Avatar({ who }: { who: Who }) {
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
-export function toast(text: string) {
+export function toast(text: string, action?: { label: string; onClick: () => void }, ms = 1800) {
   document.querySelector('.toast')?.remove()
   const el = document.createElement('div')
-  el.className = 'toast lg'
-  el.textContent = text
+  el.className = 'toast lg' + (action ? ' with-action' : '')
+  const span = document.createElement('span')
+  span.textContent = text
+  el.appendChild(span)
+  const hide = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260) }
+  if (action) {
+    const b = document.createElement('button')
+    b.textContent = action.label
+    b.onclick = () => { clearTimeout(toastTimer); hide(); action.onClick() }
+    el.appendChild(b)
+  }
   document.body.appendChild(el)
   clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => el.remove(), 1800)
+  toastTimer = setTimeout(hide, ms)
+}
+
+/* ---------- Undo delete ---------- */
+type Removed = { key: string; item: { id: string }; index: number }[]
+/** Records that were in `prev` but are gone now, in every list of the state. */
+function removedSince(prev: object): Removed {
+  const now = getState() as unknown as Record<string, unknown>
+  const out: Removed = []
+  for (const [key, before] of Object.entries(prev)) {
+    const after = now[key]
+    if (!Array.isArray(before) || !Array.isArray(after) || !before.length || typeof before[0]?.id !== 'string') continue
+    const ids = new Set(after.map((x: { id: string }) => x.id))
+    before.forEach((item: { id: string }, index) => { if (!ids.has(item.id)) out.push({ key, item, index }) })
+  }
+  return out
+}
+/** After a delete, show "Deleted · Undo" for a few seconds; Undo puts the records back where they were. */
+export function offerUndo(prev: object) {
+  const gone = removedSince(prev)
+  if (!gone.length) return
+  const lang = getState().lang
+  toast(translate(lang, 'deletedN'), {
+    label: translate(lang, 'undo'),
+    onClick: () => {
+      update((st) => {
+        const s = st as unknown as Record<string, { id: string }[]>
+        for (const g of gone) if (!s[g.key].some((x) => x.id === g.item.id)) s[g.key].splice(Math.min(g.index, s[g.key].length), 0, g.item)
+      })
+      toast(translate(lang, 'restored'))
+    },
+  }, 4500)
 }
 
 export function Stars({ value, onChange }: { value?: number; onChange?: (v: number) => void }) {
@@ -529,7 +596,50 @@ export function Stars({ value, onChange }: { value?: number; onChange?: (v: numb
   )
 }
 
-export const EMOJIS = '🛒✅📅💰🍿🎬📺🍳🥘🍰🐶🐕🐾🏠🛋️🔑✈️🌍🧳💕❤️🌹🥂📥📌🗄️🔒📸🖼️🌸🌙☀️⭐️🎁🎉🎵📚💊🩺🚗🧹🧺💡🪴🐱🍕☕️🍷🏖️⛰️🎮🧘‍♀️💼📝'
+export const EMOJIS = '🛒✅📅💰🍿🎬📺🍳🥘🍰🐶🐕🐾🏠🛋️🔑✈️🌍🧳💕❤️🌹🥂📥📌🗄️🔒📸🖼️🌸🌙☀️⭐️🎁🎉🎵📚💊🩺🚗🧹🧺💡🪴🐱🍕☕️🍷🏖️⛰️🎮🧘‍♀️💼📝' +
+  '😀😍🥰😎🤩🥳😴🤒🤗👍🙌👏💪🙏👀💯🔥✨🌈⚡️❄️🌊🌿🌵🌻🍀🍁🎄🎃🦋🐝🐢🦊🐰🐻🐼🦄🐟🐦' +
+  '🍎🍓🍌🥑🥦🥕🧀🥚🥐🍞🥩🍗🍣🍜🍝🥗🍔🌮🍩🍪🍫🍦🧁🍯🥛🧃🍺🍾🧊' +
+  '🚲🛴🚆🚌🚕⛽️🅿️🗺️🏕️🏝️🏔️🗼🏰⛪️🏟️🎢🎡🎭🎨🎤🎧🎸🎹⚽️🏀🎾🏓⛳️🏊🚴🧗🎿' +
+  '📱💻⌚️📷🔋🔌🧾💳💶💵🏦📈📊🗂️📎✂️🖊️📖🗓️⏰⏳🔔📣💬📞✉️📦🏷️🧸🪄🛠️🔧🧯🧼🧴🪥🛁🛏️🪑🚪🪟🧺👕👗👟👜🕶️💍💄'
 export function emojiList() {
   return [...new Intl.Segmenter().segment(EMOJIS)].map((x) => x.segment)
+}
+
+export function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
+  return (
+    <>
+      <div className="emoji-grid">
+        {[...new Set([...extra, ...emojiList()])].map((e) => <button key={e} className={e === value ? 'on' : ''} onClick={() => onChange(e)}>{e}</button>)}
+      </div>
+      <TextRow value={value} onChange={(v) => onChange([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
+    </>
+  )
+}
+
+/** The little emoji in front of a title (hand-picked or guessed); hidden when the setting is off. */
+export function Em({ x }: { x: { title: string; emoji?: string } }) {
+  const on = useApp().prefs.groceryEmoji
+  const e = on ? recordEmoji(x) : undefined
+  return e ? <span className="g-emoji">{e}</span> : null
+}
+
+/** Editor block: shows the emoji a record will get and lets you pick another, or go back to the guess. */
+export function EmojiField<T extends { title: string; emoji?: string }>({ value, onChange, extra }: { value: T; onChange: (v: T) => void; extra?: string[] }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const cur = recordEmoji(value)
+  const auto = guessEmoji(value.title)
+  return (
+    <Section>
+      <div className="row tap with-icon" onClick={() => setOpen(!open)} role="button">
+        <div className="row-icon">{cur ?? '∅'}</div>
+        <span className="label">{t('emoji')}</span>
+        <span className="row-detail">{value.emoji === undefined ? t('autoEmoji') : ''}</span>
+        {value.emoji !== undefined && auto && (
+          <button className="chip" onClick={(e) => { e.stopPropagation(); onChange({ ...value, emoji: undefined }) }}>{t('autoEmoji')} {auto}</button>
+        )}
+      </div>
+      {open && <div style={{ paddingTop: 8 }}><EmojiPicker value={cur ?? ''} onChange={(emoji) => onChange({ ...value, emoji })} extra={extra} /></div>}
+    </Section>
+  )
 }

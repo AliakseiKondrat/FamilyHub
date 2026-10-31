@@ -156,7 +156,7 @@ export default function Music({ back }: { back?: boolean }) {
     <Screen title={moduleLabel(s, 'music').title} accent="music" back={back} auraImage={featuredArt}
       right={<GlassButton icon="plus" label={t('addManually')} onClick={() => setManual({ ...base(s.me), title: '', artist: '', likes: [] })} />}
       hero={featured && (
-        <button className="music-hero" onClick={() => setOpen(featured)}>
+        <div className="music-hero" role="button" tabIndex={0} onClick={() => setOpen(featured)}>
           <Cover track={featured} size={112} />
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="hero-lbl">{t('latest')} · {t('fromName', { name: s.users[featured.createdBy].name })}</div>
@@ -167,7 +167,7 @@ export default function Music({ back }: { back?: boolean }) {
               <LikeButton track={featured} />
             </div>
           </div>
-        </button>
+        </div>
       )}
       head={<>
         <div className="quick lg">
@@ -208,7 +208,7 @@ export default function Music({ back }: { back?: boolean }) {
       {!results && list.length > 0 && (
         <div className="track-grid">
           {list.map((x) => (
-            <button key={x.id} className="track-card" onClick={() => setOpen(x)}>
+            <div key={x.id} className="track-card" role="button" tabIndex={0} onClick={() => setOpen(x)}>
               <div className="tc-cover">
                 <Cover track={x} />
                 <div className="tc-play"><PlayButton track={x} /></div>
@@ -220,7 +220,7 @@ export default function Music({ back }: { back?: boolean }) {
                 <span>{x.artist}</span>
                 {x.likes.length > 0 && <span className="tc-likes">❤️{x.likes.length > 1 ? x.likes.length : ''}</span>}
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}

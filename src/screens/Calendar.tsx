@@ -2,7 +2,7 @@ import { useRef, useState, type CSSProperties } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import {
-  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker, haptic,
+  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker, haptic, Em, EmojiField,
 } from '../ui'
 import { addDays, fmtDate, fromISO, LOCALES, occursOn, toISO, today, weekdayNames } from '../lib/date'
 import { periodDays } from '../lib/cycle'
@@ -10,6 +10,14 @@ import { PET_EMOJI } from '../lib/categories'
 import { useNav } from '../nav'
 import type { CalEvent, State, Task, Who } from '../types'
 import { TaskEditor, TaskRow } from './Tasks'
+
+/** ISO-8601 week number of a YYYY-MM-DD date. */
+function isoWeek(iso: string) {
+  const d = fromISO(iso)
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7))
+  return Math.ceil(((t.getTime() - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7)
+}
 
 const whoColor = (w: Who) => (w === 'both' ? 'var(--purple)' : `var(--${w})`)
 
@@ -80,7 +88,7 @@ export default function Calendar({ back }: { back?: boolean }) {
             <button onClick={() => shiftMonth(1)} aria-label="Next"><Icon name="fwd" /></button>
           </div>
         </div>
-        <div className={'cal-grid ' + slide} key={month} style={{ touchAction: 'pan-y' }}
+        <div className={'cal-grid ' + slide + (s.prefs.weekNumbers ? ' weeknums' : '')} key={month} style={{ touchAction: 'pan-y' }}
           onPointerDown={(e) => { swipe.current = { x: e.clientX, y: e.clientY } }}
           onPointerUp={(e) => {
             // Swipe left/right over the month to flip it, like the iOS calendar.
@@ -91,9 +99,12 @@ export default function Calendar({ back }: { back?: boolean }) {
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swallow.current = true; haptic(); shiftMonth(dx < 0 ? 1 : -1) }
           }}
           onClickCapture={(e) => { if (swallow.current) { swallow.current = false; e.stopPropagation() } }}>
+          {s.prefs.weekNumbers && <div className="cal-wd" />}
           {weekdays.map((w) => <div key={w} className="cal-wd">{w}</div>)}
           {Array.from({ length: cells }, (_, i) => {
             const day = addDays(gridStart, i)
+            // Each row starts with its ISO week number (taken from the row's Monday).
+            const wk = s.prefs.weekNumbers && i % 7 === 0 && <div key={'w' + day} className="cal-wk">{isoWeek(addDays(day, ws === 0 ? 1 : 0))}</div>
             const a = dayAgenda(s, day)
             const dots = [
               ...a.events.slice(0, 2).map((e) => e.color ?? whoColor(e.who)),
@@ -102,12 +113,11 @@ export default function Calendar({ back }: { back?: boolean }) {
               ...(a.pet.length ? ['var(--brown)'] : []),
             ].slice(0, 3)
             const cls = ['day', day.slice(0, 7) !== month && 'out', day === today() && 'today', day === sel && 'sel', period.has(day) && 'period']
-            return (
+            return [wk,
               <button key={day} className={cls.filter(Boolean).join(' ')} onClick={() => { setSel(day); if (day.slice(0, 7) !== month) shiftMonth(day < month ? -1 : 1) }}>
                 <span className="num">{fromISO(day).getDate()}</span>
                 <span className="dots">{dots.map((c, k) => <i key={k} style={{ '--c': c } as CSSProperties} />)}</span>
-              </button>
-            )
+              </button>]
           })}
         </div>
       </div>
@@ -115,11 +125,11 @@ export default function Calendar({ back }: { back?: boolean }) {
       <Section big header={<span className="cap" style={{ display: 'inline-block' }}>{fmtDate(sel, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}>
         {isPeriod && <Row icon="🌸" iconBg="color-mix(in srgb, var(--pink) 18%, transparent)"
           title={s.me === 'j' ? t('inPeriod') : t('periodNow', { name: s.users.j.name }).replace('🌸 ', '')} />}
-        {ag.trips.map((tr) => <Row key={tr.id} icon="✈️" title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}
+        {ag.trips.map((tr) => <Row key={tr.id} icon={tr.emoji || '✈️'} title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
             left={<div className="color-bar" style={{ '--c': e.color ?? whoColor(e.who) } as CSSProperties} />}
-            title={<>{e.busy ? t('busy') : e.title} <Marks x={e} />{e.source === 'google' && <span className="badge" style={{ '--c': e.color ?? '#4285f4' } as CSSProperties}>{e.calendar ?? 'G'}</span>}</>}
+            title={<>{!e.busy && <Em x={e} />}{e.busy ? t('busy') : e.title} <Marks x={e} />{e.source === 'google' && <span className="badge" style={{ '--c': e.color ?? '#4285f4' } as CSSProperties}>{e.calendar ?? 'G'}</span>}</>}
             sub={e.time ? `${e.time}${e.endTime ? ` – ${e.endTime}` : ''}` : t('allDay')}
             right={<Avatar who={e.who} />} />
         ))}
@@ -185,6 +195,7 @@ export function EventEditor({ event, onClose }: { event: CalEvent; onClose: () =
       <Section>
         <TextRow value={v.notes ?? ''} onChange={(notes) => setV({ ...v, notes })} placeholder={t('notes')} multiline />
       </Section>
+      {!v.readonly && <EmojiField value={v} onChange={setV} />}
       <VisibilityFields value={v} onChange={setV} allowPrivate />
       {!isNew && (
         <Section>

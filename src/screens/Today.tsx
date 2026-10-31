@@ -2,7 +2,9 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { useNav } from '../nav'
-import { Avatar, GlassButton, Marks, Row, Screen, Section, type Action } from '../ui'
+import {
+  Avatar, GlassButton, Marks, Row, Screen, Section, type Action, Em,
+} from '../ui'
 import { addDays, diffDays, fmtDate, fmtMoney, today } from '../lib/date'
 import { cycleDay, nextStart, periodDays } from '../lib/cycle'
 import { PET_EMOJI } from '../lib/categories'
@@ -77,7 +79,7 @@ export default function Today({ back }: { back?: boolean }) {
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
             left={<div className="time-col">{e.time ?? '—'}</div>}
-            title={<>{e.busy ? t('busy') : e.title} <Marks x={e} /></>} sub={[e.endTime && `→ ${e.endTime}`, e.calendar].filter(Boolean).join(' · ') || undefined}
+            title={<>{!e.busy && <Em x={e} />}{e.busy ? t('busy') : e.title} <Marks x={e} /></>} sub={[e.endTime && `→ ${e.endTime}`, e.calendar].filter(Boolean).join(' · ') || undefined}
             right={<Avatar who={e.who} />} />
         ))}
       </Section>
@@ -126,7 +128,7 @@ export default function Today({ back }: { back?: boolean }) {
     ),
     dateIdea: () => idea && (
       <Section key="dateIdea" big header={`💕 ${t('dateIdea')}`}>
-        <Row title={idea.title} sub={idea.tags?.map((tg) => <span key={tg} className="tag">{tg}</span>)} chevron onClick={() => nav.open('dates')} />
+        <Row title={<><Em x={idea} />{idea.title}</>} sub={idea.tags?.map((tg) => <span key={tg} className="tag">{tg}</span>)} chevron onClick={() => nav.open('dates')} />
       </Section>
     ),
     tomorrow: () => (

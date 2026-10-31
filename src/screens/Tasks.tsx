@@ -2,8 +2,7 @@ import { useState, type CSSProperties } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import {
-  Avatar, Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe,
-  TextRow, VisibilityFields, WhoPicker,
+  Avatar, Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, WhoPicker, Em, EmojiField,
 } from '../ui'
 import { addDays, fmtDate, nextRepeat, parseQuick, today } from '../lib/date'
 import type { Task } from '../types'
@@ -32,7 +31,7 @@ export function TaskRow({ task, onOpen }: { task: Task; onOpen: (t: Task) => voi
     <Swipe onDelete={() => update((st) => { st.tasks = st.tasks.filter((k) => k.id !== task.id) })} onComplete={() => toggleTask(task.id)}>
       <Row
         left={<Check on={task.done} onChange={() => toggleTask(task.id)} />}
-        title={<>{task.title} <Marks x={task} /></>}
+        title={<><Em x={task} />{task.title} <Marks x={task} /></>}
         dim={task.done}
         sub={(dueLabel || task.repeat !== 'none' || task.notes) && (
           <>
@@ -52,7 +51,8 @@ export default function Tasks({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
   const [filter, setFilter] = useState<'all' | 'mine' | 'shared'>('all')
-  const [showDone, setShowDone] = useState(false)
+  const showDone = s.prefs.showCompletedTasks
+  const setShowDone = (v: boolean) => update((st) => { st.prefs.showCompletedTasks = v })
   const [edit, setEdit] = useState<Task | null>(null)
   const d = today()
 
@@ -127,6 +127,7 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
       </Section>
       <div className="section-header" style={{ padding: '0 32px 7px' }}>{t('assignee')}</div>
       <div style={{ margin: '0 16px 10px' }}><WhoPicker value={v.assignee} onChange={(assignee) => setV({ ...v, assignee })} /></div>
+      <EmojiField value={v} onChange={setV} />
       <VisibilityFields value={v} onChange={setV} allowPrivate />
       {!isNew && (
         <Section>

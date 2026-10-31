@@ -134,7 +134,7 @@ export default function Budget({ back }: { back?: boolean }) {
         <div className="hero-sub">{income ? `${t('remaining')} · ${t('spent')} ${money(spent)}` : t('spent')}{limit ? ` · ${t('ofLimit', { sum: money(limit) })}` : ''}</div>
         {limit > 0 && (
           <div className="progress" style={{ background: 'rgba(255,255,255,.25)', margin: '14px 20px 0' }}>
-            <i style={{ width: Math.min(100, (spent / limit) * 100) + '%', background: '#fff' }} />
+            <i style={{ width: Math.min(100, (spent / limit) * 100) + '%', background: spent > limit ? '#ffd60a' : '#fff' }} />
           </div>
         )}
       </div>}

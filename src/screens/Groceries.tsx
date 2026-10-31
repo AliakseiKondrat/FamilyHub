@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
-import { Check, QuickAdd, Row, Screen, Section, Sheet, Swipe, TextRow, VisibilityFields, Marks } from '../ui'
+import { Check, EmojiField, Em, QuickAdd, Row, Screen, Section, Sheet, Swipe, TextRow, VisibilityFields, Marks } from '../ui'
 import { guessCategory } from '../lib/categories'
 import { catEmoji, catTitle } from '../lib/cats'
 import { today } from '../lib/date'
@@ -28,6 +28,7 @@ export default function Groceries({ back }: { back?: boolean }) {
   const todo = list.filter((g) => !g.done)
   const bought = list.filter((g) => g.done)
   const cats = s.groceryCats.filter((c) => !c.hidden)
+  const hideBought = s.prefs.groceryHideBought
   // Items whose category was hidden or deleted still show up, under "other".
   const catOf = (g: Grocery) => (cats.some((c) => c.id === g.category) ? g.category : 'other')
 
@@ -62,11 +63,21 @@ export default function Groceries({ back }: { back?: boolean }) {
             {frequent.map((f) => <button key={f} className="chip" onClick={() => update((st) => addItems(st, f))}>+ {f}</button>)}
           </div>
         )}
+        {bought.length > 0 && (
+          <div className="chips" style={s.prefs.groceryQuickChips && frequent.length > 0 ? { paddingTop: 0 } : undefined}>
+            <button className="chip" onClick={() => update((st) => { st.prefs.groceryHideBought = !st.prefs.groceryHideBought })}>
+              {hideBought ? `👁️ ${t('showBought')}` : `🙈 ${t('hideBought')}`} · {bought.length}
+            </button>
+            <button className="chip" onClick={() => update((st) => { st.groceries = st.groceries.filter((g) => !g.done || !visible([g], st.me).length) })}>🧹 {t('clearBought')}</button>
+          </div>
+        )}
       </>}>
 
       {cats.map((c) => {
         const items = todo.filter((g) => catOf(g) === c.id)
-        const open = isOpen(c.id, items.length)
+        // Bought items stay in their category, struck through, below what's still to buy.
+        const done = hideBought ? [] : bought.filter((g) => catOf(g) === c.id)
+        const open = isOpen(c.id, items.length + done.length)
         return (
           <div key={c.id} className={'section cat-card' + (open ? ' open' : '')}>
             <div className="list">
@@ -79,28 +90,22 @@ export default function Groceries({ back }: { back?: boolean }) {
                   {items.map((g) => (
                     <Swipe key={g.id} onDelete={() => remove(g.id)} onComplete={() => toggle(g.id)}>
                       <Row left={<Check on={false} onChange={() => toggle(g.id)} color="var(--green)" />}
-                        title={<>{g.title} <Marks x={g} /></>} onClick={() => setEdit(g)} />
+                        title={<><Em x={g} />{g.title} <Marks x={g} /></>} onClick={() => setEdit(g)} />
                     </Swipe>
                   ))}
-                  <InlineAdd onAdd={(text) => update((st) => addItems(st, text, c.id))} placeholder={items.length ? t('addToCat') : t('emptyCat')} />
+                  {done.map((g) => (
+                    <Swipe key={g.id} onDelete={() => remove(g.id)}>
+                      <Row className="bought" left={<Check on onChange={() => toggle(g.id)} color="var(--green)" />} dim
+                        title={<><Em x={g} /><s>{g.title}</s></>} onClick={() => setEdit(g)} />
+                    </Swipe>
+                  ))}
+                  <InlineAdd onAdd={(text) => update((st) => addItems(st, text, c.id))} placeholder={items.length + done.length ? t('addToCat') : t('emptyCat')} />
                 </div>
               </div>
             </div>
           </div>
         )
       })}
-
-      {bought.length > 0 && (
-        <Section big header={`🧺 ${t('inCart')}`} action={
-          <button onClick={() => update((st) => { st.groceries = st.groceries.filter((g) => !g.done || !visible([g], st.me).length) })}>{t('clearBought')}</button>
-        }>
-          {bought.map((g) => (
-            <Swipe key={g.id} onDelete={() => remove(g.id)}>
-              <Row left={<Check on onChange={() => toggle(g.id)} color="var(--green)" />} title={g.title} dim />
-            </Swipe>
-          ))}
-        </Section>
-      )}
 
       {edit && <GroceryEditor item={edit} onClose={() => setEdit(null)} />}
     </Screen>
@@ -119,6 +124,11 @@ function InlineAdd({ onAdd, placeholder }: { onAdd: (text: string) => void; plac
   )
 }
 
+const GROCERY_PICKS = ['🍎', '🍌', '🍊', '🍋', '🍇', '🍓', '🍒', '🍑', '🍍', '🥭', '🍉', '🥝', '🥑', '🍅', '🥒', '🫑', '🌽', '🥕', '🥔', '🧅', '🧄', '🥦', '🥬', '🍄', '🌿',
+  '🥛', '🧀', '🧈', '🥚', '🍞', '🥐', '🥖', '🥞', '🍰', '🍪', '🍫', '🍬', '🍯', '🥜', '🍿', '🥩', '🍗', '🥓', '🍖', '🌭', '🐟', '🦐', '🦑',
+  '🍚', '🍝', '🍜', '🥣', '🥫', '🫗', '🫒', '🧂', '☕️', '🍵', '🧃', '🥤', '💧', '🍺', '🍷', '🍾', '🥃', '🧊', '🍦', '🥟', '🍕',
+  '🧻', '🧼', '🧴', '🫧', '🧽', '🪥', '🛍️', '🔋', '💡', '💊', '👶', '🦴', '💐']
+
 function GroceryEditor({ item, onClose }: { item: Grocery; onClose: () => void }) {
   const s = useApp()
   const t = useT()
@@ -135,6 +145,7 @@ function GroceryEditor({ item, onClose }: { item: Grocery; onClose: () => void }
           </button>
         ))}
       </div>
+      <EmojiField value={v} onChange={setV} extra={GROCERY_PICKS} />
       <VisibilityFields value={v} onChange={setV} />
       <Section>
         <button className="row tap destructive" onClick={() => { update((st) => { st.groceries = st.groceries.filter((g) => g.id !== v.id) }); onClose() }}>{t('delete')}</button>

@@ -18,9 +18,13 @@ export interface Base {
   revealAt?: string
   /** Only this user can see it. */
   privateTo?: UserId
+  /** Picked by hand; otherwise guessed from the title ('' = none). */
+  emoji?: string
 }
 
-export interface Grocery extends Base { title: string; category: string; done: boolean; doneAt?: string }
+export interface Grocery extends Base {
+  title: string; category: string; done: boolean; doneAt?: string
+}
 
 export type Repeat = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 export interface Task extends Base {
@@ -151,6 +155,17 @@ export interface Prefs {
   /** Fetch a picture and title for pasted links. */
   linkPreviews: boolean
   showStatuses: boolean
+  /** Sections pinned as big tiles at the top of "More". */
+  favorites: ModuleId[]
+  /** Show amounts rounded to whole units (display only). */
+  roundMoney: boolean
+  /** Ask before Delete buttons and full swipes remove something. */
+  confirmDelete: boolean
+  /** ISO week numbers in front of each calendar row. */
+  weekNumbers: boolean
+  /** Bought items stay struck through in their category unless hidden. */
+  groceryHideBought: boolean
+  groceryEmoji: boolean
 }
 
 export interface State {
