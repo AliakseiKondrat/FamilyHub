@@ -2,7 +2,7 @@ import { useRef, useState, type CSSProperties } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import {
-  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker, haptic,
+  Avatar, DateRow, GlassButton, Icon, Marks, RepeatRow, Row, Screen, Section, Sheet, TextRow, ToggleRow, VisibilityFields, WhoPicker, haptic, Em, EmojiField,
 } from '../ui'
 import { addDays, fmtDate, fromISO, LOCALES, occursOn, toISO, today, weekdayNames } from '../lib/date'
 import { periodDays } from '../lib/cycle'
@@ -125,11 +125,11 @@ export default function Calendar({ back }: { back?: boolean }) {
       <Section big header={<span className="cap" style={{ display: 'inline-block' }}>{fmtDate(sel, s.lang, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}>
         {isPeriod && <Row icon="🌸" iconBg="color-mix(in srgb, var(--pink) 18%, transparent)"
           title={s.me === 'j' ? t('inPeriod') : t('periodNow', { name: s.users.j.name }).replace('🌸 ', '')} />}
-        {ag.trips.map((tr) => <Row key={tr.id} icon="✈️" title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}
+        {ag.trips.map((tr) => <Row key={tr.id} icon={tr.emoji || '✈️'} title={tr.title} sub={tr.destination} chevron onClick={() => nav.push({ trip: tr.id })} />)}
         {ag.events.map((e) => (
           <Row key={e.id} onClick={() => setEditEvent(e)}
             left={<div className="color-bar" style={{ '--c': e.color ?? whoColor(e.who) } as CSSProperties} />}
-            title={<>{e.busy ? t('busy') : e.title} <Marks x={e} />{e.source === 'google' && <span className="badge" style={{ '--c': e.color ?? '#4285f4' } as CSSProperties}>{e.calendar ?? 'G'}</span>}</>}
+            title={<>{!e.busy && <Em x={e} />}{e.busy ? t('busy') : e.title} <Marks x={e} />{e.source === 'google' && <span className="badge" style={{ '--c': e.color ?? '#4285f4' } as CSSProperties}>{e.calendar ?? 'G'}</span>}</>}
             sub={e.time ? `${e.time}${e.endTime ? ` – ${e.endTime}` : ''}` : t('allDay')}
             right={<Avatar who={e.who} />} />
         ))}
@@ -195,6 +195,7 @@ export function EventEditor({ event, onClose }: { event: CalEvent; onClose: () =
       <Section>
         <TextRow value={v.notes ?? ''} onChange={(notes) => setV({ ...v, notes })} placeholder={t('notes')} multiline />
       </Section>
+      {!v.readonly && <EmojiField value={v} onChange={setV} />}
       <VisibilityFields value={v} onChange={setV} allowPrivate />
       {!isNew && (
         <Section>

@@ -163,7 +163,7 @@ const ITEM_EMOJI: [string[], string][] = [
   [['сок', 'juice', 'sok', 'zumo'], '🧃'],
   [['кола', 'газировк', 'лимонад', 'cola', 'soda', 'lemonade', 'napój', 'refresco', 'tonic', 'тоник'], '🥤'],
   [['вод', 'water', 'woda', 'agua'], '💧'],
-  [['лёд', 'лед ', 'ice', 'lód', 'hielo'], '🧊'],
+  [[' лёд', ' лед ', ' ice', 'lód', 'hielo'], '🧊'],
   [['лекарств', 'таблет', 'витамин', 'аптек', 'medicine', 'pill', 'vitamin', 'lek', 'tablet', 'witamin', 'medicina', 'pastilla'], '💊'],
   [['подгуз', 'diaper', 'pielusz', 'pañal'], '👶'],
   [['цвет', 'букет', 'flower', 'kwiat', 'flor'], '💐'],

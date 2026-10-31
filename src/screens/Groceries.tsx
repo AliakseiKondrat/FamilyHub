@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { base, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
-import { Check, QuickAdd, Row, Screen, Section, Sheet, Swipe, TextRow, VisibilityFields, Marks } from '../ui'
-import { groceryEmoji, guessCategory } from '../lib/categories'
-import { EmojiPicker } from './Settings'
+import { Check, EmojiField, Em, QuickAdd, Row, Screen, Section, Sheet, Swipe, TextRow, VisibilityFields, Marks } from '../ui'
+import { guessCategory } from '../lib/categories'
 import { catEmoji, catTitle } from '../lib/cats'
 import { today } from '../lib/date'
 import type { Grocery, State } from '../types'
 
 const cap = (x: string) => x[0].toUpperCase() + x.slice(1)
-/** Hand-picked emoji wins; '' means the person removed it. */
-const itemEmoji = (g: Grocery) => (g.emoji !== undefined ? g.emoji : groceryEmoji(g.title))
 
 /** Add items (comma-separated) to the list; a known item is just un-ticked. */
 function addItems(st: State, text: string, category?: string) {
@@ -32,7 +29,6 @@ export default function Groceries({ back }: { back?: boolean }) {
   const bought = list.filter((g) => g.done)
   const cats = s.groceryCats.filter((c) => !c.hidden)
   const hideBought = s.prefs.groceryHideBought
-  const emojiOn = s.prefs.groceryEmoji
   // Items whose category was hidden or deleted still show up, under "other".
   const catOf = (g: Grocery) => (cats.some((c) => c.id === g.category) ? g.category : 'other')
 
@@ -94,13 +90,13 @@ export default function Groceries({ back }: { back?: boolean }) {
                   {items.map((g) => (
                     <Swipe key={g.id} onDelete={() => remove(g.id)} onComplete={() => toggle(g.id)}>
                       <Row left={<Check on={false} onChange={() => toggle(g.id)} color="var(--green)" />}
-                        title={<>{emojiOn && itemEmoji(g) && <span className="g-emoji">{itemEmoji(g)}</span>}{g.title} <Marks x={g} /></>} onClick={() => setEdit(g)} />
+                        title={<><Em x={g} />{g.title} <Marks x={g} /></>} onClick={() => setEdit(g)} />
                     </Swipe>
                   ))}
                   {done.map((g) => (
                     <Swipe key={g.id} onDelete={() => remove(g.id)}>
                       <Row className="bought" left={<Check on onChange={() => toggle(g.id)} color="var(--green)" />} dim
-                        title={<>{emojiOn && itemEmoji(g) && <span className="g-emoji">{itemEmoji(g)}</span>}<s>{g.title}</s></>} onClick={() => setEdit(g)} />
+                        title={<><Em x={g} /><s>{g.title}</s></>} onClick={() => setEdit(g)} />
                     </Swipe>
                   ))}
                   <InlineAdd onAdd={(text) => update((st) => addItems(st, text, c.id))} placeholder={items.length + done.length ? t('addToCat') : t('emptyCat')} />
@@ -149,14 +145,7 @@ function GroceryEditor({ item, onClose }: { item: Grocery; onClose: () => void }
           </button>
         ))}
       </div>
-      <div className="section-header" style={{ padding: '6px 30px 8px', display: 'flex', justifyContent: 'space-between' }}>
-        <span>{t('emoji')}</span>
-        {v.emoji !== undefined && <button className="link-btn" onClick={() => setV({ ...v, emoji: undefined })}>{t('autoEmoji')}: {groceryEmoji(v.title) ?? '—'}</button>}
-      </div>
-      <Section>
-        <EmojiPicker value={itemEmoji(v) ?? ''} onChange={(emoji) => setV({ ...v, emoji })}
-          extra={GROCERY_PICKS} />
-      </Section>
+      <EmojiField value={v} onChange={setV} extra={GROCERY_PICKS} />
       <VisibilityFields value={v} onChange={setV} />
       <Section>
         <button className="row tap destructive" onClick={() => { update((st) => { st.groceries = st.groceries.filter((g) => g.id !== v.id) }); onClose() }}>{t('delete')}</button>

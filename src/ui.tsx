@@ -6,6 +6,7 @@ import { translate, useT } from './i18n'
 import { popWithoutAnimation, useNav } from './nav'
 import { today } from './lib/date'
 import { accentStyle, type Accent } from './theme'
+import { guessEmoji, recordEmoji } from './lib/emoji'
 
 /* ---------- Icons (SF Symbols look-alikes) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -602,4 +603,43 @@ export const EMOJIS = '🛒✅📅💰🍿🎬📺🍳🥘🍰🐶🐕🐾🏠�
   '📱💻⌚️📷🔋🔌🧾💳💶💵🏦📈📊🗂️📎✂️🖊️📖🗓️⏰⏳🔔📣💬📞✉️📦🏷️🧸🪄🛠️🔧🧯🧼🧴🪥🛁🛏️🪑🚪🪟🧺👕👗👟👜🕶️💍💄'
 export function emojiList() {
   return [...new Intl.Segmenter().segment(EMOJIS)].map((x) => x.segment)
+}
+
+export function EmojiPicker({ value, onChange, extra = [] }: { value: string; onChange: (e: string) => void; extra?: string[] }) {
+  return (
+    <>
+      <div className="emoji-grid">
+        {[...new Set([...extra, ...emojiList()])].map((e) => <button key={e} className={e === value ? 'on' : ''} onClick={() => onChange(e)}>{e}</button>)}
+      </div>
+      <TextRow value={value} onChange={(v) => onChange([...new Intl.Segmenter().segment(v)].pop()?.segment ?? '')} placeholder="🙂" />
+    </>
+  )
+}
+
+/** The little emoji in front of a title (hand-picked or guessed); hidden when the setting is off. */
+export function Em({ x }: { x: { title: string; emoji?: string } }) {
+  const on = useApp().prefs.groceryEmoji
+  const e = on ? recordEmoji(x) : undefined
+  return e ? <span className="g-emoji">{e}</span> : null
+}
+
+/** Editor block: shows the emoji a record will get and lets you pick another, or go back to the guess. */
+export function EmojiField<T extends { title: string; emoji?: string }>({ value, onChange, extra }: { value: T; onChange: (v: T) => void; extra?: string[] }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const cur = recordEmoji(value)
+  const auto = guessEmoji(value.title)
+  return (
+    <Section>
+      <div className="row tap with-icon" onClick={() => setOpen(!open)} role="button">
+        <div className="row-icon">{cur ?? '∅'}</div>
+        <span className="label">{t('emoji')}</span>
+        <span className="row-detail">{value.emoji === undefined ? t('autoEmoji') : ''}</span>
+        {value.emoji !== undefined && auto && (
+          <button className="chip" onClick={(e) => { e.stopPropagation(); onChange({ ...value, emoji: undefined }) }}>{t('autoEmoji')} {auto}</button>
+        )}
+      </div>
+      {open && <div style={{ paddingTop: 8 }}><EmojiPicker value={cur ?? ''} onChange={(emoji) => onChange({ ...value, emoji })} extra={extra} /></div>}
+    </Section>
+  )
 }
