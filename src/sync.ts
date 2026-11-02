@@ -178,6 +178,12 @@ async function pull(): Promise<boolean> {
   return rows.some((r) => r.id === SETTINGS_ID)
 }
 
+const HH_KEY = 'familyhub:household'
+let household: string | null = (() => { try { return localStorage.getItem(HH_KEY) } catch { return null } })()
+function setHousehold(h: string) { household = h; try { localStorage.setItem(HH_KEY, h) } catch { /* ignore */ } }
+/** The signed-in couple's household id ('h1' for the first one), once known. */
+export const getHousehold = () => household
+
 let channel: RealtimeChannel | undefined
 function subscribe() {
   if (!supabase || channel) return
@@ -208,6 +214,9 @@ async function onSession(session: Session | null) {
   // A network error here means we're offline: carry on with the local data.
   const { data: role, error } = await supabase.rpc('my_role')
   if (!error && !role) { setAuth({ status: 'noAccess' }); return }
+  // Which couple this account belongs to (several share the database; RLS keeps them apart).
+  const { data: hh } = await supabase.rpc('my_household')
+  if (hh) setHousehold(hh as string)
 
   const s = getState()
   if (localStorage.getItem(USER_KEY) !== session.user.id) {
@@ -282,5 +291,7 @@ export async function signOut() {
   outbox = {}
   saveOutbox()
   localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(HH_KEY)
+  household = null
   replaceState({ ...blankState(), lang: getState().lang, theme: getState().theme })
 }

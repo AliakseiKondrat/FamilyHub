@@ -1,3 +1,4 @@
+import { getHousehold } from '../sync'
 import { supabase } from './supabase'
 
 // Photo blobs live in IndexedDB (localStorage is far too small); only metadata goes into app state.
@@ -30,7 +31,11 @@ const localGet = (key: string) => tx<Blob | undefined>('readonly', (s) => s.get(
 const localDelete = (key: string) => tx('readwrite', (s) => s.delete(key))
 
 /** "<id>:full" → "<id>/full.jpg" in the bucket. */
-const remotePath = (key: string) => key.replace(':', '/') + '.jpg'
+// The first household keeps its original paths; every other one stores photos under "<household>/".
+const remotePath = (key: string) => {
+  const hh = getHousehold()
+  return (hh && hh !== 'h1' ? hh + '/' : '') + key.replace(':', '/') + '.jpg'
+}
 
 const pending = (): string[] => { try { return JSON.parse(localStorage.getItem(PENDING_KEY) ?? '[]') } catch { return [] } }
 const setPending = (keys: string[]) => { try { localStorage.setItem(PENDING_KEY, JSON.stringify(keys)) } catch { /* ignore */ } }

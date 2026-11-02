@@ -7,6 +7,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 type Role = 'a' | 'j'
 type Mode = 'full' | 'busy' | 'off'
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void }
+const HH = 'h1'
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 const CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') ?? ''
 const CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') ?? ''
@@ -23,7 +24,9 @@ async function roleFromJwt(req: Request): Promise<Role | null> {
   const jwt = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
   const { data: u } = await sb.auth.getUser(jwt)
   if (!u.user?.email) return null
-  const { data: m } = await sb.from('members').select('role').ilike('email', u.user.email).maybeSingle()
+  const { data: m } = await sb.from('members').select('role,household').ilike('email', u.user.email).maybeSingle()
+  // Google sync is wired for the first household only (its tables are keyed by role).
+  if (m?.household !== HH) return null
   return (m?.role as Role) ?? null
 }
 
@@ -114,7 +117,7 @@ async function syncRole(acc: any) {
   const start = new Date().toISOString()
   const since: string | null = acc.last_sync
   const token = await accessToken(acc.refresh_token)
-  const { data: settings } = await sb.from('records').select('data').eq('id', 'meta:settings').maybeSingle()
+  const { data: settings } = await sb.from('records').select('data').eq('household', HH).eq('id', 'meta:settings').maybeSingle()
   const tz = settings?.data?.country === 'ES' ? 'Europe/Madrid' : 'Europe/Warsaw'
   const modes: Record<string, Mode> = acc.calendars ?? { primary: 'full' }
   const cals = await calendarList(token)
@@ -126,7 +129,7 @@ async function syncRole(acc: any) {
   const pushed = new Set<string>()
 
   // 1. Local → Google: everything of mine that changed since the last run.
-  let q = sb.from('records').select('id,collection,data,deleted,private_to,surprise_for,updated_at').in('collection', acc.sync_tasks ? ['events', 'tasks'] : ['events'])
+  let q = sb.from('records').select('id,collection,data,deleted,private_to,surprise_for,updated_at').eq('household', HH).in('collection', acc.sync_tasks ? ['events', 'tasks'] : ['events'])
   if (since) q = q.gt('updated_at', since)
   const { data: changed } = await q
   for (const r of changed ?? []) {
@@ -209,23 +212,23 @@ async function applyRemote(role: Role, kind: 'event' | 'task', gid: string, fiel
   const collection = kind === 'event' ? 'events' : 'tasks'
   if (!fields) {
     if (localId) {
-      await sb.from('records').update({ deleted: true }).eq('id', localId)
+      await sb.from('records').update({ deleted: true }).eq('household', HH).eq('id', localId)
       await sb.from('google_map').delete().match({ role, kind, google_id: gid })
     }
     return
   }
   if (localId) {
-    const { data: rec } = await sb.from('records').select('data,deleted').eq('id', localId).maybeSingle()
+    const { data: rec } = await sb.from('records').select('data,deleted').eq('household', HH).eq('id', localId).maybeSingle()
     // Only write when something really changed, so our own pushes don't bounce back and forth.
     const same = rec && !rec.deleted && Object.entries(fields).every(([k, v]) => (rec.data[k] ?? undefined) === (v ?? undefined))
-    if (rec && !same) await sb.from('records').update({ data: { ...rec.data, ...fields }, deleted: false }).eq('id', localId)
+    if (rec && !same) await sb.from('records').update({ data: { ...rec.data, ...fields }, deleted: false }).eq('household', HH).eq('id', localId)
     return
   }
   const remoteId = kind === 'event' ? splitGid(gid)[1] : gid
   const id = (kind === 'event' ? `g-${role}-${calTag}-${remoteId}` : `gt-${role}-${remoteId}`).slice(0, 120)
   const base = { id, createdBy: role, createdAt: new Date().toISOString(), source: 'google' }
   const data = kind === 'event' ? { ...base, who: role, ...fields } : { ...base, assignee: role, repeat: 'none', ...fields }
-  await sb.from('records').upsert({ id, collection, created_by: role, private_to: share ? null : role, data, deleted: false })
+  await sb.from('records').upsert({ household: HH, id, collection, created_by: role, private_to: share ? null : role, data, deleted: false }, { onConflict: 'household,id' })
   await sb.from('google_map').upsert({ role, kind, local_id: id, google_id: gid })
   byGoogle.set(`${kind}:${gid}`, id)
 }
@@ -260,7 +263,7 @@ async function forgetCalendars(role: Role, calIds: string[]) {
   const { data: rows } = await sb.from('google_map').select('local_id,google_id').eq('role', role).eq('kind', 'event')
   const gone = (rows ?? []).filter((r) => calIds.some((c) => r.google_id.startsWith(`${c}|`)))
   if (!gone.length) return
-  await sb.from('records').update({ deleted: true }).in('id', gone.map((r) => r.local_id))
+  await sb.from('records').update({ deleted: true }).eq('household', HH).in('id', gone.map((r) => r.local_id))
   await sb.from('google_map').delete().eq('role', role).eq('kind', 'event').in('google_id', gone.map((r) => r.google_id))
 }
 

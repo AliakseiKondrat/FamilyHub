@@ -47,7 +47,7 @@ export const defaultPrefs = (): Prefs => ({
     { id: 'drive2', emoji: '🚙', label: 'Едем вместе', together: true },
     { id: 'dinner2', emoji: '🍽️', label: 'Ужинаем', together: true },
     { id: 'movie2', emoji: '🍿', label: 'Смотрим кино', together: true },
-    { id: 'walk2', emoji: '🐶', label: 'Гуляем с Честером', together: true },
+    { id: 'walk2', emoji: '🐶', label: 'Гуляем с собакой', together: true },
   ],
   presetsAdded: NEW_PRESETS,
   statusHours: 8,
