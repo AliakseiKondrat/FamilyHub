@@ -2,6 +2,19 @@ import { groceryEmoji } from './categories'
 
 /** Everyday things that land in tasks, events and notes (RU / EN / PL / ES stems, most specific first). */
 const THINGS: [string[], string][] = [
+  [['телевизор', 'tv ', 'television', 'telewizor', 'televisi', 'tele '], '📺'],
+  [['наушник', 'airpods', 'headphones', 'słuchawk', 'auricular'], '🎧'],
+  [['ноутбук', 'макбук', 'laptop', 'macbook', 'portátil'], '💻'],
+  [['айфон', 'смартфон', 'iphone', 'smartphone', 'smartfon'], '📱'],
+  [['часы', 'apple watch', 'smartwatch', 'zegarek', 'reloj'], '⌚️'],
+  [['очки', 'glasses', 'sunglasses', 'wayfarer', 'okulary', 'gafas'], '🕶️'],
+  [['духи', 'парфюм', 'perfume', 'perfum', 'fragrance', 'le labo'], '🧴'],
+  [['кольц', ' ring ', 'pierścion', 'anillo'], '💍'],
+  [['сумк', 'рюкзак', 'bag ', 'backpack', 'torebk', 'plecak', 'bolso', 'mochila'], '👜'],
+  [['кроссовк', 'обув', 'sneaker', 'shoes', 'buty', 'zapatill', 'zapato'], '👟'],
+  [['платье', 'одежд', 'dress', 'clothes', 'sukienk', 'ubrani', 'vestido', 'ropa'], '👗'],
+  [['сияни', 'aurora', 'zorza', 'northern lights'], '🌌'],
+  [[' дом ', ' дом', 'house', 'home ', 'casa'], '🏡'],
   [['день рожд', 'днюх', 'birthday', 'urodzin', 'cumpleañ'], '🎂'],
   [['годовщин', 'anniversar', 'rocznic', 'aniversario'], '💍'],
   [['свадьб', 'wedding', 'ślub', 'wesel', 'boda'], '💒'],
@@ -37,7 +50,6 @@ const THINGS: [string[], string][] = [
   [['кафе', 'кофейн', 'cafe', 'café', 'kawiarn', 'cafetería'], '☕️'],
   [['бар ', 'drinks', 'pub ', 'cocktail', 'коктейл'], '🍸'],
   [['готовить', 'приготов', 'рецепт', 'cook', 'gotow', 'cocinar'], '🍳'],
-  [['купить', 'магазин', 'покупк', 'шопинг', 'buy', 'shop', 'kupi', 'zakup', 'comprar', 'tienda'], '🛍️'],
   [['подар', 'gift', 'present', 'prezent', 'regalo'], '🎁'],
   [['цвет', 'букет', 'flower', 'kwiat', 'flor'], '💐'],
   [['самолёт', 'самолет', 'рейс', 'аэропорт', 'вылет', 'flight', 'airport', 'lot ', 'lotnisk', 'vuelo', 'aeropuerto'], '✈️'],
@@ -51,7 +63,7 @@ const THINGS: [string[], string][] = [
   [['машин', 'авто', 'техосмотр', 'car ', 'samoch', 'przegląd', 'coche', 'itv'], '🚗'],
   [['отель', 'гостиниц', 'hotel', 'airbnb', 'nocleg'], '🏨'],
   [['билет', 'ticket', 'bilet', 'entrada'], '🎫'],
-  [['паспорт', 'виз', 'passport', 'visa', 'paszport', 'wiza', 'pasaporte'], '🛂'],
+  [['паспорт', ' виз', 'passport', 'visa', 'paszport', 'wiza', 'pasaporte'], '🛂'],
   [['чемодан', 'собрать вещи', 'packing', 'walizk', 'maleta'], '🧳'],
   [['отпуск', 'каникул', 'vacation', 'holiday', 'urlop', 'wakacj', 'vacacion'], '🏝️'],
   [['счётчик', 'счетчик', 'показани', 'meter', 'licznik', 'contador'], '📟'],
@@ -86,10 +98,17 @@ const THINGS: [string[], string][] = [
   [['спать', 'sleep', 'spać', 'dormir'], '😴'],
 ]
 
-/** Emoji for anything with a title: everyday things first, then food and household items. */
+/** Generic verbs only win when nothing more specific matched ("Купить молоко" → 🥛, "Купить подарок" → 🎁). */
+const GENERIC: [string[], string][] = [
+  [['купить', 'магазин', 'покупк', 'шопинг', 'buy', 'shop', 'kupi', 'zakup', 'comprar', 'tienda'], '🛍️'],
+]
+
+const find = (list: [string[], string][], s: string) => list.find(([stems]) => stems.some((x) => s.includes(x)))?.[1]
+
+/** Emoji for anything with a title: everyday things first, then food and household items, then generic verbs. */
 export function guessEmoji(title: string): string | undefined {
   const s = ' ' + title.toLowerCase() + ' '
-  return THINGS.find(([stems]) => stems.some((x) => s.includes(x)))?.[1] ?? groceryEmoji(title)
+  return find(THINGS, s) ?? groceryEmoji(title) ?? find(GENERIC, s)
 }
 
 const HAS_EMOJI = /\p{Extended_Pictographic}/u

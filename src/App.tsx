@@ -19,6 +19,7 @@ import Notes from './screens/Notes'
 import Travel, { TripDetail } from './screens/Travel'
 import Photos from './screens/Photos'
 import Cycle from './screens/Cycle'
+import Wishlist from './screens/Wishlist'
 import More from './screens/More'
 import Settings from './screens/Settings'
 import Login from './screens/Login'
@@ -43,6 +44,7 @@ function moduleScreen(id: ModuleId, back: boolean): ReactNode {
     case 'travel': return <Travel back={back} />
     case 'photos': return <Photos back={back} />
     case 'cycle': return <Cycle back={back} />
+    case 'wishlist': return <Wishlist back={back} />
   }
 }
 

@@ -22,6 +22,7 @@ function count(s: State, id: ModuleId): number | string {
     case 'tasks': return visible(s.tasks, me).filter((k) => !k.done).length
     case 'groceries': return visible(s.groceries, me).filter((g) => !g.done).length
     case 'cycle': return '🔒'
+    case 'wishlist': return visible(s.wishes, me).filter((w) => !w.got).length
     case 'budget': {
       // This month's spending, short enough for a tile ("4,1 тыс. zł").
       const { spent } = monthSpending(s, today().slice(0, 7))

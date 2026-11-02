@@ -13,7 +13,8 @@ function load(): State {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       // Fill in settings added in newer versions of the app.
-      const d = demoState(), p = JSON.parse(raw)
+      // Lists added in newer versions start empty for an account (never with demo items).
+      const d = SYNC_ENABLED ? blankState() : demoState(), p = JSON.parse(raw)
       return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: upgradePrefs(p.prefs) }
     }
   } catch { /* storage unavailable: fall back to defaults */ }
