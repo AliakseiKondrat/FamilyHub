@@ -23,6 +23,7 @@ function index(s: State): Hit[] {
     ...visible(s.goals, me).map((x) => ({ id: x.id, module: 'budget' as const, title: x.title, sub: `${money(x.saved)} / ${money(x.target)}`, icon: x.emoji })),
     ...visible(s.recurring, me).map((x) => ({ id: x.id, module: 'budget' as const, title: x.title, sub: money(x.amount), icon: '🔁' })),
     ...visible(s.watch, me).map((x) => ({ id: x.id, module: 'watch' as const, title: x.title, sub: x.notes, icon: x.kind === 'series' ? '📺' : '🎬' })),
+    ...visible(s.wishes, me).map((x) => ({ id: x.id, module: 'wishlist' as const, title: x.title, sub: [x.notes, x.site].filter(Boolean).join(' · '), icon: x.kind === 'dream' ? '✨' : '🎁' })),
     ...visible(s.music, me).map((x) => ({ id: x.id, module: 'music' as const, title: x.title, sub: [x.artist, x.note].filter(Boolean).join(' · '), icon: '🎵' })),
     ...visible(s.recipes, me).map((x) => ({ id: x.id, module: 'recipes' as const, title: x.title, sub: [...x.tags, ...x.ingredients].join(', '), icon: '🍳' })),
     ...visible(s.notes, me).map((x) => ({ id: x.id, module: x.module, title: x.title, sub: [x.notes, x.url, ...(x.tags ?? [])].filter(Boolean).join(' · '), icon: x.url ? '🔗' : undefined })),

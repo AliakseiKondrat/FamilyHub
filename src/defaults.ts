@@ -70,4 +70,4 @@ export const PERSONAL_KEYS = ['lang', 'theme', 'design', 'prefs'] as const satis
 export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength', 'groceryCats', 'budgetCats', 'splitA'] as const satisfies readonly (keyof State)[]
 
 /** Modules that can live in the tab bar or be opened from More. */
-export const ALL_MODULES: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']
+export const ALL_MODULES: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'wishlist', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']

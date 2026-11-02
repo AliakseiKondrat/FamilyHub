@@ -51,7 +51,7 @@ export interface Action { icon: ReactNode; label: string; onClick: () => void }
  * Pushed screens can be dismissed with a swipe from the left edge.
  */
 /** Things the per-screen search can hide; forms (rows with inputs) always stay. */
-const SEARCH_ITEMS = '.swipe, .row:not(.swipe .row):not(:has(input, textarea, select)), .poster, .track-card, .goal, .mod-tile, .banner, .photo, .card'
+const SEARCH_ITEMS = '.swipe, .row:not(.swipe .row):not(:has(input, textarea, select)), .poster, .track-card, .goal, .mod-tile, .banner, .photo, .card, .wish-card'
 
 export function Screen({ title, accent, left, right, children, back, subtitle, hero, actions, head, auraImage, searchable = true }: {
   title: ReactNode; accent: Accent; left?: ReactNode; right?: ReactNode; children: ReactNode; back?: boolean

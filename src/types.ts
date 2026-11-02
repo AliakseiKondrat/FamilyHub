@@ -6,7 +6,7 @@ export type Theme = 'auto' | 'light' | 'dark'
 
 export type ModuleId =
   | 'today' | 'groceries' | 'tasks' | 'calendar' | 'budget' | 'watch' | 'recipes' | 'music'
-  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle'
+  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle' | 'wishlist'
 
 /** Fields every record carries: author plus the two visibility rules (surprise, private). */
 export interface Base {
@@ -106,6 +106,21 @@ export interface Trip extends Base {
   plan: PlanItem[]; packing: Check[]; docs: DocLink[]
 }
 
+/** Something one of us wants (a gift idea) or a dream we share. */
+export interface Wish extends Base {
+  title: string; url?: string; cover?: string; site?: string; notes?: string
+  price?: number; currency?: string
+  /** Whose wish it is; 'both' = a shared dream. */
+  owner: Who
+  kind: 'gift' | 'dream'
+  /** ❤️ "really want". */
+  top?: boolean
+  /** Received / came true. */
+  got?: boolean
+}
+/** "I'll gift this": always private to the giver, so the database never sends it to the person who wants it. */
+export interface WishClaim extends Base { wishId: string; bought?: boolean }
+
 export interface Photo extends Base { album: string; caption?: string; width: number; height: number }
 
 export interface Period { id: string; start: string; end?: string }
@@ -200,6 +215,8 @@ export interface State {
   photos: Photo[]
   periods: Period[]
   statuses: Status[]
+  wishes: Wish[]
+  wishClaims: WishClaim[]
   /** Period days published by Julia's device — the only cycle data her partner receives. */
   sharedPeriodDays?: string[]
   cycleLength: number

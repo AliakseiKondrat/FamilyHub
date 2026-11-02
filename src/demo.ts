@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -124,6 +124,14 @@ export function demoState(): State {
     ],
     photos: [],
     statuses: [{ ...b('j'), text: 'Работаю', emoji: '💼', at: new Date().toISOString() }],
+    wishes: [
+      { ...b('a'), id: 'w1', title: 'RayBan Meta Wayfarer', price: 600, currency: 'USD', owner: 'a', kind: 'gift', top: true },
+      { ...b('j'), id: 'w2', title: 'Подсветка для телевизора', price: 120, currency: 'USD', owner: 'j', kind: 'gift' },
+      { ...b('j'), id: 'w3', title: 'Духи Le Labo Santal 33', price: 250, currency: 'EUR', owner: 'j', kind: 'gift', top: true },
+      { ...b('a'), id: 'w4', title: 'Северное сияние в Норвегии', owner: 'both', kind: 'dream' },
+      { ...b('j'), id: 'w5', title: 'Свой дом с садом', owner: 'both', kind: 'dream' },
+    ],
+    wishClaims: [{ ...b('a'), wishId: 'w3', privateTo: 'a' }],
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },
       { id: 'pr2', start: addDays(t, -32), end: addDays(t, -27) },

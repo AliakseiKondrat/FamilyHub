@@ -14,7 +14,7 @@ import { defaultDesign, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defau
  * pull (on start / when the app comes back to the foreground) and by Realtime in between.
  */
 
-const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods', 'statuses'] as const
+const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods', 'statuses', 'wishes', 'wishClaims'] as const
 type Coll = (typeof COLLECTIONS)[number]
 const SETTINGS_ID = 'meta:settings'
 const PERIOD_DAYS_ID = 'meta:period_days'
