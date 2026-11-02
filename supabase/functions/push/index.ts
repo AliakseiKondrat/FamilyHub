@@ -6,7 +6,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
 type Role = 'a' | 'j'
-type Row = { id: string; collection: string; data: any; created_by: Role; private_to: Role | null; surprise_for: Role | null; reveal_at: string | null }
+type Row = { id: string; household?: string; collection: string; data: any; created_by: Role; private_to: Role | null; surprise_for: Role | null; reveal_at: string | null }
 
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 const APP_URL = 'https://aliakseikondrat.github.io/FamilyHub/'
@@ -47,12 +47,13 @@ type Lang = keyof typeof TX
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((a, [k, x]) => a.split(`{${k}}`).join(String(x)), s)
 
 /* ---------- shared data ---------- */
-interface Ctx { settings: any; prefs: Record<Role, any>; tz: string }
-async function context(): Promise<Ctx> {
-  const { data } = await sb.from('records').select('id,data').in('id', ['meta:settings', 'meta:prefs:a', 'meta:prefs:j'])
+// Every couple (household) has its own settings, devices and records.
+interface Ctx { hh: string; settings: any; prefs: Record<Role, any>; tz: string }
+async function context(hh: string): Promise<Ctx> {
+  const { data } = await sb.from('records').select('id,data').eq('household', hh).in('id', ['meta:settings', 'meta:prefs:a', 'meta:prefs:j'])
   const by = Object.fromEntries((data ?? []).map((r) => [r.id, r.data]))
   const settings = by['meta:settings'] ?? {}
-  return { settings, prefs: { a: by['meta:prefs:a'] ?? {}, j: by['meta:prefs:j'] ?? {} }, tz: settings.country === 'ES' ? 'Europe/Madrid' : 'Europe/Warsaw' }
+  return { hh, settings, prefs: { a: by['meta:prefs:a'] ?? {}, j: by['meta:prefs:j'] ?? {} }, tz: settings.country === 'ES' ? 'Europe/Madrid' : 'Europe/Warsaw' }
 }
 const langOf = (c: Ctx, r: Role): Lang => (c.prefs[r]?.lang in TX ? c.prefs[r].lang : 'ru')
 const notifyPrefs = (c: Ctx, r: Role) => ({ activity: true, reminders: true, morning: true, morningTime: '09:00', eventLead: 30, ...(c.prefs[r]?.prefs?.notify ?? {}) })
@@ -73,8 +74,8 @@ async function once(key: string) {
   return !error
 }
 
-async function sendTo(role: Role, payload: { title: string; body?: string; tag?: string; url?: string }) {
-  const { data: subs } = await sb.from('push_subscriptions').select('*').eq('role', role)
+async function sendTo(hh: string, role: Role, payload: { title: string; body?: string; tag?: string; url?: string }) {
+  const { data: subs } = await sb.from('push_subscriptions').select('*').eq('household', hh).eq('role', role)
   await Promise.all((subs ?? []).map(async (s) => {
     try {
       await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
@@ -89,7 +90,8 @@ async function sendTo(role: Role, payload: { title: string; body?: string; tag?:
 /* ---------- new record → partner ---------- */
 async function onRecord(rec: Row) {
   if (rec.id.startsWith('rec-')) return // booked recurring payments
-  const c = await context()
+  const hh = rec.household ?? 'h1'
+  const c = await context(hh)
   const to = other(rec.created_by)
   const { date, minutes } = localNow(c.tz)
   if (!visibleTo(rec, to, date) || !notifyPrefs(c, to).activity) return
@@ -104,17 +106,17 @@ async function onRecord(rec: Row) {
       if (!d.shared || d.income) return
       if (d.settlement) { key = 'settle'; body = `${d.amount} ${d.currency}` } else body = `${d.title} · ${d.amount} ${d.currency}`
       break
-    case 'photos': body = ''; if (!(await once(`photos:${to}:${date}:${Math.floor(minutes / 15)}`))) return; break
-    case 'groceries': if (!(await once(`gro:${to}:${date}:${Math.floor(minutes / 10)}`))) return; break
+    case 'photos': body = ''; if (!(await once(`${hh}:photos:${to}:${date}:${Math.floor(minutes / 15)}`))) return; break
+    case 'groceries': if (!(await once(`${hh}:gro:${to}:${date}:${Math.floor(minutes / 10)}`))) return; break
     case 'notes': case 'watch': case 'recipes': case 'trips': case 'goals': case 'petRecords': break
     default: return
   }
   // At most a few activity pushes per minute (protects against imports).
   let slot = false
-  for (let i = 0; i < 3 && !slot; i++) slot = await once(`rate:${to}:${date}:${minutes}:${i}`)
+  for (let i = 0; i < 3 && !slot; i++) slot = await once(`${hh}:rate:${to}:${date}:${minutes}:${i}`)
   if (!slot) return
   const tx = TX[langOf(c, to)]
-  await sendTo(to, { title: fill(tx[key] ?? tx.notes, { n: nameOf(c, rec.created_by) }), body, tag: `${rec.collection}-${rec.id}` })
+  await sendTo(hh, to, { title: fill(tx[key] ?? tx.notes, { n: nameOf(c, rec.created_by) }), body, tag: `${rec.collection}-${rec.id}` })
 }
 
 /* ---------- reminders ---------- */
@@ -131,12 +133,19 @@ function occursOn(start: string, repeat: string, day: string) {
 }
 
 async function tick() {
-  const c = await context()
+  const { data: hhs } = await sb.from('members').select('household')
+  for (const hh of new Set((hhs ?? []).map((m) => m.household as string))) await tickHousehold(hh)
+  // Keep the log small.
+  await sb.from('push_log').delete().lt('sent_at', new Date(Date.now() - 3 * 86400000).toISOString())
+}
+
+async function tickHousehold(hh: string) {
+  const c = await context(hh)
   const { date, minutes } = localNow(c.tz)
   // Anything whose moment fell within the last 15 minutes (cron runs every 5; `once` stops repeats).
   const due = (m: number) => m <= minutes && m > minutes - 15
   const { data } = await sb.from('records').select('id,collection,data,created_by,private_to,surprise_for,reveal_at')
-    .eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries'])
+    .eq('household', hh).eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries'])
   const rows = (data ?? []) as Row[]
   for (const role of ['a', 'j'] as Role[]) {
     const np = notifyPrefs(c, role)
@@ -146,14 +155,14 @@ async function tick() {
       for (const r of mine) {
         const d = r.data
         if (r.collection === 'tasks' && !d.done && d.due === date && d.time && (d.assignee === role || d.assignee === 'both') && due(toMin(d.time))) {
-          if (await once(`task:${r.id}:${date}:${d.time}:${role}`)) await sendTo(role, { title: tx.remind, body: `${d.title} · ${d.time}`, tag: r.id })
+          if (await once(`${hh}:task:${r.id}:${date}:${d.time}:${role}`)) await sendTo(hh, role, { title: tx.remind, body: `${d.title} · ${d.time}`, tag: r.id })
         }
         if (r.collection === 'events' && d.time && (d.who === role || d.who === 'both') && occursOn(d.date, d.repeat ?? 'none', date) && due(toMin(d.time) - np.eventLead)) {
-          if (await once(`event:${r.id}:${date}:${role}`)) await sendTo(role, { title: fill(tx.soon, { m: np.eventLead }), body: `${d.title} · ${d.time}`, tag: r.id })
+          if (await once(`${hh}:event:${r.id}:${date}:${role}`)) await sendTo(hh, role, { title: fill(tx.soon, { m: np.eventLead }), body: `${d.title} · ${d.time}`, tag: r.id })
         }
       }
     }
-    if (np.morning && due(toMin(np.morningTime)) && await once(`morning:${role}:${date}`)) {
+    if (np.morning && due(toMin(np.morningTime)) && await once(`${hh}:morning:${role}:${date}`)) {
       const tasks = mine.filter((r) => r.collection === 'tasks' && !r.data.done && r.data.due && r.data.due <= date && (r.data.assignee === role || r.data.assignee === 'both')).length
       const events = mine.filter((r) => r.collection === 'events' && occursOn(r.data.date, r.data.repeat ?? 'none', date)).length
       const buy = mine.filter((r) => r.collection === 'groceries' && !r.data.done).length
@@ -162,11 +171,9 @@ async function tick() {
       const parts = [`${tx.tasksN}: ${tasks}`, `${tx.eventsN}: ${events}`, `${tx.buyN}: ${buy}`]
       if (pets.length) parts.push(`🐶 ${pets.join(', ')}`)
       if (pays.length) parts.push(`💳 ${pays.join(', ')}`)
-      await sendTo(role, { title: tx.morning, body: parts.join(' · '), tag: 'morning' })
+      await sendTo(hh, role, { title: tx.morning, body: parts.join(' · '), tag: 'morning' })
     }
   }
-  // Keep the log small.
-  await sb.from('push_log').delete().lt('sent_at', new Date(Date.now() - 3 * 86400000).toISOString())
 }
 
 /* ---------- entry ---------- */
@@ -181,11 +188,11 @@ Deno.serve(async (req) => {
   if (body.type === 'test') {
     const jwt = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
     const { data: u } = await sb.auth.getUser(jwt)
-    const { data: m } = await sb.from('members').select('role').ilike('email', u.user?.email ?? '-').maybeSingle()
+    const { data: m } = await sb.from('members').select('role,household').ilike('email', u.user?.email ?? '-').maybeSingle()
     if (!m) return new Response('forbidden', { status: 403, headers: cors })
-    const c = await context()
+    const c = await context(m.household)
     const tx = TX[langOf(c, m.role)]
-    const n = await sendTo(m.role, { title: tx.test, body: tx.testBody, tag: 'test' })
+    const n = await sendTo(m.household, m.role, { title: tx.test, body: tx.testBody, tag: 'test' })
     return new Response(JSON.stringify({ sent: n }), { headers: { ...cors, 'Content-Type': 'application/json' } })
   }
 

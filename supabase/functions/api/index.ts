@@ -174,19 +174,19 @@ const DEFAULT_STATUSES: StatusPreset[] = [
   { id: 'shop', emoji: '🛒', label: 'В магазине' }, { id: 'sleep', emoji: '😴', label: 'Сплю' }, { id: 'rest', emoji: '🛋️', label: 'Отдыхаю' },
 ]
 
-async function add(role: Role, list: string, input: string, tz: string, lang: string, body: any = {}, country = 'PL', presets?: StatusPreset[]) {
+async function add(role: Role, hh: string, list: string, input: string, tz: string, lang: string, body: any = {}, country = 'PL', presets?: StatusPreset[]) {
   const today = localToday(tz)
   const base = () => ({ id: crypto.randomUUID(), createdBy: role, createdAt: new Date().toISOString() })
   const ru = lang === 'ru'
   if (list === 'groceries') {
     const items = input.split(/,|;|\n|\s+и\s+|\s+and\s+|\s+i\s+|\s+y\s+/i).map((x) => x.trim()).filter(Boolean)
-    const { data: existing } = await sb.from('records').select('id,data').eq('collection', 'groceries').eq('deleted', false)
+    const { data: existing } = await sb.from('records').select('id,data').eq('household', hh).eq('collection', 'groceries').eq('deleted', false)
     const added: string[] = []
     for (const raw of items) {
       const title = raw[0].toUpperCase() + raw.slice(1)
       const ex = (existing ?? []).find((r) => String(r.data.title).toLowerCase() === title.toLowerCase())
-      if (ex) await sb.from('records').update({ data: { ...ex.data, done: false } }).eq('id', ex.id)
-      else { const b = base(); await sb.from('records').insert({ id: b.id, collection: 'groceries', created_by: role, data: { ...b, title, category: guessCategory(title), done: false } }) }
+      if (ex) await sb.from('records').update({ data: { ...ex.data, done: false } }).eq('household', hh).eq('id', ex.id)
+      else { const b = base(); await sb.from('records').insert({ household: hh, id: b.id, collection: 'groceries', created_by: role, data: { ...b, title, category: guessCategory(title), done: false } }) }
       added.push(title)
     }
     return (ru ? 'Добавлено в продукты: ' : 'Added to groceries: ') + added.join(', ')
@@ -194,14 +194,14 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
   if (list === 'tasks') {
     const p = parseQuick(input, today)
     const b = base()
-    await sb.from('records').insert({ id: b.id, collection: 'tasks', created_by: role,
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'tasks', created_by: role,
       data: { ...b, title: p.title || input, due: p.due, time: p.time, assignee: 'both', done: false, repeat: 'none' } })
     return (ru ? 'Задача добавлена: ' : 'Task added: ') + (p.title || input) + (p.due ? ` · ${p.due}${p.time ? ' ' + p.time : ''}` : '')
   }
   if (list === 'inbox') {
     const b = base()
     const url = input.match(/https?:\/\/\S+/)?.[0]
-    await sb.from('records').insert({ id: b.id, collection: 'notes', created_by: role, data: { ...b, module: 'inbox', title: url ? input.replace(url, '').trim() || url : input, url } })
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'notes', created_by: role, data: { ...b, module: 'inbox', title: url ? input.replace(url, '').trim() || url : input, url } })
     return ru ? 'Сохранено во входящие' : 'Saved to inbox'
   }
   if (list === 'music') {
@@ -213,7 +213,7 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
     const track = m
       ? { title: m.title || fallback.title, artist: m.artist, artwork: m.artwork ?? '', url: m.url, embed: m.embed, service: m.service }
       : { title: fallback.title, artist: fallback.artist, url }
-    await sb.from('records').insert({ id: b.id, collection: 'music', created_by: role, data: { ...b, ...track, likes: [] } })
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'music', created_by: role, data: { ...b, ...track, likes: [] } })
     return (ru ? '🎧 Добавлено: ' : '🎧 Added: ') + [track.artist, track.title].filter(Boolean).join(' — ')
   }
   if (list === 'watch') {
@@ -222,7 +222,7 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
     const b = base()
     const title = (m?.service === 'youtube' ? (m as any).rawTitle : m?.title) || input.replace(url ?? '', '').trim() || url || input
     const service = m?.service ?? (url ? 'custom' : undefined)
-    await sb.from('records').insert({ id: b.id, collection: 'watch', created_by: role, data: {
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'watch', created_by: role, data: {
       ...b, title, kind: 'movie', status: 'want', links: url ? [{ service, url, label: service === 'custom' ? new URL(url).hostname.replace(/^www\./, '') : undefined }] : [],
       poster: m?.artwork,
     } })
@@ -236,7 +236,7 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
     const category = body.category ?? MERCHANT_CATS.find(([re]) => re.test(merchant))?.[1] ?? 'other'
     const shared = body.shared === undefined ? true : body.shared === true || body.shared === 'true' || body.shared === 'да'
     const b = base()
-    await sb.from('records').insert({ id: b.id, collection: 'expenses', created_by: role, data: {
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'expenses', created_by: role, data: {
       ...b, title: merchant, amount, currency: country === 'ES' ? 'EUR' : 'PLN', category, paidBy: role, shared, date: today, source: 'wallet',
     } })
     return (ru ? '💸 Записано: ' : '💸 Saved: ') + `${merchant} · ${amount}`
@@ -246,17 +246,17 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
     // end = 1 clears it again, but only if it is still the status that event set. Plain text works too.
     const event = String(body.event ?? '').trim()
     const end = ['1', 'true', 'yes', 'да'].includes(String(body.end ?? '').toLowerCase()) || event === 'off'
-    const { data: old } = await sb.from('records').select('id,data').in('collection', ['status', 'statuses']).eq('created_by', role).eq('deleted', false)
+    const { data: old } = await sb.from('records').select('id,data').eq('household', hh).in('collection', ['status', 'statuses']).eq('created_by', role).eq('deleted', false)
     if (end) {
       const ids = (old ?? []).filter((o) => event === 'off' || o.data.preset === event).map((o) => o.id)
-      if (ids.length) await sb.from('records').update({ deleted: true }).in('id', ids)
+      if (ids.length) await sb.from('records').update({ deleted: true }).eq('household', hh).in('id', ids)
       return ru ? '👋 Статус снят' : '👋 Status cleared'
     }
     const preset = event ? (presets ?? DEFAULT_STATUSES).find((p) => p.id === event) ?? DEFAULT_STATUSES.find((p) => p.id === event) : undefined
     if (event && !preset && !input) return ru ? `Нет статуса с кодом «${event}»` : `No status with code “${event}”`
-    if (old?.length) await sb.from('records').update({ deleted: true }).in('id', old.map((o) => o.id))
+    if (old?.length) await sb.from('records').update({ deleted: true }).eq('household', hh).in('id', old.map((o) => o.id))
     const b = base()
-    await sb.from('records').insert({ id: b.id, collection: 'statuses', created_by: role, data: {
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'statuses', created_by: role, data: {
       ...b, text: preset?.label ?? input, emoji: preset?.emoji, preset: preset?.id, auto: true, at: new Date().toISOString(),
     } })
     return (ru ? 'Статус: ' : 'Status: ') + [preset?.emoji, preset?.label ?? input].filter(Boolean).join(' ')
@@ -264,9 +264,9 @@ async function add(role: Role, list: string, input: string, tz: string, lang: st
   return ru ? 'Неизвестный список' : 'Unknown list'
 }
 
-async function summary(role: Role, tz: string) {
+async function summary(role: Role, hh: string, tz: string) {
   const today = localToday(tz)
-  const { data } = await sb.from('records').select('collection,data,private_to,surprise_for,reveal_at').eq('deleted', false).in('collection', ['groceries', 'tasks', 'events'])
+  const { data } = await sb.from('records').select('collection,data,private_to,surprise_for,reveal_at').eq('household', hh).eq('deleted', false).in('collection', ['groceries', 'tasks', 'events'])
   const rows = (data ?? []).filter((r) => visibleTo(r, role, today))
   const groceries = rows.filter((r) => r.collection === 'groceries' && !r.data.done).map((r) => r.data.title as string)
   const tasks = rows.filter((r) => r.collection === 'tasks' && !r.data.done && r.data.due && r.data.due <= today && (r.data.assignee === role || r.data.assignee === 'both'))
@@ -297,11 +297,12 @@ Deno.serve(async (req) => {
   }
   const key = body.key ?? url.searchParams.get('key') ?? req.headers.get('Authorization')?.replace('Bearer ', '')
   if (!key) return text('missing key', 401)
-  const { data: tok } = await sb.from('api_tokens').select('role').eq('token_hash', await sha256(key)).maybeSingle()
+  const { data: tok } = await sb.from('api_tokens').select('role,household').eq('token_hash', await sha256(key)).maybeSingle()
   if (!tok) return text('invalid key', 401)
   const role = tok.role as Role
+  const hh = tok.household as string
 
-  const { data: meta } = await sb.from('records').select('id,data').in('id', ['meta:settings', `meta:prefs:${role}`])
+  const { data: meta } = await sb.from('records').select('id,data').eq('household', hh).in('id', ['meta:settings', `meta:prefs:${role}`])
   const settings = meta?.find((m) => m.id === 'meta:settings')?.data ?? {}
   const personal = meta?.find((m) => m.id === `meta:prefs:${role}`)?.data
   const lang = personal?.lang ?? 'ru'
@@ -313,16 +314,16 @@ Deno.serve(async (req) => {
     const list = args.list ?? 'groceries'
     const input = String(args.text ?? args.amount ?? '').trim()
     if (!input && !(list === 'status' && args.event)) return text(lang === 'ru' ? 'Пустой текст' : 'Empty text', 400)
-    return text(await add(role, list, input, tz, lang, args, settings.country, personal?.prefs?.statusPresets))
+    return text(await add(role, hh, list, input, tz, lang, args, settings.country, personal?.prefs?.statusPresets))
   }
   if (route === 'list') {
-    const s = await summary(role, tz)
+    const s = await summary(role, hh, tz)
     const name = url.searchParams.get('name') ?? 'groceries'
     const items = name === 'tasks' ? s.tasks.map((x) => (x.time ? `${x.time} ${x.title}` : x.title))
       : name === 'events' ? s.events.map((e) => `${e.date === s.today ? '' : e.date.slice(8) + '.' + e.date.slice(5, 7) + ' '}${e.time ?? ''} ${e.title}`.trim())
       : s.groceries
     return text(items.length ? items.join('\n') : (lang === 'ru' ? 'Список пуст' : 'The list is empty'))
   }
-  if (route === 'summary') return json(await summary(role, tz))
+  if (route === 'summary') return json(await summary(role, hh, tz))
   return text('not found', 404)
 })
