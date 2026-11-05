@@ -62,7 +62,7 @@ export default function Today({ back }: { back?: boolean }) {
       : () => nav.open(m)
     return { icon: l.emoji, label: l.title, onClick }
   }
-  const actions = s.prefs.todayActions.filter((m) => !s.prefs.tabs.includes(m) && (m !== 'cycle' || s.me === 'j')).slice(0, 4).map(shortcut)
+  const actions = s.prefs.todayActions.filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j')).slice(0, 4).map(shortcut)
 
   const blocks: Record<TodayBlock, () => ReactNode> = {
     trip: () => trip && (
