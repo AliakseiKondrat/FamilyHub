@@ -13,6 +13,7 @@ import type { State } from '../types'
 import { ITEMS } from '../lib/catalog'
 import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
 import { SceneView, openCollection } from './Collection'
+import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles } from './UsHub'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -163,9 +164,17 @@ export default function Us({ back }: { back?: boolean }) {
   const d = today()
   const partner = other(s.me)
 
+  // With the ritual switched off the hub stays: the couple, what's ahead, dates, savings, memories.
   if (!g.enabled) {
     return (
-      <Screen title={t('mod.us')} accent="us" back={back} searchable={false}>
+      <Screen title={t('mod.us')} accent="us" back={back} searchable={false} hero={<div className="us-hero"><CoupleCard /></div>}>
+        <FirstSteps />
+        <Thought />
+        <Coming />
+        <Tiles />
+        <ImportantDates />
+        <Savings />
+        <Flashback />
         <Section footer={t('us.off')}><Row icon="⚙️" title={t('us.settings')} chevron onClick={() => nav.settings('game')} /></Section>
       </Screen>
     )
@@ -183,6 +192,7 @@ export default function Us({ back }: { back?: boolean }) {
   return (
     <Screen title={t('mod.us')} accent="us" back={back} searchable={false}
       hero={<div className="us-hero">
+        <CoupleCard />
         {both && <Segmented value={view} onChange={setView}
           options={[{ value: 'mascot', label: `${ITEMS[activeMascot(s)].emoji} ${t('us.mascot')}` }, { value: 'tree', label: `🌳 ${t('us.tree')}` }]} />}
         {showMascot ? (
@@ -205,7 +215,11 @@ export default function Us({ back }: { back?: boolean }) {
         <XpBar />
       </div>}>
 
+      <FirstSteps />
       <Section header={t('us.mood')}><MoodRow /></Section>
+      <Thought />
+      <Coming />
+      <Tiles />
 
       {g.quests && (
         <Section header={t('us.quests')} footer={t('us.questsHint')}
@@ -225,6 +239,10 @@ export default function Us({ back }: { back?: boolean }) {
             : t('us.tapsNow', { a: taps[s.me], b: taps[partner], n: TAP_GOAL, name: s.users[partner].name })} onClick={tap} />
         </Section>
       )}
+
+      <ImportantDates />
+      <Savings />
+      <Flashback />
 
       <Section header={t('us.week')} footer={`${t('us.legend')} · ${t('us.freezes', { n: p.freezesLeft, m: FREEZES_PER_MONTH })}`}>
         <div className="week-strip">

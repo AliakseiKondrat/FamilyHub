@@ -210,6 +210,8 @@ export interface Prefs {
   blocksAdded?: TodayBlock[]
   /** My order of sections (sidebar on iPad/Mac and «More»); unset = tab bar sections first, then the default order. */
   order?: ModuleId[]
+  /** «First steps» on the Us screen hidden by hand. */
+  stepsHidden?: boolean
   /** My own look from the collection: a theme or an atmosphere id (e.g. 'theme:dusk'). */
   look?: string
   /** Developers only: preview the app as a close couple or an ordinary one. */
@@ -236,6 +238,10 @@ export interface State {
   version: 1
   me: UserId
   users: Record<UserId, { name: string; emoji: string }>
+  /** The day we became a couple (the «together N days» counter and round dates). */
+  since?: string
+  /** «Our photo»: a photo from the album shown on the couple card. */
+  couplePhoto?: string
   lang: Lang
   country: Country
   theme: Theme

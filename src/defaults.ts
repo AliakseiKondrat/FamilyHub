@@ -88,7 +88,7 @@ export const defaultBudgetCats = (): Category[] => BUDGET_CATS.map((id) => ({ id
 /** Settings each person keeps for themselves (synced privately between their own devices). */
 export const PERSONAL_KEYS = ['lang', 'theme', 'design', 'prefs'] as const satisfies readonly (keyof State)[]
 /** Settings the two of you share. */
-export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength', 'groceryCats', 'budgetCats', 'splitA', 'game'] as const satisfies readonly (keyof State)[]
+export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength', 'groceryCats', 'budgetCats', 'splitA', 'game', 'since', 'couplePhoto'] as const satisfies readonly (keyof State)[]
 
 /** Modules that can live in the tab bar or be opened from More. */
 export const ALL_MODULES: ModuleId[] = ['today', 'us', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'wishlist', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']

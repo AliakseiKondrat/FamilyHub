@@ -9,7 +9,7 @@ import { fmtDate } from '../lib/date'
 import type { Photo } from '../types'
 
 /** Object URL for a stored blob, revoked on unmount. */
-function useBlobUrl(key: string) {
+export function useBlobUrl(key: string) {
   const [url, setUrl] = useState<string>()
   useEffect(() => {
     let u: string | undefined
