@@ -999,3 +999,20 @@ a { color: var(--blue); text-decoration: none; }
 /* ---------- Savings goals ---------- */
 .gl-pace { margin: 10px 20px 0; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--label); font-size: 14px; }
 .gl-quick { justify-content: center; flex-wrap: wrap; gap: 6px; padding: 8px 0; }
+
+/* ---------- Our year ---------- */
+.wr-card { margin: 0 16px 12px; border-radius: 28px; padding: 22px 16px 18px; color: #fff; text-align: center;
+  background: radial-gradient(120% 60% at 0% 0%, rgba(255, 255, 255, 0.22), transparent 60%), linear-gradient(150deg, #7c3aed, #db2777 55%, #f59e0b); box-shadow: 0 16px 40px rgba(124, 58, 237, 0.35); }
+.wr-head { font-weight: 700; font-size: 15px; opacity: 0.95; }
+.wr-year { font-size: 64px; font-weight: 900; letter-spacing: -2px; line-height: 1.05; margin: 2px 0 12px; }
+.wr-empty { opacity: 0.9; margin-bottom: 8px; }
+.wr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wr-tile { background: rgba(255, 255, 255, 0.16); border-radius: 16px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.wr-tile span { font-size: 20px; }
+.wr-tile b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.wr-tile small { font-size: 11px; opacity: 0.9; line-height: 1.2; }
+.wr-best { display: grid; gap: 8px; margin-top: 12px; text-align: left; }
+.wr-best > div { background: rgba(255, 255, 255, 0.16); border-radius: 16px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+.wr-best small { opacity: 0.85; font-size: 12px; }
+.wr-best b { grid-column: 2; font-size: 16px; }
+.wr-banner { background: linear-gradient(135deg, #7c3aed, #db2777, #f59e0b) !important; }

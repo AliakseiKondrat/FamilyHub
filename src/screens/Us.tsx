@@ -13,7 +13,7 @@ import type { State } from '../types'
 import { ITEMS } from '../lib/catalog'
 import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
 import { SceneView, openCollection } from './Collection'
-import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles } from './UsHub'
+import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles, YearRow } from './UsHub'
 import { LoveNotesSection, notesOf } from './LoveNotes'
 import { CheckinSection } from './Checkin'
 import { BlindSection } from './BlindDate'
@@ -182,6 +182,7 @@ export default function Us({ back }: { back?: boolean }) {
         <ImportantDates />
         <Savings />
         <Flashback />
+        <Section><YearRow /></Section>
         <Section footer={t('us.off')}><Row icon="⚙️" title={t('us.settings')} chevron onClick={() => nav.settings('game')} /></Section>
       </Screen>
     )
@@ -222,6 +223,7 @@ export default function Us({ back }: { back?: boolean }) {
         <XpBar />
       </div>}>
 
+      <YearRow banner />
       <FirstSteps />
       <Section header={t('us.mood')}><MoodRow /></Section>
       <Thought />
@@ -275,6 +277,7 @@ export default function Us({ back }: { back?: boolean }) {
       </Section>
 
       <Section>
+        <YearRow />
         <Row icon="❓" title={t('us.how')} chevron onClick={() => setHow(true)} />
         <Row icon="✨" title={t('col.title')} chevron onClick={() => openCollection(nav, 'mascot')} />
         <Row icon="⚙️" title={t('set.game')} chevron onClick={() => nav.settings('game')} />

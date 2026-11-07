@@ -10,6 +10,7 @@ import { PiggyBar, openCollection } from './Collection'
 import { PhotoThumb, useBlobUrl } from './Photos'
 import { NoteComposer } from './LoveNotes'
 import { BlindWizard } from './BlindDate'
+import { FlashbackRows, WrappedSheet, flashbackItems } from './Wrapped'
 import { hasExamples, removeExamples } from '../lib/examples'
 import type { CalEvent, State } from '../types'
 
@@ -289,10 +290,27 @@ export function Flashback() {
   const nav = useNav()
   const d = today()
   const photos = visible(s.photos, s.me).filter((p) => p.createdAt.slice(5, 10) === d.slice(5, 10) && p.createdAt.slice(0, 4) < d.slice(0, 4))
-  if (!photos.length) return null
+  if (!photos.length && !flashbackItems(s).length) return null
   return (
-    <Section header={`📸 ${t('onThisDay')}`}>
-      <div className="photos" style={{ margin: 0, borderRadius: 0 }}>{photos.slice(0, 6).map((p) => <PhotoThumb key={p.id} photo={p} onClick={() => nav.open('photos')} />)}</div>
+    <Section header={`🕰️ ${t('onThisDay')}`}>
+      {photos.length > 0 && <div className="photos" style={{ margin: 0, borderRadius: 0 }}>{photos.slice(0, 6).map((p) => <PhotoThumb key={p.id} photo={p} onClick={() => nav.open('photos')} />)}</div>}
+      <FlashbackRows />
     </Section>
   )
+}
+
+/** «Our year» — always one tap away, and a banner from mid-December to the end of January. */
+export function YearRow({ banner }: { banner?: boolean }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const d = today()
+  const year = d.slice(5, 7) === '01' ? String(+d.slice(0, 4) - 1) : d.slice(0, 4)
+  const season = d.slice(5) >= '12-15' || d.slice(5, 7) === '01'
+  if (banner && !season) return null
+  return <>
+    {banner
+      ? <div className="section"><button className="list note-new wr-banner" onClick={() => setOpen(true)}><span className="nn-emoji">🎉</span><span><b>{t('wr.title', { year })}</b><small>{t('wr.bannerSub')}</small></span></button></div>
+      : <Row icon="🎉" title={t('wr.title', { year })} chevron onClick={() => setOpen(true)} />}
+    {open && <WrappedSheet onClose={() => setOpen(false)} />}
+  </>
 }

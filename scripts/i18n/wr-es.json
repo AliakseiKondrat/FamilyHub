@@ -1,0 +1,21 @@
+{
+ "wr.title": "Nuestro {year}",
+ "wr.bannerSub": "Vuestro año juntos en una tarjeta",
+ "wr.dates": "citas",
+ "wr.trips": "viajes",
+ "wr.places": "sitios nuevos",
+ "wr.recipes": "veces cocinado",
+ "wr.tasks": "tareas hechas",
+ "wr.notes": "notas",
+ "wr.blind": "a ciegas",
+ "wr.wishes": "deseos cumplidos",
+ "wr.photos": "fotos",
+ "wr.songs": "canciones",
+ "wr.flame": "días con llama",
+ "wr.spent": "gastos comunes",
+ "wr.placeOfYear": "Sitio del año",
+ "wr.recipeOfYear": "Receta del año",
+ "wr.screenshot": "Compartidla, o simplemente haced una captura de esta tarjeta.",
+ "wr.empty": "El año acaba de empezar: aquí aparecerá todo lo que hagáis juntos.",
+ "wr.yearsAgo": "hace {n} a"
+}

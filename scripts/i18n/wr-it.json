@@ -1,0 +1,21 @@
+{
+ "wr.title": "Il nostro {year}",
+ "wr.bannerSub": "Il vostro anno insieme in una scheda",
+ "wr.dates": "appuntamenti",
+ "wr.trips": "viaggi",
+ "wr.places": "posti nuovi",
+ "wr.recipes": "volte cucinato",
+ "wr.tasks": "cose fatte",
+ "wr.notes": "bigliettini",
+ "wr.blind": "al buio",
+ "wr.wishes": "desideri avverati",
+ "wr.photos": "foto",
+ "wr.songs": "canzoni",
+ "wr.flame": "giorni con la fiamma",
+ "wr.spent": "spese comuni",
+ "wr.placeOfYear": "Posto dell'anno",
+ "wr.recipeOfYear": "Ricetta dell'anno",
+ "wr.screenshot": "Condividetela, o fate semplicemente uno screenshot di questa scheda.",
+ "wr.empty": "L'anno è appena iniziato: qui comparirà tutto ciò che farete insieme.",
+ "wr.yearsAgo": "{n} anni fa"
+}
