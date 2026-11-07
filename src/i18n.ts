@@ -28,7 +28,7 @@ const ru = {
   cycleDay: 'День цикла {n}', periodNow: '🌸 {name}: сейчас месячные', periodSoon: '🌸 {name}: месячные примерно через {n} дн.',
   dateIdea: 'Идея для свидания', onThisDay: 'В этот день',
 
-  'gro.placeholder': 'Добавить… можно через запятую', inCart: 'В корзине', clearBought: 'Убрать купленное',
+  'gro.placeholder': 'Добавить… можно через запятую', inCart: 'В корзине', clearBought: 'Удалить купленное',
   frequent: 'Часто покупаем',
   'cat.produce': 'Овощи и фрукты', 'cat.dairy': 'Молочное и яйца', 'cat.meat': 'Мясо и рыба', 'cat.bakery': 'Хлеб и выпечка',
   'cat.frozen': 'Заморозка', 'cat.drinks': 'Напитки', 'cat.pantry': 'Бакалея', 'cat.household': 'Для дома',
@@ -1085,7 +1085,7 @@ const en: Partial<Dict> = {
   cycleDay: 'Cycle day {n}', periodNow: '🌸 {name} is on her period', periodSoon: '🌸 {name}’s period in about {n} days',
   dateIdea: 'Date idea', onThisDay: 'On this day',
 
-  'gro.placeholder': 'Add… separate with commas', inCart: 'In the cart', clearBought: 'Clear bought',
+  'gro.placeholder': 'Add… separate with commas', inCart: 'In the cart', clearBought: 'Delete bought',
   frequent: 'Often bought',
   'cat.produce': 'Fruit & veg', 'cat.dairy': 'Dairy & eggs', 'cat.meat': 'Meat & fish', 'cat.bakery': 'Bakery',
   'cat.frozen': 'Frozen', 'cat.drinks': 'Drinks', 'cat.pantry': 'Pantry', 'cat.household': 'Household',
@@ -3197,7 +3197,7 @@ const es: Partial<Dict> = {
   cycleDay: 'Día {n} del ciclo', periodNow: '🌸 {name} tiene la regla', periodSoon: '🌸 La regla de {name} en unos {n} días',
   dateIdea: 'Idea para una cita', onThisDay: 'Tal día como hoy',
 
-  'gro.placeholder': 'Añadir… separa con comas', inCart: 'En el carrito', clearBought: 'Quitar comprados',
+  'gro.placeholder': 'Añadir… separa con comas', inCart: 'En el carrito', clearBought: 'Borrar comprados',
   frequent: 'Compramos a menudo',
   'cat.produce': 'Frutas y verduras', 'cat.dairy': 'Lácteos y huevos', 'cat.meat': 'Carne y pescado', 'cat.bakery': 'Panadería',
   'cat.frozen': 'Congelados', 'cat.drinks': 'Bebidas', 'cat.pantry': 'Despensa', 'cat.household': 'Hogar y limpieza',
@@ -4312,7 +4312,7 @@ const it: Partial<Dict> = {
   onThisDay: 'In questo giorno',
   'gro.placeholder': 'Aggiungi… separa con virgole',
   inCart: 'Nel carrello',
-  clearBought: 'Togli i comprati',
+  clearBought: 'Elimina i comprati',
   frequent: 'Comprati spesso',
   'cat.produce': 'Frutta e verdura',
   'cat.dairy': 'Latticini e uova',
