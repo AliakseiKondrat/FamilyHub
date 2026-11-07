@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useT, type TKey } from '../i18n'
-import { Row, Screen, Section, Segmented, Sheet, TextRow, toast } from '../ui'
+import { Empty, Icon, Row, Screen, Section, Segmented, Sheet, TextRow, toast } from '../ui'
 import { supabase } from '../lib/supabase'
 import { getHousehold, refreshSession, signOut, useSync } from '../sync'
 import { useApp } from '../store'
@@ -105,21 +105,59 @@ export function InviteSection() {
   )
 }
 
-/** Settings: questions people ask. */
+/** Questions by topic; numbers are the faq.qN / faq.aN keys. */
+export const FAQ: { id: string; emoji: string; qs: number[] }[] = [
+  { id: 'basics', emoji: '🚀', qs: [9, 10, 11, 3, 12, 25] },
+  { id: 'couple', emoji: '💞', qs: [1, 2, 13, 14] },
+  { id: 'notify', emoji: '🔔', qs: [4, 15, 16, 17] },
+  { id: 'game', emoji: '🔥', qs: [5, 18, 19, 20, 6, 21, 22] },
+  { id: 'data', emoji: '💾', qs: [7, 23, 24, 8] },
+]
+let faqFocus: number | null = null
+/** Open the FAQ with this question unfolded (from the settings search). */
+export const focusFaq = (n: number) => { faqFocus = n }
+
+/** Settings: questions people ask, by topic, with search; answers fold out one at a time. */
 export function FaqPage() {
   const t = useT()
-  const [open, setOpen] = useState<number | null>(0)
-  const n = 8
+  // Read in the initializer, cleared after mount (StrictMode runs initializers twice).
+  const [open, setOpen] = useState<number | null>(() => faqFocus)
+  useEffect(() => { faqFocus = null }, [])
+  const [cat, setCat] = useState<string>(() => (open ? FAQ.find((c) => c.qs.includes(open))?.id ?? 'all' : 'all'))
+  const [q, setQ] = useState('')
+  const needle = q.trim().toLowerCase()
+  const match = (n: number) => !needle || `${t(`faq.q${n}` as TKey)} ${t(`faq.a${n}` as TKey)}`.toLowerCase().includes(needle)
+  const groups = FAQ.filter((c) => needle || cat === 'all' || c.id === cat).map((c) => ({ ...c, qs: c.qs.filter(match) })).filter((c) => c.qs.length)
   return (
-    <Screen title={t('faq.title')} back accent="settings">
-      <Section>
-        {Array.from({ length: n }, (_, i) => (
-          <div key={i}>
-            <Row icon={open === i ? '▾' : '▸'} title={t(`faq.q${i + 1}` as TKey)} onClick={() => setOpen(open === i ? null : i)} />
-            {open === i && <div className="row faq-a">{t(`faq.a${i + 1}` as TKey)}</div>}
+    <Screen title={t('faq.title')} back accent="settings" searchable={false}
+      head={<>
+        <div className="quick lg">
+          <span style={{ position: 'relative', zIndex: 2 }}><Icon name="search" style={{ width: 18, height: 18 }} /></span>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('faq.search')} enterKeyHint="search" />
+          {q && <button className="plus" onClick={() => setQ('')} aria-label="Clear"><Icon name="close" /></button>}
+        </div>
+        {!needle && (
+          <div className="chips" style={{ paddingTop: 12 }}>
+            {[{ id: 'all', emoji: '✨' }, ...FAQ].map((c) => (
+              <button key={c.id} className={'chip' + (cat === c.id ? ' on' : '')} onClick={() => setCat(c.id)}>{c.emoji} {t(`faq.c.${c.id}` as TKey)}</button>
+            ))}
           </div>
-        ))}
-      </Section>
+        )}
+      </>}>
+      {groups.length === 0 && <Empty emoji="🤷" text={t('noResults')} />}
+      {groups.map((c) => (
+        <Section key={c.id} header={`${c.emoji} ${t(`faq.c.${c.id}` as TKey)}`} className="compact faq">
+          {c.qs.map((n) => {
+            const on = open === n || (!!needle && c.qs.length <= 3)
+            return (
+              <div key={n} className={'faq-item' + (on ? ' on' : '')}>
+                <Row title={t(`faq.q${n}` as TKey)} right={<span className="faq-chev" aria-hidden>›</span>} onClick={() => setOpen(open === n ? null : n)} />
+                {on && <div className="row faq-a">{t(`faq.a${n}` as TKey)}</div>}
+              </div>
+            )
+          })}
+        </Section>
+      ))}
     </Screen>
   )
 }

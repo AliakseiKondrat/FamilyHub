@@ -316,6 +316,10 @@ export interface Prefs {
   groceryEmoji: boolean
   /** The newcomer walkthrough was finished or skipped (synced, so it doesn't come back on another device). */
   tourDone?: boolean
+  /** Screens whose own short tips were already shown (or skipped). */
+  guidesSeen?: string[]
+  /** Show a screen's tips the first time it opens (default on). */
+  guides?: boolean
 }
 
 export interface State {

@@ -197,11 +197,11 @@ export function GlassButton({ icon, label, onClick, tint }: { icon?: string; lab
 }
 
 /* ---------- Cards / grouped lists ---------- */
-export function Section({ header, footer, children, big, action }: {
-  header?: ReactNode; footer?: ReactNode; children: ReactNode; big?: boolean; action?: ReactNode
+export function Section({ header, footer, children, big, action, className }: {
+  header?: ReactNode; footer?: ReactNode; children: ReactNode; big?: boolean; action?: ReactNode; className?: string
 }) {
   return (
-    <div className="section">
+    <div className={className ? `section ${className}` : 'section'}>
       {header && !big && <div className="section-header"><span>{header}</span>{action}</div>}
       <div className="list">
         {header && big && <div className="card-head"><span>{header}</span>{action}</div>}

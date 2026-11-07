@@ -1213,3 +1213,21 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .rc-line { flex-wrap: wrap; row-gap: 4px; }
 [data-header]:not([data-header='soft']) .us-status .flame-chip { background: rgba(255, 255, 255, 0.92); color: #c2410c; }
 .col-prev .couple-avatars:not(.framed) > span { box-shadow: none !important; }
+
+/* ---------- Compact settings lists, categories, FAQ accordion ---------- */
+.section.compact .row { min-height: 46px; }
+.section.compact .row-main { padding: 9px 0; }
+.section.compact .row-icon { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
+.section.compact .row.with-icon { --inset: 58px; }
+.section.compact .row-sub { font-size: 13px; margin-top: 1px; }
+.set-groups .row-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-sub { margin: 16px 16px 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--label2); }
+.swatch-strip { display: flex; align-items: center; gap: 0; flex: none; }
+.swatch-strip i { width: 18px; height: 18px; border-radius: 50%; margin-left: -6px; box-shadow: 0 0 0 2px var(--cell); }
+.swatch-strip .faq-chev { margin-left: 10px; }
+.faq-chev { color: var(--label3, var(--label2)); font-size: 22px; line-height: 1; transition: transform 0.2s; flex: none; }
+.faq-item.on .faq-chev { transform: rotate(90deg); }
+.faq-item.on > .row:first-child .row-title { font-weight: 650; }
+.faq-item.on > .row:first-child::after { display: none; }
+.section.compact .row.faq-a { padding-top: 0; padding-bottom: 12px; min-height: 0; }
+.chips-wrap .chip.on { background: var(--label); color: var(--bg); }

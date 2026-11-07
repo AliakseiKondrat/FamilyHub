@@ -6,7 +6,7 @@ import { ANDROID, PRESETS as SHORTCUTS, androidSteps, androidUrl, presetSteps } 
 import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
-import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, haptic, toast } from '../ui'
+import { EmojiPicker, Empty, Icon, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, haptic, toast } from '../ui'
 import { demoState } from '../demo'
 import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { signOut, useSync } from '../sync'
@@ -17,8 +17,8 @@ import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
 import { itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
-import { DeleteDataSection, FaqPage, FeedbackSheet, InviteSection } from './Pairing'
-import { openTour } from './Tour'
+import { DeleteDataSection, FAQ, FaqPage, FeedbackSheet, InviteSection, focusFaq } from './Pairing'
+import { guideKeys, openGuide, openTour } from './Tour'
 import ProgressPage from './Progress'
 import LeadersPage from './Leaders'
 import { inTelegram, telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
@@ -58,6 +58,7 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
 }
 
 export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
+  if (page.startsWith('g:')) return <GroupPage id={page.slice(2) as GroupId} />
   switch (page) {
     case 'design': return <DesignPage />
     case 'tabs': return <TabsPage />
@@ -80,7 +81,74 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'leaders': return <LeadersPage />
     case 'dev': return <DevPage />
     case 'faq': return <FaqPage />
+    case 'guides': return <GuidesPage />
     default: return <RootPage />
+  }
+}
+
+export type GroupId = 'look' | 'screens' | 'game' | 'lists' | 'connect' | 'couple' | 'help'
+const GROUPS: { id: GroupId; icon: string; bg: string }[] = [
+  { id: 'look', icon: '🎨', bg: 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)' },
+  { id: 'screens', icon: '🧭', bg: 'linear-gradient(135deg,#0a84ff,#5ac8fa)' },
+  { id: 'game', icon: '🔥', bg: 'linear-gradient(135deg,#f97316,#ec4899)' },
+  { id: 'lists', icon: '🛒', bg: 'linear-gradient(135deg,#34c759,#30b0c7)' },
+  { id: 'connect', icon: '🔔', bg: 'linear-gradient(135deg,#ff3b30,#ff9500)' },
+  { id: 'couple', icon: '👥', bg: 'linear-gradient(135deg,#ff2d55,#ff9f0a)' },
+  { id: 'help', icon: '💬', bg: 'linear-gradient(135deg,#8e8e93,#48484a)' },
+]
+
+/** One link inside a category; the same list feeds the category page and the settings search. */
+interface Entry { icon: string; bg: string; title: string; detail?: ReactNode; go: () => void; kw?: string }
+
+function useEntries(openFeedback: () => void): Record<GroupId, Entry[]> {
+  const s = useApp()
+  const t = useT()
+  const nav = useNav()
+  const platform = usePlatform()
+  const tint = (c: string) => `color-mix(in srgb, var(--${c}) 20%, transparent)`
+  const page = (icon: string, bg: string, title: string, p: SettingsPage, detail?: ReactNode, kw?: string): Entry => ({ icon, bg, title, detail, go: () => nav.settings(p), kw })
+  const collection = page('✨', 'linear-gradient(135deg,#a855f7,#f59e0b)', t('col.title'), 'collection', undefined, 'theme themes тема темы flag флаг mascot талисман')
+  return {
+    look: [
+      page('🎨', 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)', t('design'), 'design', t(`theme.${s.theme}`), 'theme тема dark light тёмная светлая font шрифт radius glass стекло color цвет'),
+      collection,
+    ],
+    screens: [
+      page('🧭', tint('blue'), t('tabBar'), 'tabs', s.prefs.tabs.map((m) => moduleLabel(s, m).emoji).join(''), 'tabs вкладки'),
+      page('☀️', tint('orange'), t('todayScreen'), 'today', undefined, 'today сегодня blocks блоки'),
+      page('🗂️', 'var(--fill)', t('sections'), 'sections', undefined, 'modules разделы order порядок'),
+      page('💬', tint('green'), t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'), 'status статус'),
+    ],
+    game: [
+      page('🔥', 'linear-gradient(135deg,#f97316,#ec4899)', t('set.game'), 'game', s.game.enabled ? t('on') : t('off'), 'flame огонёк mascot талисман'),
+      page('🏆', 'linear-gradient(135deg,#f59e0b,#ef4444)', t('pg.title'), 'progress', undefined, 'level уровень marathon марафон кругосветка achievements'),
+      collection,
+      page('🥇', 'linear-gradient(135deg,#facc15,#f97316)', t('lb.title'), 'leaders', undefined, 'leaderboard рейтинг'),
+    ],
+    lists: [
+      page('🛒', tint('green'), t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length, 'groceries продукты'),
+      page('💰', tint('teal'), t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`, 'money деньги currency валюта'),
+    ],
+    connect: [
+      page('🔔', tint('red'), t('push'), 'notifications', s.prefs.notify.channel === 'tg' ? 'Telegram' : s.prefs.notify.channel === 'both' ? 'Push + Telegram' : undefined, 'telegram телеграм bot бот push уведомления'),
+      platform === 'android'
+        ? page('⚡️', 'linear-gradient(135deg,#34a853,#4285f4)', t('presetsAndroid'), 'shortcuts', Object.keys(ANDROID).length)
+        : page('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length),
+      ...(platform === 'ios' ? [page('🎙️', tint('purple'), t('siriTitle'), 'siri')] : []),
+      page('🧩', tint('orange'), t(platform === 'android' ? 'quickActions' : 'widgets'), 'widget'),
+      page('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google', undefined, 'google calendar календарь'),
+    ],
+    couple: [
+      page('👥', tint('pink'), t('people'), 'people', `${s.users.a.emoji}${s.users.j.emoji}`, 'names имена'),
+      { icon: s.pet.emoji, bg: tint('brown'), title: t('pet'), detail: s.pet.name, go: () => nav.open('pet') },
+      page('🌐', tint('indigo'), t('regionLang'), 'region', LANG_NAMES[s.lang], 'language язык currency валюта'),
+    ],
+    help: [
+      page('💾', 'var(--fill)', t('data'), 'data', undefined, 'export экспорт backup'),
+      page('🎓', 'var(--fill)', t('guide.title'), 'guides', undefined, 'tour обучение help'),
+      page('❓', 'var(--fill)', t('faq.title'), 'faq', undefined, 'faq help помощь'),
+      { icon: '💬', bg: 'var(--fill)', title: t('fb.title'), go: openFeedback, kw: 'bug ошибка idea идея' },
+    ],
   }
 }
 
@@ -88,95 +156,159 @@ function RootPage() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
-  const [feedback, setFeedback] = useState(false)
   const sync = useSync()
   const platform = usePlatform()
-  const choice = usePlatformChoice()
-  const link = (icon: string, bg: string, title: ReactNode, page: SettingsPage, detail?: ReactNode) => (
-    <Row icon={icon} iconBg={bg} title={title} detail={detail} chevron onClick={() => nav.settings(page)} />
-  )
+  const [feedback, setFeedback] = useState(false)
+  const [q, setQ] = useState('')
+  const entries = useEntries(() => setFeedback(true))
+  const needle = q.trim().toLowerCase()
+  const hits = needle
+    ? GROUPS.flatMap((g) => entries[g.id].map((e) => ({ ...e, group: g })))
+      .filter((e, i, all) => all.findIndex((x) => x.title === e.title) === i)
+      .filter((e) => `${e.title} ${e.kw ?? ''} ${t(`set.g.${e.group.id}` as TKey)}`.toLowerCase().includes(needle))
+    : []
+  const faqHits = needle ? FAQ.flatMap((c) => c.qs).filter((n) => `${t(`faq.q${n}` as TKey)} ${t(`faq.a${n}` as TKey)}`.toLowerCase().includes(needle)) : []
+  const status = !SYNC_ENABLED ? t('prototype').split(':')[0] : !sync.online ? `📴 ${t('offline')}` : sync.pending ? `⏳ ${t('pendingN', { n: sync.pending })}` : `☁️ ${t('synced')}`
   return (
-    <Screen title={t('settings')} back accent="settings"
+    <Screen title={t('settings')} back accent="settings" searchable={false}
       hero={<div className="settings-hero">
         <span className="circle lg">{s.users[s.me].emoji}</span>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div className="hero-num">{s.users[s.me].name}</div>
-          <div className="hero-sub" style={{ marginTop: 0 }}>{SYNC_ENABLED ? sync.email : t('prototype').split(':')[0]}</div>
+          <div className="hero-sub" style={{ marginTop: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{SYNC_ENABLED ? sync.email : ''}</div>
+          <div className="hero-sub" style={{ marginTop: 2 }}>{status}</div>
         </div>
+      </div>}
+      head={<div className="quick lg">
+        <span style={{ position: 'relative', zIndex: 2 }}><Icon name="search" style={{ width: 18, height: 18 }} /></span>
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('set.search')} enterKeyHint="search" />
+        {q && <button className="plus" onClick={() => setQ('')} aria-label="Clear"><Icon name="close" /></button>}
       </div>}>
-      {SYNC_ENABLED ? (
-        <Section footer={inTelegram() || matchMedia('(display-mode: standalone)').matches ? undefined : t(platform === 'android' ? 'installHintAndroid' : 'installHint')}>
-          <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'}
-            title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} />
-          <button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button>
-        </Section>
+      {needle ? (
+        <>
+          {hits.length === 0 && faqHits.length === 0 && <Empty emoji="🤷" text={t('noResults')} />}
+          {hits.length > 0 && (
+            <Section className="compact">
+              {hits.map((e) => <Row key={e.title} icon={e.icon} iconBg={e.bg} title={e.title} sub={`${e.group.icon} ${t(`set.g.${e.group.id}` as TKey)}`} chevron onClick={e.go} />)}
+            </Section>
+          )}
+          {faqHits.length > 0 && (
+            <Section header={t('faq.title')} className="compact">
+              {faqHits.slice(0, 6).map((n) => <Row key={n} icon="❓" title={t(`faq.q${n}` as TKey)} chevron onClick={() => { focusFaq(n); nav.settings('faq') }} />)}
+            </Section>
+          )}
+        </>
       ) : (
         <>
-          <Choice label={t('iAm')} value={s.me} onChange={(me) => update((st) => { st.me = me })}
-            options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
-          <div className="section-footer" style={{ margin: '-10px 14px 18px' }}>{t('iAmHint')}</div>
+          {!SYNC_ENABLED && (
+            <>
+              <Choice label={t('iAm')} value={s.me} onChange={(me) => update((st) => { st.me = me })}
+                options={(['a', 'j'] as UserId[]).map((u) => ({ value: u, label: `${s.users[u].emoji} ${s.users[u].name}` }))} />
+              <div className="section-footer" style={{ margin: '-10px 14px 18px' }}>{t('iAmHint')}</div>
+            </>
+          )}
+          <Section className="compact set-groups"
+            footer={!SYNC_ENABLED || inTelegram() || matchMedia('(display-mode: standalone)').matches ? undefined : t(platform === 'android' ? 'installHintAndroid' : 'installHint')}>
+            {GROUPS.map((g) => (
+              <Row key={g.id} icon={g.icon} iconBg={g.bg} title={t(`set.g.${g.id}` as TKey)} sub={t(`set.g.${g.id}Sub` as TKey)} chevron
+                onClick={() => nav.settings(`g:${g.id}`)} />
+            ))}
+          </Section>
+          {realTier() === 'dev' && (
+            <Section className="compact">
+              <Row icon="🛠" iconBg="var(--fill)" title={t('dev.title')} detail={s.prefs.devAs ? t(`dev.as.${s.prefs.devAs}`) : undefined} chevron onClick={() => nav.settings('dev')} />
+            </Section>
+          )}
         </>
       )}
-
-      <Section header={t('design')}>
-        {link('🎨', 'linear-gradient(135deg,#ff2d55,#af52de,#0a84ff)', t('design'), 'design', t(`theme.${s.theme}`))}
-        {link('🧭', 'color-mix(in srgb, var(--blue) 20%, transparent)', t('tabBar'), 'tabs', s.prefs.tabs.map((m) => moduleLabel(s, m).emoji).join(''))}
-        {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
-        {link('💬', 'color-mix(in srgb, var(--green) 20%, transparent)', t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'))}
-        {link('🔥', 'linear-gradient(135deg,#f97316,#ec4899)', t('set.game'), 'game', s.game.enabled ? t('on') : t('off'))}
-        {link('🏆', 'linear-gradient(135deg,#f59e0b,#ef4444)', t('pg.title'), 'progress')}
-        {link('✨', 'linear-gradient(135deg,#a855f7,#f59e0b)', t('col.title'), 'collection')}
-        {realTier() === 'dev' && link('🛠', 'var(--fill)', t('dev.title'), 'dev', s.prefs.devAs ? t(`dev.as.${s.prefs.devAs}`) : undefined)}
-      </Section>
-
-      <Section header={t('lists')}>
-        {link('🗂️', 'var(--fill)', t('sections'), 'sections')}
-        {link('🛒', 'color-mix(in srgb, var(--green) 20%, transparent)', t('groceryCats'), 'groceryCats', s.groceryCats.filter((c) => !c.hidden).length)}
-        {link('💰', 'color-mix(in srgb, var(--teal) 20%, transparent)', t('budgetSettings'), 'budget', `${s.splitA}/${100 - s.splitA}`)}
-      </Section>
-      <Section header={t('behavior')} footer={`${t('linkPreviewsHint')} ${t('behaviorHint')}`}>
-        <ToggleRow icon="✅" label={t('setShowDone')} on={s.prefs.showCompletedTasks} onChange={(showCompletedTasks) => setPrefs({ showCompletedTasks })} />
-        <ToggleRow icon="🛒" label={t('setQuickChips')} on={s.prefs.groceryQuickChips} onChange={(groceryQuickChips) => setPrefs({ groceryQuickChips })} />
-        <ToggleRow icon="🥑" label={t('setGroceryEmoji')} on={s.prefs.groceryEmoji} onChange={(groceryEmoji) => setPrefs({ groceryEmoji })} />
-        <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
-        <ToggleRow icon="🪙" label={t('setRoundMoney')} on={s.prefs.roundMoney} onChange={(roundMoney) => setPrefs({ roundMoney })} />
-        <ToggleRow icon="🗑️" label={t('setConfirmDelete')} on={s.prefs.confirmDelete} onChange={(confirmDelete) => setPrefs({ confirmDelete })} />
-      </Section>
-
-      <Section header={t('general')}>
-        {link('👥', 'color-mix(in srgb, var(--pink) 20%, transparent)', t('people'), 'people', `${s.users.a.emoji}${s.users.j.emoji}`)}
-        <Row icon={s.pet.emoji} iconBg="color-mix(in srgb, var(--brown) 20%, transparent)" title={t('pet')} detail={s.pet.name} chevron onClick={() => nav.open('pet')} />
-        {link('🌐', 'color-mix(in srgb, var(--indigo) 20%, transparent)', t('regionLang'), 'region', LANG_NAMES[s.lang])}
-      </Section>
-      <Section footer={t('deviceHint')}>
-        <SelectRow label={`📱 ${t('device')}`} value={choice} onChange={setPlatformChoice}
-          options={[
-            { value: 'auto', label: t('platform.auto', { p: t(`platform.${detectPlatform()}`) }) },
-            { value: 'ios', label: t('platform.ios') },
-            { value: 'android', label: t('platform.android') },
-          ]} />
-      </Section>
-
-      <Section header={t('integrations')}>
-        {link('🔔', 'color-mix(in srgb, var(--red) 20%, transparent)', t('push'), 'notifications')}
-        {platform === 'android'
-          ? link('⚡️', 'linear-gradient(135deg,#34a853,#4285f4)', t('presetsAndroid'), 'shortcuts', Object.keys(ANDROID).length)
-          : link('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length)}
-        {platform === 'ios' && link('🎙️', 'color-mix(in srgb, var(--purple) 20%, transparent)', t('siriTitle'), 'siri')}
-        {link('🧩', 'color-mix(in srgb, var(--orange) 20%, transparent)', t(platform === 'android' ? 'quickActions' : 'widgets'), 'widget')}
-        {link('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google')}
-      </Section>
-
-      <InviteSection />
-      <Section>
-        {link('💾', 'var(--fill)', t('data'), 'data')}
-        <Row icon="🎓" iconBg="var(--fill)" title={t('tour.again')} chevron onClick={openTour} />
-        {link('❓', 'var(--fill)', t('faq.title'), 'faq')}
-        <Row icon="💬" iconBg="var(--fill)" title={t('fb.title')} chevron onClick={() => setFeedback(true)} />
-      </Section>
-      <DeleteDataSection />
       {feedback && <FeedbackSheet onClose={() => setFeedback(false)} />}
-      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.4</div>
+      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.5</div>
+    </Screen>
+  )
+}
+
+/** A category: its links, plus the switches and blocks that belong to it. */
+function GroupPage({ id }: { id: GroupId }) {
+  const s = useApp()
+  const t = useT()
+  const sync = useSync()
+  const choice = usePlatformChoice()
+  const [feedback, setFeedback] = useState(false)
+  const entries = useEntries(() => setFeedback(true))[id]
+  const g = GROUPS.find((x) => x.id === id)!
+  const links = (
+    <Section className="compact">
+      {entries.map((e) => <Row key={e.title} icon={e.icon} iconBg={e.bg} title={e.title} detail={e.detail} chevron onClick={e.go} />)}
+    </Section>
+  )
+  return (
+    <Screen title={`${g.icon} ${t(`set.g.${id}` as TKey)}`} back accent="settings" subtitle={t(`set.g.${id}Sub` as TKey)} searchable={false}>
+      {id === 'couple' && SYNC_ENABLED && (
+        <Section className="compact">
+          <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'} title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} sub={sync.email} />
+        </Section>
+      )}
+      {links}
+      {id === 'screens' && (
+        <Section className="compact" footer={t('deviceHint')}>
+          <SelectRow label={`📱 ${t('device')}`} value={choice} onChange={setPlatformChoice}
+            options={[
+              { value: 'auto', label: t('platform.auto', { p: t(`platform.${detectPlatform()}`) }) },
+              { value: 'ios', label: t('platform.ios') },
+              { value: 'android', label: t('platform.android') },
+            ]} />
+        </Section>
+      )}
+      {id === 'lists' && (
+        <Section header={t('behavior')} className="compact" footer={`${t('linkPreviewsHint')} ${t('behaviorHint')}`}>
+          <ToggleRow icon="✅" label={t('setShowDone')} on={s.prefs.showCompletedTasks} onChange={(showCompletedTasks) => setPrefs({ showCompletedTasks })} />
+          <ToggleRow icon="🛒" label={t('setQuickChips')} on={s.prefs.groceryQuickChips} onChange={(groceryQuickChips) => setPrefs({ groceryQuickChips })} />
+          <ToggleRow icon="🥑" label={t('setGroceryEmoji')} on={s.prefs.groceryEmoji} onChange={(groceryEmoji) => setPrefs({ groceryEmoji })} />
+          <ToggleRow icon="🖼️" label={t('linkPreviews')} on={s.prefs.linkPreviews} onChange={(linkPreviews) => setPrefs({ linkPreviews })} />
+          <ToggleRow icon="🪙" label={t('setRoundMoney')} on={s.prefs.roundMoney} onChange={(roundMoney) => setPrefs({ roundMoney })} />
+          <ToggleRow icon="🗑️" label={t('setConfirmDelete')} on={s.prefs.confirmDelete} onChange={(confirmDelete) => setPrefs({ confirmDelete })} />
+        </Section>
+      )}
+      {id === 'couple' && <InviteSection />}
+      {id === 'couple' && SYNC_ENABLED && (
+        <Section className="compact"><button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button></Section>
+      )}
+      {id === 'help' && (
+        <Section className="compact">
+          <ToggleRow icon="💡" label={t('guide.toggle')} on={s.prefs.guides !== false} onChange={(guides) => setPrefs({ guides })} />
+        </Section>
+      )}
+      {id === 'help' && <DeleteDataSection />}
+      {feedback && <FeedbackSheet onClose={() => setFeedback(false)} />}
+    </Screen>
+  )
+}
+
+/** Settings → Help → Tour: the big tour again, or any screen's own tips. */
+function GuidesPage() {
+  const s = useApp()
+  const t = useT()
+  const nav = useNav()
+  const seen = s.prefs.guidesSeen ?? []
+  const keys = guideKeys(s)
+  return (
+    <Screen title={t('guide.title')} back accent="settings" subtitle={t('guide.sub')} searchable={false}>
+      <Section className="compact">
+        <Row icon="🎓" iconBg="linear-gradient(135deg,#0a84ff,#af52de)" title={t('tour.again')} sub={t('guide.fullSub')} chevron onClick={openTour} />
+        <ToggleRow icon="💡" label={t('guide.toggle')} on={s.prefs.guides !== false} onChange={(guides) => setPrefs({ guides })} />
+      </Section>
+      <Section header={t('guide.screens')} className="compact" footer={t('guide.screensHint')}>
+        {keys.map((k) => {
+          const l = k === 'settings' ? { emoji: '⚙️', title: t('settings') } : k === 'more' ? { emoji: '⋯', title: t('more') } : moduleLabel(s, k as ModuleId)
+          return <Row key={k} icon={l.emoji} title={l.title} detail={seen.includes(k) ? '✓' : undefined} chevron
+            onClick={() => { setPrefs({ guidesSeen: seen.filter((x) => x !== k) }); openGuide(k, nav) }} />
+        })}
+      </Section>
+      {seen.length > 0 && (
+        <Section className="compact">
+          <button className="row tap" style={{ color: 'var(--blue)' }} onClick={() => { setPrefs({ guidesSeen: [] }); toast(t('guide.resetDone')) }}>{t('guide.reset')}</button>
+        </Section>
+      )}
     </Screen>
   )
 }
@@ -187,14 +319,17 @@ function DesignPage() {
   const t = useT()
   const d = s.design
   const [colorFor, setColorFor] = useState<Accent | null>(null)
+  const [showColors, setShowColors] = useState(false)
   const accents: Accent[] = [...ALL_MODULES, 'more', 'settings']
   return (
-    <Screen title={t('design')} back accent="settings" subtitle={t('designHint')}>
+    <Screen title={t('design')} back accent="settings" subtitle={t('designHint')} searchable={false}>
+      <div className="set-sub">🌗 {t('design.g.theme')}</div>
       <Choice label={t('theme')} value={s.theme} onChange={(theme) => update((st) => { st.theme = theme })}
         options={(['auto', 'light', 'dark'] as Theme[]).map((x) => ({ value: x, label: t(`theme.${x}`) }))} />
       <Choice label={`🖥️ ${t('layout')}`} value={s.prefs.layout} onChange={(layout) => setPrefs({ layout })}
         options={(['auto', 'phone', 'wide'] as const).map((x) => ({ value: x, label: t(`layout.${x}`) }))} />
       <div className="section-footer" style={{ margin: '-8px 14px 4px' }}>{t('layoutHint')}</div>
+      <div className="set-sub">🪟 {t('design.g.shape')}</div>
       <Choice label={t('glass')} value={d.glass} onChange={(glass) => setDesign({ glass })}
         options={(['strong', 'normal', 'off'] as const).map((x) => ({ value: x, label: t(`glass.${x}`) }))} />
       <Choice label={t('headerStyle')} value={d.header} onChange={(header) => setDesign({ header })}
@@ -203,18 +338,25 @@ function DesignPage() {
         options={(['shadow', 'flat'] as const).map((x) => ({ value: x, label: t(`cards.${x}`) }))} />
       <Choice label={t('radius')} value={d.radius} onChange={(radius) => setDesign({ radius })}
         options={(['compact', 'normal', 'round'] as const).map((x) => ({ value: x, label: t(`radius.${x}`) }))} />
+      <div className="set-sub">🔤 {t('design.g.text')}</div>
       <Choice label={t('textSize')} value={d.textSize} onChange={(textSize) => setDesign({ textSize })}
         options={(['s', 'm', 'l'] as const).map((x) => ({ value: x, label: t(`text.${x}`) }))} />
       <Choice label={t('tabTint')} value={d.tabTint} onChange={(tabTint) => setDesign({ tabTint })}
         options={(['blue', 'accent', 'mono'] as const).map((x) => ({ value: x, label: t(`tint.${x}`) }))} />
-      <div style={{ height: 14 }} />
-      <Section>
+      <div style={{ height: 10 }} />
+      <Section className="compact">
         <ToggleRow icon="🏷️" label={t('tabLabels')} on={d.tabLabels} onChange={(tabLabels) => setDesign({ tabLabels })} />
         <ToggleRow icon="🐢" label={t('reduceMotion')} on={d.reduceMotion} onChange={(reduceMotion) => setDesign({ reduceMotion })} />
         <ToggleRow icon="📳" label={t('haptics')} on={d.haptics} onChange={(haptics) => setDesign({ haptics })} />
       </Section>
-      <Section big header={t('sectionColors')}>
-        {accents.filter((a) => a !== 'cycle' || s.me === 'j').map((a) => {
+      <div className="set-sub">🎨 {t('sectionColors')}</div>
+      <Section className="compact">
+        <Row title={t('design.colorsAll')} onClick={() => setShowColors(!showColors)}
+          right={<span className="swatch-strip">{accents.filter((a) => a !== 'cycle' || s.me === 'j').slice(0, 8).map((a) => {
+            const [c1, c2] = accentColors(a, s)
+            return <i key={a} style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }} />
+          })}<span className="faq-chev" style={{ transform: showColors ? 'rotate(90deg)' : undefined }}>›</span></span>} />
+        {showColors && accents.filter((a) => a !== 'cycle' || s.me === 'j').map((a) => {
           const [c1, c2] = accentColors(a, s)
           const label = a === 'more' ? t('more') : a === 'settings' ? t('settings') : moduleLabel(s, a as ModuleId).title
           return <Row key={a} title={label} onClick={() => setColorFor(a)} chevron
@@ -306,18 +448,22 @@ function TodayPage() {
   const actions = s.prefs.todayActions
   const candidates = ALL_MODULES.filter((m) => m !== 'today' && !s.prefs.tabs.includes(m) && (m !== 'cycle' || s.me === 'j'))
   return (
-    <Screen title={t('todayScreen')} back accent="today">
-      <Section header={t('shortcuts')} footer={t('shortcutsHint')}>
-        {candidates.map((m) => {
-          const l = moduleLabel(s, m)
-          const on = actions.includes(m)
-          return (
-            <Row key={m} icon={l.emoji} title={l.title}
-              right={<Switch on={on} onChange={(v) => setPrefs({ todayActions: v ? [...actions.filter((x) => candidates.includes(x)), m].slice(-4) : actions.filter((x) => x !== m) })} />} />
-          )
-        })}
+    <Screen title={t('todayScreen')} back accent="today" searchable={false}>
+      <Section header={`${t('shortcuts')} · ${actions.filter((x) => candidates.includes(x)).length}/4`} footer={t('shortcutsHint')}>
+        <div className="chips-wrap">
+          {candidates.map((m) => {
+            const l = moduleLabel(s, m)
+            const on = actions.includes(m)
+            return (
+              <button key={m} className={'chip' + (on ? ' on' : '')} aria-pressed={on}
+                onClick={() => { haptic(); setPrefs({ todayActions: !on ? [...actions.filter((x) => candidates.includes(x)), m].slice(-4) : actions.filter((x) => x !== m) }) }}>
+                {l.emoji} {l.title}
+              </button>
+            )
+          })}
+        </div>
       </Section>
-      <Section header={t('blocks')}>
+      <Section header={t('blocks')} className="compact">
         {blocks.map((b, i) => (
           <Row key={b.id} icon={BLOCK_LABEL[b.id].emoji} title={t(BLOCK_LABEL[b.id].key)} dim={!b.on}
             right={<div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

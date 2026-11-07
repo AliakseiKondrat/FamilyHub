@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { getState, update, useApp } from '../store'
 import { LANG_NAMES, useT, type TKey } from '../i18n'
-import { useNav } from '../nav'
+import { useNav, type Route } from '../nav'
+import { ALL_MODULES } from '../defaults'
 import { usePlatform } from '../lib/platform'
 import { haptic } from '../ui'
 import { inTelegram } from '../lib/telegram'
@@ -48,7 +49,9 @@ const STEPS: Step[] = [
   { key: 'task', emoji: '✅', go: 'tasks', target: inTop('.navbar-side:last-child .glass-btn:last-child') },
   { key: 'privacy', emoji: '🤫' },
   { key: 'calendar', emoji: '📅', go: 'calendar', target: inTop('.cal') },
+  { key: 'search', emoji: '🔎', go: 'today', target: inTop('.navbar-side:last-child .glass-btn:first-child') },
   { key: 'us', emoji: '🦊', go: 'us', target: inTop('.us-hero'), skip: (s) => !s.game.enabled },
+  { key: 'telegram', emoji: '✈️', skip: () => inTelegram() },
   {
     key: 'settings', emoji: '⚙️', go: 'today',
     target: () => (wideLayout() ? document.querySelector('.sidebar > .sb-item:last-child') : top()?.querySelector('.navbar-side:last-child .glass-btn:last-child') ?? null),
@@ -58,6 +61,7 @@ const STEPS: Step[] = [
     text: () => (getPlatform() === 'android' ? 'installAndroid' : 'installIos'),
     aim: () => (getPlatform() === 'android' ? { x: innerWidth - 18, y: -8 } : { x: innerWidth / 2, y: innerHeight + 8 }),
   },
+  { key: 'tips', emoji: '💡' },
   { key: 'done', emoji: '🎉' },
 ]
 let getPlatform = () => 'ios'
@@ -67,15 +71,73 @@ export const tourBus = new EventTarget()
 export const openTour = () => tourBus.dispatchEvent(new Event('open'))
 export const finishTour = () => update((st) => { st.prefs = { ...st.prefs, tourDone: true } })
 
+/*
+ * Screen tips: the first time a screen opens, a few steps about that screen only, drawn the same way as the
+ * big tour (dim, hole, arrow). Seen ones are remembered in prefs.guidesSeen; Settings → Help lists them all.
+ * Texts: guide.<screen>.<step> and guide.<screen>.<step>Body.
+ */
+const ADD = '.navbar-side:last-child .glass-btn:last-child'
+type G = [key: string, emoji: string, target?: string]
+const GUIDES: Record<string, G[]> = {
+  today: [['intro', '☀️'], ['stats', '📊', '.hero-row'], ['search', '🔎', '.navbar-side:last-child .glass-btn:first-child'], ['cards', '🧱', '.banner']],
+  us: [['intro', '💞'], ['hero', '🔥', '.us-hero'], ['tabs', '🗂️', '.us-tabs']],
+  calendar: [['intro', '📅'], ['grid', '🗓️', '.cal'], ['add', '➕', ADD]],
+  tasks: [['intro', '✅'], ['quick', '⌨️', '.quick'], ['filter', '🔀', '.seg'], ['swipe', '👉', '.swipe']],
+  groceries: [['intro', '🛒'], ['quick', '✍️', '.quick'], ['chips', '⚡️', '.chips'], ['cats', '🗂️', '.cat-card'], ['swipe', '👉', '.swipe']],
+  budget: [['intro', '💰'], ['stats', '📊', '.stat-row'], ['filter', '🔀', '.seg'], ['goals', '🐷', '.goal-grid'], ['add', '➕', ADD]],
+  music: [['intro', '🎧'], ['quick', '🔗', '.quick'], ['chips', '🏷️', '.chips']],
+  photos: [['intro', '📸'], ['add', '➕', ADD], ['chips', '🏷️', '.chips']],
+  watch: [['intro', '🍿'], ['filter', '🔀', '.seg'], ['pick', '🎲', '.actions'], ['grid', '🎬', '.poster-grid']],
+  wishlist: [['intro', '🎁'], ['filter', '🔀', '.seg'], ['grid', '🛍️', '.wish-grid'], ['add', '➕', ADD]],
+  recipes: [['intro', '🍳'], ['chips', '🏷️', '.chips'], ['pick', '🎲', '.actions'], ['add', '➕', ADD]],
+  pet: [['intro', '🐶'], ['actions', '⚡️', '.actions'], ['add', '➕', ADD]],
+  home: [['intro', '🏠'], ['list', '🧽', '.section'], ['add', '➕', ADD]],
+  travel: [['intro', '✈️'], ['list', '🧳', '.section'], ['add', '➕', ADD]],
+  dates: [['intro', '💕'], ['filter', '🔀', '.seg'], ['pick', '🎲', '.actions'], ['add', '➕', ADD]],
+  lists: [['intro', '📝'], ['add', '➕', ADD]],
+  inbox: [['intro', '📥'], ['quick', '✍️', '.quick'], ['swipe', '👉', '.swipe']],
+  archive: [['intro', '🗄️']],
+  cycle: [['intro', '🌸'], ['add', '➕', ADD]],
+  more: [['intro', '⋯'], ['search', '🔎', '.quick'], ['tiles', '🗂️', '.mod-tile']],
+  settings: [['intro', '⚙️'], ['search', '🔎', '.quick'], ['groups', '🗂️', '.set-groups']],
+}
+const guideSteps = (g: string): Step[] => (GUIDES[g] ?? []).map(([key, emoji, sel]) => ({ key, emoji, target: sel ? inTop(sel) : undefined, text: () => `${g}.${key}` }))
+
+/** Screens that have tips, in the order of the person's sections. */
+export function guideKeys(s: State): string[] {
+  const mods = ALL_MODULES.filter((m) => GUIDES[m] && (m !== 'cycle' || s.me === 'j') && (m !== 'us' || s.game.enabled))
+  return [...mods, 'more', 'settings']
+}
+/** The screen on top as a guide key (or null for screens without tips). */
+export function guideKeyOf(nav: { tab: string; stack: Route[] }): string | null {
+  const r = nav.stack[nav.stack.length - 1]
+  if (!r) return GUIDES[nav.tab] ? nav.tab : null
+  if ('mod' in r) return GUIDES[r.mod] ? r.mod : null
+  if ('settings' in r && r.settings === 'root') return 'settings'
+  return null
+}
+/** Settings → Help: open that screen, then its tips. */
+export function openGuide(k: string, nav: ReturnType<typeof useNav>) {
+  if (k === 'settings') nav.settings('root')
+  else if (k === 'more') nav.setTab('more')
+  else nav.open(k as ModuleId)
+  setTimeout(() => tourBus.dispatchEvent(new CustomEvent('guide', { detail: k })), 500)
+}
+export const markGuide = (k: string) => update((st) => {
+  const seen = st.prefs.guidesSeen ?? []
+  if (!seen.includes(k)) st.prefs = { ...st.prefs, guidesSeen: [...seen, k] }
+})
+
+
 interface Box { x: number; y: number; w: number; h: number }
 
-export default function Tour({ onClose }: { onClose: () => void }) {
+export default function Tour({ onClose, guide }: { onClose: () => void; guide?: string }) {
   const s = useApp()
   const t = useT()
   const nav = useNav()
   const platform = usePlatform()
   getPlatform = () => platform
-  const steps = STEPS.filter((x) => !x.skip?.(s))
+  const steps = guide ? guideSteps(guide) : STEPS.filter((x) => !x.skip?.(s))
   const [i, setI] = useState(0)
   const step = steps[Math.min(i, steps.length - 1)]
   const last = i >= steps.length - 1
@@ -84,7 +146,7 @@ export default function Tour({ onClose }: { onClose: () => void }) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const [bubble, setBubble] = useState<DOMRect | null>(null)
 
-  const done = () => { finishTour(); onClose(); nav.setTab(getState().prefs.tabs[0] ?? 'today') }
+  const done = () => { if (guide) { markGuide(guide); onClose(); return } finishTour(); onClose(); nav.setTab(getState().prefs.tabs[0] ?? 'today') }
   const go = (d: number) => { haptic(); setI((x) => Math.max(0, Math.min(steps.length - 1, x + d))) }
 
   // Open the step's screen, then find its control, bring it into view and keep measuring it.
@@ -174,11 +236,11 @@ export default function Tour({ onClose }: { onClose: () => void }) {
       )}
       <div ref={bubbleRef} className={'coach-bubble' + (ready ? ' in' : '')} key={i} style={{ width: bw, ...pos }}>
         <div className="coach-top">
-          <span className="coach-count">{i + 1} / {steps.length}</span>
+          <span className="coach-count">{guide ? `💡 ${t('guide.tip')} · ` : ''}{i + 1} / {steps.length}</span>
           {!last && <button className="coach-skip" onClick={done}>{t('tour.skip')}</button>}
         </div>
-        <div className="coach-title"><span className="coach-emoji">{step.emoji}</span>{t(`coach.${key}` as TKey, { name })}</div>
-        <p className="coach-body">{t(`coach.${key}Body` as TKey, { name })}</p>
+        <div className="coach-title"><span className="coach-emoji">{step.emoji}</span>{t(`${guide ? 'guide' : 'coach'}.${key}` as TKey, { name })}</div>
+        <p className="coach-body">{t(`${guide ? 'guide' : 'coach'}.${key}Body` as TKey, { name })}</p>
         {step.key === 'welcome' && (
           <div className="chips coach-langs">
             {(Object.keys(LANG_NAMES) as Lang[]).map((l) => (
@@ -189,7 +251,7 @@ export default function Tour({ onClose }: { onClose: () => void }) {
         <div className="coach-dots">{steps.map((_, k) => <i key={k} className={k === i ? 'on' : k < i ? 'past' : ''} />)}</div>
         <div className="coach-nav">
           {i > 0 && <button className="glass-btn lg" onClick={() => go(-1)}>← {t('tour.back')}</button>}
-          <button className="glass-btn lg tint" onClick={last ? done : () => go(1)}>{last ? t('tour.start') : `${t('tour.next')} →`}</button>
+          <button className="glass-btn lg tint" onClick={last ? done : () => go(1)}>{last ? t(guide ? 'guide.got' : 'tour.start') : `${t('tour.next')} →`}</button>
         </div>
       </div>
     </div>,

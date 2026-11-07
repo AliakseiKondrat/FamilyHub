@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { useApp } from './store'
+import { getState, useApp } from './store'
 import { moduleLabel, useT } from './i18n'
 import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
 import { ALL_MODULES, moduleOrder } from './defaults'
@@ -29,7 +29,7 @@ import Login from './screens/Login'
 import Search from './screens/Search'
 import { ShareSheet, takeLaunchParams, type Shared } from './screens/Share'
 import { getHousehold, useSync } from './sync'
-import Tour, { tourBus } from './screens/Tour'
+import Tour, { guideKeyOf, tourBus } from './screens/Tour'
 import { SYNC_ENABLED } from './config'
 import { takeInviteParams } from './screens/Pairing'
 import { inTelegram, loadTelegram, paintTelegram, telegramBack, telegramLink } from './lib/telegram'
@@ -158,6 +158,19 @@ export default function App() {
     if (new URLSearchParams(location.search).has('tour') || (SYNC_ENABLED && hh && !s.prefs.tourDone)) setTour(true)
   }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const on = () => setTour(true); tourBus.addEventListener('open', on); return () => tourBus.removeEventListener('open', on) }, [])
+  // A screen's own tips: on its first visit after the big tour (switchable in Settings → Help), or replayed from there.
+  const [guide, setGuide] = useState<string | null>(null)
+  useEffect(() => { const on = (e: Event) => setGuide((e as CustomEvent<string>).detail); tourBus.addEventListener('guide', on); return () => tourBus.removeEventListener('guide', on) }, [])
+  const guideKey = guideKeyOf(nav)
+  useEffect(() => {
+    if (guide && guideKey !== guide) { setGuide(null); return }
+    if (!guideKey || tour || guide) return
+    const p = getState().prefs
+    const force = new URLSearchParams(location.search).has('guides')
+    if (p.guides === false || (!p.tourDone && !force) || (p.guidesSeen ?? []).includes(guideKey)) return
+    const id = setTimeout(() => setGuide(guideKey), 900)
+    return () => clearTimeout(id)
+  }, [guideKey, tour, guide])
   const theme = useResolvedTheme(s.theme)
   const leaving = useLeaving(nav.stack)
   const [squish, setSquish] = useState(0)
@@ -271,6 +284,7 @@ export default function App() {
       <GiftNotice />
       <UnlockBanner />
       {tour && <Tour onClose={() => setTour(false)} />}
+      {guide && !tour && <Tour key={guide} guide={guide} onClose={() => setGuide(null)} />}
       {shared && <ShareSheet shared={shared} onClose={() => setShared(null)} />}
     </>
   )
