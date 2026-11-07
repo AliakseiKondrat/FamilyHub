@@ -1,0 +1,5 @@
+{
+ "tgc.test": "Prova su Telegram",
+ "tgc.testSent": "Inviato: guarda la chat con il bot ✓",
+ "tgc.testFail": "Non è arrivato: apri il bot, tocca «Avvia» e riprova"
+}

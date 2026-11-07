@@ -825,6 +825,9 @@ const ru = {
   'tgd.me': 'Мой Telegram привязан',
   'tgd.linked': 'Привязано людей',
   'tgd.open': 'Открыть бота в Telegram',
+  'tgc.test': 'Проверить в Telegram',
+  'tgc.testSent': 'Отправлено — загляни в чат с ботом ✓',
+  'tgc.testFail': 'Не дошло: открой бота и нажми «Запустить», потом попробуй снова',
 }
 
 type Dict = typeof ru
@@ -1653,6 +1656,9 @@ const en: Partial<Dict> = {
   'tgd.me': 'My Telegram is linked',
   'tgd.linked': 'People linked',
   'tgd.open': 'Open the bot in Telegram',
+  'tgc.test': 'Test in Telegram',
+  'tgc.testSent': 'Sent — have a look at the chat with the bot ✓',
+  'tgc.testFail': 'Didn\'t arrive: open the bot, tap «Start», then try again',
 }
 
 const pl: Partial<Dict> = {
@@ -2481,6 +2487,9 @@ const pl: Partial<Dict> = {
   'tgd.me': 'Mój Telegram połączony',
   'tgd.linked': 'Połączonych osób',
   'tgd.open': 'Otwórz bota w Telegramie',
+  'tgc.test': 'Sprawdź w Telegramie',
+  'tgc.testSent': 'Wysłano — zajrzyj do czatu z botem ✓',
+  'tgc.testFail': 'Nie dotarło: otwórz bota, naciśnij „Start” i spróbuj ponownie',
 }
 
 const es: Partial<Dict> = {
@@ -3309,6 +3318,9 @@ const es: Partial<Dict> = {
   'tgd.me': 'Mi Telegram vinculado',
   'tgd.linked': 'Personas vinculadas',
   'tgd.open': 'Abrir el bot en Telegram',
+  'tgc.test': 'Probar en Telegram',
+  'tgc.testSent': 'Enviado: mira el chat con el bot ✓',
+  'tgc.testFail': 'No llegó: abre el bot, pulsa «Iniciar» y vuelve a probar',
 }
 
 const it: Partial<Dict> = {
@@ -4470,6 +4482,9 @@ const it: Partial<Dict> = {
   'tgd.me': 'Il mio Telegram è collegato',
   'tgd.linked': 'Persone collegate',
   'tgd.open': 'Apri il bot in Telegram',
+  'tgc.test': 'Prova su Telegram',
+  'tgc.testSent': 'Inviato: guarda la chat con il bot ✓',
+  'tgc.testFail': 'Non è arrivato: apri il bot, tocca «Avvia» e riprova',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

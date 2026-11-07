@@ -1,0 +1,5 @@
+{
+ "tgc.test": "Sprawdź w Telegramie",
+ "tgc.testSent": "Wysłano — zajrzyj do czatu z botem ✓",
+ "tgc.testFail": "Nie dotarło: otwórz bota, naciśnij „Start” i spróbuj ponownie"
+}

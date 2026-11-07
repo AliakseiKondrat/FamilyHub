@@ -574,6 +574,12 @@ function TelegramChannel() {
         : st.linked ? (
           <>
             <div className="row"><span className="label">✈️ Telegram</span><span className="value">✓ {t('tgc.linked')}{st.bot ? ` · @${st.bot}` : ''}</span></div>
+            <button className="row tap accent" disabled={busy} onClick={async () => {
+              setBusy(true)
+              const { data, error } = await supabase!.functions.invoke('push', { body: { type: 'test', channel: 'tg' } })
+              setBusy(false)
+              toast(error ? '⚠︎ ' + error.message : (data as { sent?: number })?.sent ? t('tgc.testSent') : t('tgc.testFail'))
+            }}>🔔 {t('tgc.test')}</button>
             <button className="row tap destructive" disabled={busy} onClick={async () => { setBusy(true); await telegramUnlink(); setBusy(false); refresh() }}>{t('tgc.unlink')}</button>
           </>
         ) : !noBot && (

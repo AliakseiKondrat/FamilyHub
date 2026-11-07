@@ -122,13 +122,13 @@ async function sendTelegram(hh: string, role: Role, lang: string, p: { title: st
 }
 
 /** Deliver to the person through the channel they chose (Settings → Notifications). */
-async function sendTo(hh: string, role: Role, payload: { title: string; body?: string; tag?: string; url?: string }) {
+async function sendTo(hh: string, role: Role, payload: { title: string; body?: string; tag?: string; url?: string }, only?: 'push' | 'tg' | 'both') {
   const c = await contextCached(hh)
-  const channel = notifyPrefs(c, role).channel ?? 'push'
+  const channel = only ?? notifyPrefs(c, role).channel ?? 'push'
   let n = 0
   if (channel !== 'push') n += await sendTelegram(hh, role, langOf(c, role), payload)
   // Web push for «push» and «both», and as a fallback when Telegram isn't linked.
-  if (channel !== 'tg' || n === 0) n += await sendPush(hh, role, payload)
+  if (channel !== 'tg' || (n === 0 && !only)) n += await sendPush(hh, role, payload)
   return n
 }
 
@@ -296,7 +296,9 @@ Deno.serve(async (req) => {
     if (!m) return new Response('forbidden', { status: 403, headers: cors })
     const c = await context(m.household)
     const tx = TX[langOf(c, m.role)]
-    const n = await sendTo(m.household, m.role, { title: tx.test, body: tx.testBody, tag: 'test' })
+    // The app may pass the channel just picked (its settings may not have reached the server yet).
+    const only = ['push', 'tg', 'both'].includes(body.channel) ? body.channel : undefined
+    const n = await sendTo(m.household, m.role, { title: tx.test, body: tx.testBody, tag: 'test' }, only)
     return new Response(JSON.stringify({ sent: n }), { headers: { ...cors, 'Content-Type': 'application/json' } })
   }
 
