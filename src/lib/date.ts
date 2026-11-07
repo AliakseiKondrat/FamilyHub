@@ -37,7 +37,7 @@ export function nextRepeat(iso: string, r: Repeat) {
   }
 }
 
-export const LOCALES: Record<Lang, string> = { ru: 'ru-RU', en: 'en-GB', pl: 'pl-PL', es: 'es-ES' }
+export const LOCALES: Record<Lang, string> = { ru: 'ru-RU', en: 'en-GB', pl: 'pl-PL', es: 'es-ES', it: 'it-IT' }
 
 export function fmtDate(iso: string, lang: Lang, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }) {
   return new Intl.DateTimeFormat(LOCALES[lang], opts).format(fromISO(iso))

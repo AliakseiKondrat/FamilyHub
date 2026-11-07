@@ -3,7 +3,7 @@ import type { Base, State, UserId } from './types'
 import { setMoneyRounding, today } from './lib/date'
 import { blankState, demoState } from './demo'
 import { SYNC_ENABLED } from './config'
-import { defaultGame, upgradePrefs } from './defaults'
+import { upgradeGame, upgradePrefs } from './defaults'
 import { deriveActs } from './lib/game'
 
 // Demo mode keeps its own copy so it never mixes with an account's data.
@@ -16,7 +16,7 @@ function load(): State {
       // Fill in settings added in newer versions of the app.
       // Lists added in newer versions start empty for an account (never with demo items).
       const d = SYNC_ENABLED ? blankState() : demoState(), p = JSON.parse(raw)
-      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: upgradePrefs(p.prefs), game: { ...defaultGame(), ...p.game } }
+      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: upgradePrefs(p.prefs), game: upgradeGame(p.game) }
     }
   } catch { /* storage unavailable: fall back to defaults */ }
   // Signed-in mode starts empty: demo data must never reach the real account (it once booked demo rent).

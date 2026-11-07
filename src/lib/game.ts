@@ -1,5 +1,6 @@
 import type { Act, Lang, Mood, State, UserId } from '../types'
 import { addDays, today } from './date'
+import { QUEST_TX } from './quests-i18n'
 
 /*
  * The couple's daily ritual: a shared mascot (not the real pet!) and a relationship tree that grow from things done together.
@@ -40,13 +41,12 @@ export const mascotStage = (level: number) => MASCOT_STAGES.reduce((s, x, i) => 
 
 /** Free animals; a few unlock as the couple grows instead of being sold. */
 export const MASCOT_KINDS: { id: string; emoji: string; level: number }[] = [
-  { id: 'otter', emoji: '🦦', level: 1 }, { id: 'cat', emoji: '🐱', level: 1 }, { id: 'dog', emoji: '🐶', level: 1 },
-  { id: 'fox', emoji: '🦊', level: 1 }, { id: 'rabbit', emoji: '🐰', level: 1 }, { id: 'bear', emoji: '🐻', level: 1 },
+  { id: 'fox', emoji: '🦊', level: 1 }, { id: 'cat', emoji: '🐱', level: 1 }, { id: 'dog', emoji: '🐶', level: 1 }, { id: 'rabbit', emoji: '🐰', level: 1 }, { id: 'bear', emoji: '🐻', level: 1 },
   { id: 'panda', emoji: '🐼', level: 1 }, { id: 'penguin', emoji: '🐧', level: 1 }, { id: 'hedgehog', emoji: '🦔', level: 3 },
   { id: 'owl', emoji: '🦉', level: 8 }, { id: 'turtle', emoji: '🐢', level: 12 }, { id: 'unicorn', emoji: '🦄', level: 18 },
   { id: 'dragon', emoji: '🐉', level: 25 },
 ]
-export const mascotEmoji = (kind: string) => MASCOT_KINDS.find((k) => k.id === kind)?.emoji ?? '🦦'
+export const mascotEmoji = (kind: string) => MASCOT_KINDS.find((k) => k.id === kind)?.emoji ?? '🦊'
 
 /** The tree: twelve stages, the last ones take a year or more of life together. */
 export const TREE_STAGES = [
@@ -274,7 +274,8 @@ export function questsFor(date: string, mode: 'near' | 'far' | 'all', shuffle = 
   }
   return picked
 }
-export const questText = (q: Quest, lang: Lang) => (lang === 'ru' ? q.ru : q.en)
+export const questText = (q: Quest, lang: Lang) =>
+  lang === 'ru' ? q.ru : lang === 'en' ? q.en : QUEST_TX[lang][Number(q.id.slice(1)) - 1] ?? q.en
 
 /* ---------- mood ---------- */
 export const MOODS = [

@@ -899,7 +899,7 @@ function GamePage() {
       </Section>
       {g.enabled && <>
         <Section>
-          <ToggleRow icon="🦦" label={t('game.mascot')} on={g.mascot} onChange={(mascot) => setGame({ mascot })} />
+          <ToggleRow icon="🦊" label={t('game.mascot')} on={g.mascot} onChange={(mascot) => setGame({ mascot })} />
           <ToggleRow icon="🌳" label={t('game.tree')} on={g.tree} onChange={(tree) => setGame({ tree })} />
           <ToggleRow icon="✔️" label={t('game.quests')} on={g.quests} onChange={(quests) => setGame({ quests })} />
           <ToggleRow icon="💗" label={t('game.taps')} on={g.taps} onChange={(taps) => setGame({ taps })} />

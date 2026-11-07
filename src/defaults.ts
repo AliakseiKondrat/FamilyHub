@@ -67,9 +67,16 @@ export const defaultPrefs = (): Prefs => ({
   groceryEmoji: true,
 })
 
+/** Saved game settings on top of the defaults; a retired mascot kind (the otter) becomes the fox. */
+export function upgradeGame(g?: Partial<GameSettings>): GameSettings {
+  const x = { ...defaultGame(), ...g }
+  if (x.mascotKind === 'otter') x.mascotKind = 'fox'
+  return x
+}
+
 export const defaultGame = (): GameSettings => ({
   enabled: true, mascot: true, tree: true, quests: true, taps: true, moodAlerts: true,
-  mascotKind: 'otter', mascotName: '', questMode: 'all', pauses: [],
+  mascotKind: 'fox', mascotName: '', questMode: 'all', pauses: [],
 })
 
 /** Today blocks added in newer versions: appended once to lists saved before them. */

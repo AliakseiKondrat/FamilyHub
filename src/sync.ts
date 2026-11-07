@@ -6,7 +6,7 @@ import { blankState } from './demo'
 import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
-import { defaultDesign, defaultGame, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defaults'
+import { defaultDesign, PERSONAL_KEYS, upgradeGame, SHARED_KEYS, upgradePrefs } from './defaults'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -69,7 +69,7 @@ function applyPersonal(next: State, data: unknown) {
 /** Shared settings from an older app version lack newer game fields; keep the defaults for those. */
 function applyShared(next: State, data: unknown) {
   const d = data as Partial<State>
-  Object.assign(next, d, { game: { ...defaultGame(), ...d.game } })
+  Object.assign(next, d, { game: upgradeGame(d.game) })
 }
 
 function enqueue(rows: Row[]) {

@@ -1,6 +1,6 @@
 export type UserId = 'a' | 'j'
 export type Who = UserId | 'both'
-export type Lang = 'ru' | 'en' | 'pl' | 'es'
+export type Lang = 'ru' | 'en' | 'pl' | 'es' | 'it'
 export type Country = 'PL' | 'ES'
 export type Theme = 'auto' | 'light' | 'dark'
 
