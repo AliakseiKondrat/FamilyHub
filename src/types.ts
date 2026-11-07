@@ -152,6 +152,8 @@ export interface GameSettings {
   questMode: 'near' | 'far' | 'all'
   /** Vacation: these days neither count nor break the flame. */
   pauses: { from: string; to: string }[]
+  /** Shared trips from Travel pause the flame by themselves (default on). */
+  tripPause?: boolean
   /** Collection picks shared by the couple: the mascot's scene, the default postcard and the savings goal design. */
   scene?: string
   card?: string

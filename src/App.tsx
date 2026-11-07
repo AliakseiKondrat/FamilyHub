@@ -20,7 +20,7 @@ import Travel, { TripDetail } from './screens/Travel'
 import Photos from './screens/Photos'
 import Cycle from './screens/Cycle'
 import Wishlist from './screens/Wishlist'
-import Us, { useLevelUp } from './screens/Us'
+import Us, { Celebration, useLevelUp } from './screens/Us'
 import More from './screens/More'
 import Settings from './screens/Settings'
 import Login from './screens/Login'
@@ -139,7 +139,7 @@ export default function App() {
   const t = useT()
   const nav = useNav()
   const sync = useSync()
-  useLevelUp()
+  const celebration = useLevelUp()
   const [tour, setTour] = useState(false)
   // Everyone (our own couple too) gets the walkthrough once after signing in; Settings can replay it.
   useEffect(() => {
@@ -242,6 +242,7 @@ export default function App() {
       ))}
       <MiniPlayer />
       <Ambient />
+      {celebration.milestone > 0 && <Celebration n={celebration.milestone} onClose={celebration.dismiss} />}
       <TryOnBar />
       <GiftNotice />
       {tour && <Tour onClose={() => setTour(false)} />}

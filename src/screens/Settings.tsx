@@ -12,7 +12,7 @@ import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign, moduleOrder } from '../defaults'
-import { MASCOT_STAGES, progress } from '../lib/game'
+import { MASCOT_STAGES, pausesOf, progress } from '../lib/game'
 import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
 import { itemName } from '../lib/catalog'
@@ -917,7 +917,7 @@ function GamePage() {
   const nav = useNav()
   const g = s.game
   const d = today()
-  const { level } = progress(s.acts, g.pauses, d)
+  const { level } = progress(s.acts, pausesOf(s), d)
   const pause = g.pauses.find((x) => d >= x.from && d <= x.to)
   const partner = s.users[s.me === 'a' ? 'j' : 'a'].name
   const stages = MASCOT_STAGES.map((x, i) => ({ i, x })).filter(({ x }) => level >= x.from)
@@ -958,6 +958,9 @@ function GamePage() {
               options={[{ value: 'auto', label: t('game.auto') }, ...stages.map(({ i, x }) => ({ value: String(i), label: `${x.badge} ${t(`mstage.${i}` as TKey)}` }))]} />
           </Section>
         </>}
+        <Section footer={t('game.tripPauseHint')}>
+          <ToggleRow icon="✈️" label={t('game.tripPause')} on={g.tripPause !== false} onChange={(tripPause) => setGame({ tripPause })} />
+        </Section>
         <Section header={t('game.pause')} footer={t('game.pauseHint')}>
           {pause
             ? <>

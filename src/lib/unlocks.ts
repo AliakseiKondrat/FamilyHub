@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { DEMO, SYNC_ENABLED } from '../config'
 import { supabase } from './supabase'
 import { getState, useApp } from '../store'
-import { progress } from './game'
+import { pausesOf, progress } from './game'
 import { CATALOG, DEFAULTS, ITEMS, LOOKS, type Item, type Kind, type Metric, type Rule, type Tier } from './catalog'
 import type { State, UserId } from '../types'
 
@@ -63,12 +63,12 @@ export const effectiveTier = (s: State): Tier => (realTier() === 'dev' && s.pref
 
 /* ---------- usage numbers ---------- */
 export interface Stats { level: number; flame: number; acts: number; days: number; refs: number }
-let memo: { acts: unknown; pauses: unknown; refs: number; stats: Stats } | undefined
+let memo: { acts: unknown; game: unknown; trips: unknown; refs: number; stats: Stats } | undefined
 export function statsOf(s: State): Stats {
-  if (memo && memo.acts === s.acts && memo.pauses === s.game.pauses && memo.refs === server.refs) return memo.stats
-  const p = progress(s.acts, s.game.pauses)
+  if (memo && memo.acts === s.acts && memo.game === s.game && memo.trips === s.trips && memo.refs === server.refs) return memo.stats
+  const p = progress(s.acts, pausesOf(s))
   const stats = { level: p.level, flame: p.best, acts: p.actions, days: p.fed.size, refs: server.refs }
-  memo = { acts: s.acts, pauses: s.game.pauses, refs: server.refs, stats }
+  memo = { acts: s.acts, game: s.game, trips: s.trips, refs: server.refs, stats }
   return stats
 }
 

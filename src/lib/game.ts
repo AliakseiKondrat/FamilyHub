@@ -102,6 +102,17 @@ export function deriveActs(prev: State, next: State) {
 
 /* ---------- streak, XP, tree ---------- */
 export interface Pause { from: string; to: string }
+
+/** Days the flame rests: pauses set by hand plus every shared trip (private trips and surprises don't count,
+ *  so both phones compute the same flame). */
+export function pausesOf(s: Pick<State, 'game' | 'trips'>): Pause[] {
+  if (s.game.tripPause === false) return s.game.pauses
+  const trips = s.trips.filter((t) => t.start && t.end && !t.privateTo && !t.surpriseFor)
+  return [...s.game.pauses, ...trips.map((t) => ({ from: t.start, to: t.end < t.start ? t.start : t.end }))]
+}
+
+/** Flame lengths worth a celebration. */
+export const FLAME_MILESTONES = [7, 30, 100, 365]
 const paused = (pauses: Pause[], d: string) => pauses.some((p) => d >= p.from && d <= p.to)
 
 /** Love taps: each person's count for a day (stored as a 'taps' act per person and day). */
@@ -253,6 +264,51 @@ export const QUESTS: Quest[] = [
   { id: 'q73', mode: 'any', ru: 'Проверьте, хорошо ли знаете друг друга: 5 вопросов о любимом', en: 'Quiz each other: five questions about favourite things' },
   { id: 'q74', mode: 'any', ru: 'Напиши тёплое сообщение просто так', en: 'Send a warm message for no reason' },
   { id: 'q75', mode: 'any', ru: 'Пожелай удачи перед чем-то важным', en: 'Wish good luck before something important' },
+  { id: 'q76', mode: 'far', ru: 'Отправь фото своего завтрака', en: 'Send a photo of your breakfast' },
+  { id: 'q77', mode: 'far', ru: 'Посмотрите один и тот же фильм и обсудите его', en: 'Watch the same film and talk it over' },
+  { id: 'q78', mode: 'far', ru: 'Созвонитесь перед сном хотя бы на 5 минут', en: 'Call before bed, even for 5 minutes' },
+  { id: 'q79', mode: 'far', ru: 'Пришли фото места, которое напоминает о партнёре', en: 'Send a photo of a place that reminds you of your partner' },
+  { id: 'q80', mode: 'far', ru: 'Прочитайте одну и ту же статью и обменяйтесь мнениями', en: 'Read the same article and swap thoughts' },
+  { id: 'q81', mode: 'far', ru: 'Запиши видео-«привет» на 15 секунд', en: 'Record a 15-second video hello' },
+  { id: 'q82', mode: 'far', ru: 'Приготовьте одно блюдо одновременно по видеосвязи', en: 'Cook the same dish at the same time on a video call' },
+  { id: 'q83', mode: 'far', ru: 'Расскажи, что сегодня тебя рассмешило', en: 'Tell what made you laugh today' },
+  { id: 'q84', mode: 'far', ru: 'Распишите вместе план следующей встречи по часам', en: 'Plan your next meeting together hour by hour' },
+  { id: 'q85', mode: 'far', ru: 'Отправь песню, которая напоминает о вас', en: 'Send a song that reminds you of the two of you' },
+  { id: 'q86', mode: 'far', ru: 'Сыграйте в «20 вопросов» в переписке', en: 'Play «20 questions» by message' },
+  { id: 'q87', mode: 'far', ru: 'Сделайте одинаковые селфи в одной позе', en: 'Take matching selfies in the same pose' },
+  { id: 'q88', mode: 'far', ru: 'Пожелай доброй ночи голосовым', en: 'Say good night in a voice message' },
+  { id: 'q89', mode: 'far', ru: 'Закажите друг другу по маленькому сюрпризу онлайн', en: 'Order each other a small surprise online' },
+  { id: 'q90', mode: 'far', ru: 'Посчитайте дни до встречи и придумайте, как её отметить', en: 'Count the days until you meet and plan how to celebrate' },
+  { id: 'q91', mode: 'far', ru: 'Напиши, что первым делом сделаешь, когда увидитесь', en: 'Write the first thing you will do when you meet' },
+  { id: 'q92', mode: 'far', ru: 'Погуляйте одновременно, каждый у себя, на связи', en: 'Go for a walk at the same time, each where you are, on a call' },
+  { id: 'q93', mode: 'far', ru: 'Поделись тем, что сейчас читаешь, смотришь или слушаешь', en: "Share what you're reading, watching or listening to" },
+  { id: 'q94', mode: 'near', ru: 'Разберите холодильник и придумайте ужин из того, что есть', en: "Go through the fridge and make dinner from what's there" },
+  { id: 'q95', mode: 'near', ru: 'Сходите вместе за продуктами на неделю', en: 'Do the weekly grocery shop together' },
+  { id: 'q96', mode: 'near', ru: 'Повесьте или переставьте что-нибудь дома вдвоём', en: 'Hang or rearrange something at home together' },
+  { id: 'q97', mode: 'near', ru: 'Полейте цветы и протрите пыль вдвоём', en: 'Water the plants and dust together' },
+  { id: 'q98', mode: 'near', ru: 'Устройте домашний спа-вечер: маски, музыка, чай', en: 'Have a home spa evening: face masks, music, tea' },
+  { id: 'q99', mode: 'near', ru: 'Испеките что-нибудь простое по новому рецепту', en: 'Bake something simple from a new recipe' },
+  { id: 'q100', mode: 'near', ru: 'Сыграйте в настольную игру', en: 'Play a board game' },
+  { id: 'q101', mode: 'near', ru: 'Сходите на фотопрогулку — по 10 кадров каждый', en: 'Go on a photo walk — 10 shots each' },
+  { id: 'q102', mode: 'near', ru: 'Поужинайте при свечах, пусть даже макаронами', en: "Have dinner by candlelight, even if it's pasta" },
+  { id: 'q103', mode: 'near', ru: 'Погладьте бельё вдвоём под подкаст', en: 'Do the ironing together with a podcast on' },
+  { id: 'q104', mode: 'near', ru: 'Посадите что-нибудь: зелень на подоконнике или цветок', en: 'Plant something: herbs on the windowsill or a flower' },
+  { id: 'q105', mode: 'near', ru: 'Помойте посуду вместе и поболтайте', en: 'Wash up together and chat' },
+  { id: 'q106', mode: 'any', ru: 'Вспомните, за что вы друг друга полюбили', en: 'Remember why you fell for each other' },
+  { id: 'q107', mode: 'any', ru: 'Расскажите, какими видите себя через 5 лет', en: 'Tell each other how you see yourselves in 5 years' },
+  { id: 'q108', mode: 'any', ru: 'Составьте список «10 мест, куда хотим поехать»', en: 'Make a list of «10 places we want to go»' },
+  { id: 'q109', mode: 'any', ru: 'Обсудите один денежный вопрос спокойно и без упрёков', en: 'Talk calmly about one money question, no blame' },
+  { id: 'q110', mode: 'any', ru: 'Поделитесь тем, что вас сейчас тревожит', en: "Share what's worrying you right now" },
+  { id: 'q111', mode: 'any', ru: 'Скажи, что тебе больше всего нравится в вашем доме', en: 'Say what you love most about your home' },
+  { id: 'q112', mode: 'any', ru: 'Придумайте название для вашей пары', en: 'Come up with a name for your couple' },
+  { id: 'q113', mode: 'any', ru: 'Напишите друг другу по короткой записке на завтра', en: 'Write each other a short note for tomorrow' },
+  { id: 'q114', mode: 'any', ru: 'Вспомните самое смешное, что с вами случалось', en: 'Recall the funniest thing that ever happened to you two' },
+  { id: 'q115', mode: 'any', ru: 'Выберите фильм на выходные', en: 'Pick a film for the weekend' },
+  { id: 'q116', mode: 'any', ru: 'Расскажите о человеке, который вас вдохновляет', en: 'Tell each other about someone who inspires you' },
+  { id: 'q117', mode: 'any', ru: 'Попросите друг у друга совета в какой-нибудь мелочи', en: "Ask each other's advice on something small" },
+  { id: 'q118', mode: 'any', ru: 'Назовите одну привычку, которую хотите завести вместе', en: "Name one habit you'd like to start together" },
+  { id: 'q119', mode: 'any', ru: 'Поблагодари за то, что обычно кажется само собой разумеющимся', en: 'Say thanks for something usually taken for granted' },
+  { id: 'q120', mode: 'any', ru: 'Скажите, где прямо сейчас хотели бы оказаться вдвоём', en: "Say where you'd love to be together right now" },
 ]
 
 const hash = (s: string) => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0 }

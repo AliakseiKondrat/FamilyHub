@@ -446,6 +446,14 @@ const ru = {
   'coach.installAndroidBody': 'Так оно будет открываться как обычное приложение и сможет присылать уведомления. В Chrome нажми ⋮ вверху справа → «Установить приложение».',
   'coach.done': 'Готово!',
   'coach.doneBody': 'Это всё самое главное. Остальное найдётся по ходу, а если что-то забудется — обучение всегда есть в настройках.',
+  'us.milestone': '{n} дней подряд!',
+  'us.milestone7': 'Целая неделя, каждый день вместе. Отличное начало!',
+  'us.milestone30': 'Месяц огонька! Это уже привычка — и очень хорошая.',
+  'us.milestone100': 'Сто дней подряд. Вы невероятные.',
+  'us.milestone365': 'Год каждый день вместе. Это легенда.',
+  'us.hooray': 'Ура!',
+  'game.tripPause': 'Пауза на время поездок',
+  'game.tripPauseHint': 'Дни поездок из «Путешествий» сами встают на паузу — огонёк не погаснет, даже если в приложение не заглядывать.',
 }
 
 type Dict = typeof ru
@@ -895,6 +903,14 @@ const en: Partial<Dict> = {
   'coach.installAndroidBody': 'Then it opens like a normal app and can send notifications. In Chrome tap ⋮ at the top right → «Install app».',
   'coach.done': 'All set!',
   'coach.doneBody': 'That\'s the essentials. The rest you\'ll find along the way — and if you forget something, the tour is always in Settings.',
+  'us.milestone': '{n} days in a row!',
+  'us.milestone7': 'A whole week, together every day. A great start!',
+  'us.milestone30': 'A month of the flame! It\'s a habit now — a very good one.',
+  'us.milestone100': 'A hundred days in a row. You two are incredible.',
+  'us.milestone365': 'A year, together every single day. That\'s legendary.',
+  'us.hooray': 'Hooray!',
+  'game.tripPause': 'Pause during trips',
+  'game.tripPauseHint': 'Trip days from «Travel» pause by themselves — the flame stays on even if you don\'t open the app.',
 }
 
 const pl: Partial<Dict> = {
@@ -1344,6 +1360,14 @@ const pl: Partial<Dict> = {
   'coach.installAndroidBody': 'Wtedy otwiera się jak zwykła aplikacja i może wysyłać powiadomienia. W Chrome naciśnij ⋮ w prawym górnym rogu → „Zainstaluj aplikację”.',
   'coach.done': 'Gotowe!',
   'coach.doneBody': 'To najważniejsze. Resztę odkryjesz po drodze, a gdyby coś umknęło — samouczek zawsze jest w ustawieniach.',
+  'us.milestone': '{n} dni z rzędu!',
+  'us.milestone7': 'Cały tydzień, każdego dnia razem. Świetny początek!',
+  'us.milestone30': 'Miesiąc płomyka! To już nawyk — i to bardzo dobry.',
+  'us.milestone100': 'Sto dni z rzędu. Jesteście niesamowici.',
+  'us.milestone365': 'Rok, razem każdego dnia. To legenda.',
+  'us.hooray': 'Hurra!',
+  'game.tripPause': 'Pauza na czas podróży',
+  'game.tripPauseHint': 'Dni podróży z sekcji „Podróże” same się pauzują — płomyk nie zgaśnie, nawet jeśli nie zajrzycie do aplikacji.',
 }
 
 const es: Partial<Dict> = {
@@ -1793,6 +1817,14 @@ const es: Partial<Dict> = {
   'coach.installAndroidBody': 'Así se abre como una app normal y puede enviar notificaciones. En Chrome toca ⋮ arriba a la derecha → «Instalar aplicación».',
   'coach.done': '¡Listo!',
   'coach.doneBody': 'Esto es lo esencial. Lo demás lo irás descubriendo, y si se te olvida algo, el tutorial siempre está en Ajustes.',
+  'us.milestone': '¡{n} días seguidos!',
+  'us.milestone7': 'Una semana entera, juntos cada día. ¡Gran comienzo!',
+  'us.milestone30': '¡Un mes de llama! Ya es un hábito, y de los buenos.',
+  'us.milestone100': 'Cien días seguidos. Sois increíbles.',
+  'us.milestone365': 'Un año juntos cada día. Es legendario.',
+  'us.hooray': '¡Bravo!',
+  'game.tripPause': 'Pausa durante los viajes',
+  'game.tripPauseHint': 'Los días de viaje de «Viajes» se pausan solos: la llama no se apaga aunque no abráis la app.',
 }
 
 const it: Partial<Dict> = {
@@ -2575,6 +2607,14 @@ const it: Partial<Dict> = {
   'coach.installAndroidBody': 'Così si apre come una normale app e può inviare notifiche. In Chrome tocca ⋮ in alto a destra → «Installa app».',
   'coach.done': 'Fatto!',
   'coach.doneBody': 'Questo è l\'essenziale. Il resto lo scoprirai strada facendo, e se dimentichi qualcosa il tutorial è sempre nelle Impostazioni.',
+  'us.milestone': '{n} giorni di fila!',
+  'us.milestone7': 'Una settimana intera, insieme ogni giorno. Ottimo inizio!',
+  'us.milestone30': 'Un mese di fiamma! Ormai è un\'abitudine, e molto bella.',
+  'us.milestone100': 'Cento giorni di fila. Siete incredibili.',
+  'us.milestone365': 'Un anno insieme ogni giorno. È leggendario.',
+  'us.hooray': 'Evviva!',
+  'game.tripPause': 'Pausa durante i viaggi',
+  'game.tripPauseHint': 'I giorni dei viaggi in «Viaggi» vanno in pausa da soli: la fiamma resta accesa anche se non aprite l\'app.',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

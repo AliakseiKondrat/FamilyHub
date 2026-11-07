@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { base, other, update, useApp } from '../store'
 import { useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import { Check, Row, Screen, Section, Segmented, Sheet, haptic, toast } from '../ui'
 import { addDays, fmtDate, today } from '../lib/date'
 import {
-  award, FREEZES_PER_MONTH, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
+  award, FLAME_MILESTONES, FREEZES_PER_MONTH, pausesOf, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
   TAP_GOAL, tapsOn, TREE_STAGES, treeStage, unaward,
 } from '../lib/game'
 import type { State } from '../types'
@@ -19,16 +20,17 @@ export function useGame() {
   const d = today()
   return useMemo(() => {
     const g = s.game
-    const p = progress(s.acts, g.pauses, d)
+    const pauses = pausesOf(s)
+    const p = progress(s.acts, pauses, d)
     const stage = g.pinnedStage ?? mascotStage(p.level)
     const tree = treeStage(p.treePoints)
     const shuffle = g.shuffle?.date === d ? g.shuffle.n : 0
     const quests = questsFor(d, g.questMode, shuffle)
     const marks = new Map(s.acts.filter((a) => a.kind === 'quest' && a.date === d).map((a) => [a.ref.split(':')[1], a]))
     const taps = tapsOn(s.acts, d)
-    const pause = g.pauses.find((x) => d >= x.from && d <= x.to)
-    return { g, p, stage, tree, quests, marks, taps, pause, mood: mascotMood(p, g.pauses, d) }
-  }, [s.acts, s.game, d])
+    const pause = pauses.filter((x) => d >= x.from && d <= x.to).sort((a, b) => (a.to < b.to ? 1 : -1))[0]
+    return { g, p, stage, tree, quests, marks, taps, pause, mood: mascotMood(p, pauses, d) }
+  }, [s.acts, s.game, s.trips, d]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 const mascotName = (s: State, t: ReturnType<typeof useT>) => s.game.mascotName || t('us.mascotDefault')
@@ -265,11 +267,22 @@ export default function Us({ back }: { back?: boolean }) {
   )
 }
 
-/** A small celebration when the couple reaches a new level (per device, so it shows once on each phone). */
+/** A small celebration when the couple reaches a new level, and a big one at 7 / 30 / 100 / 365 days of flame
+ *  (per device, so each phone shows it once; a fresh install starts quietly from where the couple is). */
 export function useLevelUp() {
   const t = useT()
   const s = useApp()
   const { p, g } = useGame()
+  const [milestone, setMilestone] = useState(0)
+  useEffect(() => {
+    if (!g.enabled) return
+    const key = 'familyhub:flame'
+    const reached = FLAME_MILESTONES.filter((m) => p.streak >= m).pop() ?? 0
+    let seen: number | null = null
+    try { const v = localStorage.getItem(key); seen = v == null ? null : Number(v) } catch { /* ignore */ }
+    if (seen != null && reached > seen) { setMilestone(reached); haptic() }
+    if (seen == null || reached > seen) { try { localStorage.setItem(key, String(reached)) } catch { /* ignore */ } }
+  }, [p.streak, g.enabled]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!g.enabled) return
     const key = 'familyhub:level'
@@ -282,4 +295,28 @@ export function useLevelUp() {
     }
     try { localStorage.setItem(key, String(p.level)) } catch { /* ignore */ }
   }, [p.level, g.enabled]) // eslint-disable-line react-hooks/exhaustive-deps
+  return { milestone, dismiss: () => setMilestone(0) }
+}
+
+/** Confetti and a big flame for 7 / 30 / 100 / 365 days in a row. */
+export function Celebration({ n, onClose }: { n: number; onClose: () => void }) {
+  const t = useT()
+  const bits = ['🎉', '✨', '🔥', '💛', '🎊', '💞']
+  return createPortal(
+    <div className="celebrate" onClick={onClose}>
+      <div className="ambient" aria-hidden>
+        {Array.from({ length: 26 }, (_, i) => (
+          <i key={i} style={{ left: `${(i * 37) % 100}%`, fontSize: 16 + (i % 4) * 6,
+            '--anim': 'amb-fall', '--dur': `${3 + (i % 5) * 0.7}s`, '--delay': `${-(i % 7) * 0.45}s`, '--dx': `${((i % 9) - 4) * 14}px` } as CSSProperties}>{bits[i % bits.length]}</i>
+        ))}
+      </div>
+      <div className="celebrate-card" onClick={(e) => e.stopPropagation()}>
+        <div className="celebrate-flame">🔥<b>{n}</b></div>
+        <h2>{t('us.milestone', { n })}</h2>
+        <p>{t(`us.milestone${n}` as TKey)}</p>
+        <button className="glass-btn lg tint" onClick={onClose}>{t('us.hooray')}</button>
+      </div>
+    </div>,
+    document.body,
+  )
 }
