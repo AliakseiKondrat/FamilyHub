@@ -1,0 +1,5 @@
+{ "tr.money": "Budget", "tr.budget": "Trip budget", "tr.spent": "Spent", "tr.left": "Left", "tr.over": "Over by {sum}", "tr.costs": "Costs", "tr.addCost": "Cost", "tr.cost": "Cost",
+ "tr.cat.tickets": "Tickets", "tr.cat.transfer": "Transfer", "tr.cat.stay": "Stay", "tr.cat.food": "Food", "tr.cat.fun": "Fun", "tr.cat.other": "Other",
+ "tr.booked": "Booked", "tr.bookingLink": "Booking link", "tr.toBudget": "Add to the shared budget", "tr.inBudget": "in the budget", "tr.inBudgetHint": "Already in the shared budget as a travel expense.",
+ "tr.noCosts": "Add tickets, the stay and other costs — you'll see whether you fit the budget.",
+ "tr.status.planned": "planned", "tr.status.now": "there now ✈️", "tr.status.done": "been", "tr.route": "Route", "tr.who": "Who packs it", "tr.whoHint": "Tap the circle on the right to choose who packs it." }

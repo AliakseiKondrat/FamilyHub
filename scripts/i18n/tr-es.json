@@ -1,0 +1,5 @@
+{ "tr.money": "Presupuesto", "tr.budget": "Presupuesto del viaje", "tr.spent": "Gastado", "tr.left": "Queda", "tr.over": "Te pasas en {sum}", "tr.costs": "Gastos", "tr.addCost": "Gasto", "tr.cost": "Gasto",
+ "tr.cat.tickets": "Billetes", "tr.cat.transfer": "Traslado", "tr.cat.stay": "Alojamiento", "tr.cat.food": "Comida", "tr.cat.fun": "Ocio", "tr.cat.other": "Otros",
+ "tr.booked": "Reservado", "tr.bookingLink": "Enlace de la reserva", "tr.toBudget": "Añadir al presupuesto común", "tr.inBudget": "en el presupuesto", "tr.inBudgetHint": "Ya está en el presupuesto común como gasto de viajes.",
+ "tr.noCosts": "Añadid billetes, alojamiento y otros gastos: veréis si os ajustáis al presupuesto.",
+ "tr.status.planned": "planeado", "tr.status.now": "estáis allí ✈️", "tr.status.done": "ya fuisteis", "tr.route": "Ruta", "tr.who": "Quién lo lleva", "tr.whoHint": "Toca el círculo de la derecha para elegir quién lo lleva." }

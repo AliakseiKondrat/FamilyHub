@@ -991,3 +991,7 @@ a { color: var(--blue); text-decoration: none; }
 .tk-step b { min-width: 22px; text-align: center; font-variant-numeric: tabular-nums; }
 .tk-days, .tk-rooms { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px 12px; }
 .tk-days .chip { min-width: 40px; justify-content: center; text-transform: capitalize; }
+
+/* ---------- Travel: who packs, money ---------- */
+.tr-who { border: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--fill); font-size: 17px; color: var(--label2); flex: none; }
+.row.tr-over .title, .row.tr-over { color: var(--red); }

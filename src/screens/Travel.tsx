@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { base, uid, update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { moduleLabel, useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import {
-  Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, Em, EmojiField,
+  Check, DateRow, Empty, GlassButton, Marks, QuickAdd, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, ToggleRow, VisibilityFields, haptic, Em, EmojiField,
 } from '../ui'
-import { addDays, diffDays, fmtDate, today } from '../lib/date'
-import type { DocLink, Trip } from '../types'
+import { addDays, diffDays, fmtDate, fmtMoney, today } from '../lib/date'
+import type { DocLink, Expense, Trip, TripCost, Who } from '../types'
+import { currencyOf } from './Budget'
+
+const COST_CATS: TripCost['category'][] = ['tickets', 'transfer', 'stay', 'food', 'fun', 'other']
+const COST_EMOJI: Record<TripCost['category'], string> = { tickets: '🎫', transfer: '🚕', stay: '🏨', food: '🍽️', fun: '🎡', other: '🧾' }
+/** Planned, happening now, or already behind us — from the dates. */
+export const tripStatus = (x: Trip, d = today()) => (x.start > d ? 'planned' : x.end >= d ? 'now' : 'done')
 import { CoverPicker, Thumb, fromPreview, hostOf, isUrl, relink, useAutoCovers } from '../cover'
 
 export default function Travel({ back }: { back?: boolean }) {
@@ -23,7 +29,7 @@ export default function Travel({ back }: { back?: boolean }) {
     <Row key={x.id} icon={x.emoji || "✈️"} iconBg="color-mix(in srgb, var(--indigo) 18%, transparent)" chevron onClick={() => nav.push({ trip: x.id })}
       title={<>{x.title} <Marks x={x} /></>}
       sub={`${x.destination ? x.destination + ' · ' : ''}${fmtDate(x.start, s.lang)} – ${fmtDate(x.end, s.lang)}`}
-      detail={x.start > d ? t('inDays', { n: diffDays(x.start, d) }) : undefined} />
+      detail={x.start > d ? t('inDays', { n: diffDays(x.start, d) }) : t(`tr.status.${tripStatus(x, d)}` as TKey)} />
   )
 
   return (
@@ -68,7 +74,7 @@ function TripEditor({ trip, onClose }: { trip: Trip; onClose: () => void }) {
 export function TripDetail({ id }: { id: string }) {
   const s = useApp()
   const t = useT()
-  const [tab, setTab] = useState<'plan' | 'packing' | 'docs'>('plan')
+  const [tab, setTab] = useState<'plan' | 'packing' | 'money' | 'docs'>('plan')
   const [edit, setEdit] = useState(false)
   const [planDate, setPlanDate] = useState<string | null>(null)
   const trip = s.trips.find((x) => x.id === id)
@@ -85,6 +91,7 @@ export function TripDetail({ id }: { id: string }) {
       head={<Segmented value={tab} onChange={setTab} options={[
         { value: 'plan', label: `🗓️ ${t('plan')}` },
         { value: 'packing', label: `🧳 ${trip.packing.length ? `${packed}/${trip.packing.length}` : t('packing')}` },
+        { value: 'money', label: `💶 ${t('tr.money')}` },
         { value: 'docs', label: `🎫 ${t('docs')}` },
       ]} />}>
 
@@ -92,7 +99,7 @@ export function TripDetail({ id }: { id: string }) {
         const items = trip.plan.filter((p) => p.date === day).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
         return (
           <Section key={day} big header={`${i + 1}. ${fmtDate(day, s.lang, { weekday: 'short', day: 'numeric', month: 'short' })}`}
-            action={<button onClick={() => setPlanDate(day)}>+ {t('add')}</button>}>
+            action={<span style={{ display: 'flex', gap: 12 }}>{items.length > 0 && <a href={routeUrl(trip, items.map((p) => p.title))} target="_blank" rel="noreferrer">🗺️ {t('tr.route')}</a>}<button onClick={() => setPlanDate(day)}>+ {t('add')}</button></span>}>
             {items.map((p) => (
               <Swipe key={p.id} onDelete={() => mut((x) => { x.plan = x.plan.filter((k) => k.id !== p.id) })}>
                 <Row left={<div className="time-col">{p.time ?? '·'}</div>} title={<><Em x={p} />{p.title}</>} />
@@ -114,13 +121,16 @@ export function TripDetail({ id }: { id: string }) {
             {trip.packing.map((p) => (
               <Swipe key={p.id} onDelete={() => mut((x) => { x.packing = x.packing.filter((k) => k.id !== p.id) })}>
                 <Row left={<Check on={p.done} color="var(--indigo)" onChange={() => mut((x) => { const k = x.packing.find((q) => q.id === p.id)!; k.done = !k.done })} />}
-                  title={<><Em x={p} />{p.title}</>} dim={p.done} />
+                  title={<><Em x={p} />{p.title}</>} dim={p.done}
+                  right={<button className="tr-who" aria-label={t('tr.who')} onClick={(e) => { e.stopPropagation(); haptic(); mut((x) => { const k = x.packing.find((q) => q.id === p.id)!; k.who = nextWho(k.who) }) }}>{p.who ? (p.who === 'both' ? '💞' : s.users[p.who].emoji) : '＋'}</button>} />
               </Swipe>
             ))}
           </Section>
         )}
       </>}
 
+      {tab === 'packing' && trip.packing.length > 0 && <div className="col-hint" style={{ margin: '-6px 30px 16px' }}>{t('tr.whoHint')}</div>}
+      {tab === 'money' && <MoneyTab trip={trip} onChange={mut} />}
       {tab === 'docs' && <DocsTab trip={trip} onChange={mut} />}
 
       {edit && <TripEditor trip={trip} onClose={() => setEdit(false)} />}
@@ -186,6 +196,84 @@ function PlanSheet({ date, onClose, onAdd }: { date: string; onClose: () => void
         <TextRow value={title} onChange={setTitle} placeholder={t('title')} autoFocus />
         <DateRow label={t('time')} type="time" value={time} onChange={setTime} />
       </Section>
+    </Sheet>
+  )
+}
+
+const nextWho = (w?: Who): Who | undefined => (w === undefined ? 'a' : w === 'a' ? 'j' : w === 'j' ? 'both' : undefined)
+
+/** Google Maps directions through the day's stops, around the destination. */
+function routeUrl(trip: Trip, stops: string[]) {
+  const where = (x: string) => encodeURIComponent(trip.destination ? `${x}, ${trip.destination}` : x)
+  return `https://www.google.com/maps/dir/${stops.map(where).join('/')}`
+}
+
+/** The trip's money: a budget, costs by kind with bookings, and whether we fit. */
+function MoneyTab({ trip, onChange }: { trip: Trip; onChange: (fn: (x: Trip) => void) => void }) {
+  const s = useApp()
+  const t = useT()
+  const [cost, setCost] = useState<TripCost | null>(null)
+  const cur = currencyOf(s)
+  const money = (n: number) => fmtMoney(n, cur, s.lang)
+  const costs = trip.costs ?? []
+  const spent = costs.reduce((a, c) => a + c.amount, 0)
+  const left = (trip.budget ?? 0) - spent
+  return <>
+    <Section>
+      <label className="row"><span className="label" style={{ flex: 1 }}>🎯 {t('tr.budget')}</span>
+        <input type="number" inputMode="decimal" min={0} value={trip.budget ?? ''} placeholder="—" style={{ width: 110, textAlign: 'right', border: 0, background: 'none' }}
+          onChange={(e) => onChange((x) => { x.budget = e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })} /></label>
+      <Row icon="💸" title={t('tr.spent')} detail={<b>{money(spent)}</b>} />
+      {!!trip.budget && <Row icon={left < 0 ? '⚠️' : '✅'} title={left < 0 ? t('tr.over', { sum: money(-left) }) : t('tr.left')}
+        detail={left >= 0 ? <b>{money(left)}</b> : undefined} className={left < 0 ? 'tr-over' : undefined} />}
+      {!!trip.budget && <div className="row"><div className="progress" style={{ flex: 1, marginTop: 0 }}><i style={{ width: `${Math.min(100, (spent / trip.budget) * 100)}%`, '--c': left < 0 ? 'var(--red)' : 'var(--green)' } as CSSProperties} /></div></div>}
+    </Section>
+    <Section header={t('tr.costs')} action={<button onClick={() => setCost({ id: uid(), title: '', category: 'tickets', amount: 0 })}>+ {t('tr.addCost')}</button>}>
+      {costs.length === 0 && <Row title={<span style={{ color: 'var(--label2)', fontWeight: 400 }}>{t('tr.noCosts')}</span>} />}
+      {COST_CATS.flatMap((c) => costs.filter((x) => x.category === c)).map((c) => (
+        <Swipe key={c.id} onDelete={() => onChange((x) => { x.costs = (x.costs ?? []).filter((k) => k.id !== c.id) })}>
+          <Row icon={COST_EMOJI[c.category]} title={c.title || t(`tr.cat.${c.category}` as TKey)}
+            sub={[c.booked && `✓ ${t('tr.booked')}`, c.expenseId && `💰 ${t('tr.inBudget')}`].filter(Boolean).join(' · ') || undefined}
+            detail={<span className="money">{money(c.amount)}</span>} chevron onClick={() => setCost(c)} />
+        </Swipe>
+      ))}
+    </Section>
+    {cost && <CostSheet trip={trip} cost={cost} onClose={() => setCost(null)} onSave={(c) => onChange((x) => { x.costs = (x.costs ?? []).some((k) => k.id === c.id) ? (x.costs ?? []).map((k) => (k.id === c.id ? c : k)) : [...(x.costs ?? []), c] })} />}
+  </>
+}
+
+function CostSheet({ trip, cost, onClose, onSave }: { trip: Trip; cost: TripCost; onClose: () => void; onSave: (c: TripCost) => void }) {
+  const s = useApp()
+  const t = useT()
+  const [v, setV] = useState(cost)
+  const [toBudget, setToBudget] = useState(!!cost.expenseId)
+  const save = () => {
+    let c = { ...v, title: v.title.trim() }
+    // Write it to the shared budget once (as a travel expense); the link keeps it from being added twice.
+    if (toBudget && !c.expenseId && c.amount > 0) {
+      const e: Expense = { ...base(s.me), title: `${trip.title}: ${c.title || t(`tr.cat.${c.category}` as TKey)}`, amount: c.amount, currency: currencyOf(s), category: 'travel', paidBy: s.me, shared: true, date: today() }
+      update((st) => { st.expenses = [e, ...st.expenses] })
+      c = { ...c, expenseId: e.id }
+    }
+    onSave(c)
+  }
+  return (
+    <Sheet title={v.title || t('tr.cost')} onClose={onClose} onDone={save} doneDisabled={!(v.amount > 0)}>
+      <div className="chips pl-filters" style={{ margin: '0 16px 12px' }}>
+        {COST_CATS.map((c) => <button key={c} className={'chip' + (v.category === c ? ' on' : '')} onClick={() => setV((x) => ({ ...x, category: c }))}>{COST_EMOJI[c]} {t(`tr.cat.${c}` as TKey)}</button>)}
+      </div>
+      <Section>
+        <TextRow value={v.title} onChange={(title) => setV((x) => ({ ...x, title }))} placeholder={t(`tr.cat.${v.category}` as TKey)} autoFocus={!cost.title} />
+        <label className="row"><span className="label" style={{ flex: 1 }}>💶 {t('amount')}</span>
+          <input type="number" inputMode="decimal" min={0} value={v.amount || ''} placeholder="0" style={{ width: 110, textAlign: 'right', border: 0, background: 'none' }}
+            onChange={(e) => setV((x) => ({ ...x, amount: Math.max(0, Number(e.target.value) || 0) }))} /></label>
+        <TextRow value={v.url ?? ''} onChange={(url) => setV((x) => ({ ...x, url: url || undefined }))} placeholder={`🔗 ${t('tr.bookingLink')}`} />
+      </Section>
+      <Section footer={v.expenseId ? t('tr.inBudgetHint') : undefined}>
+        <ToggleRow icon="✓" label={t('tr.booked')} on={!!v.booked} onChange={(booked) => setV((x) => ({ ...x, booked }))} />
+        <ToggleRow icon="💰" label={t('tr.toBudget')} on={toBudget} onChange={(on) => !v.expenseId && setToBudget(on)} />
+      </Section>
+      {v.url && <Section><a className="row tap accent" href={v.url} target="_blank" rel="noreferrer">🔗 {t('open_link')}</a></Section>}
     </Sheet>
   )
 }

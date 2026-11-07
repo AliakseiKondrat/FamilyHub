@@ -120,12 +120,20 @@ export interface Note extends Base {
 /** One time we went somewhere together. */
 export interface Visit { id: string; date: string; by: UserId; rating?: number; review?: string; again?: boolean }
 
-export interface Check { id: string; title: string; done: boolean }
+export interface Check { id: string; title: string; done: boolean; who?: Who }
 export interface PlanItem { id: string; date: string; time?: string; title: string }
 export interface DocLink { id: string; title: string; url: string; cover?: string; site?: string }
 export interface Trip extends Base {
   title: string; destination: string; start: string; end: string; notes?: string
   plan: PlanItem[]; packing: Check[]; docs: DocLink[]
+  /** What we're ready to spend, and the costs (tickets, stay…) with bookings. */
+  budget?: number; costs?: TripCost[]
+}
+export interface TripCost {
+  id: string; title: string; category: 'tickets' | 'transfer' | 'stay' | 'food' | 'fun' | 'other'; amount: number
+  booked?: boolean; url?: string
+  /** The expense written to the shared budget for it. */
+  expenseId?: string
 }
 
 /** Something one of us wants (a gift idea) or a dream we share. */
