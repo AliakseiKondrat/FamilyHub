@@ -1,0 +1,13 @@
+{
+  "login.err.creds": "Wrong email or password. If you're new here, create an account first.",
+  "login.err.exists": "There's already an account with this email — just sign in with your password.",
+  "login.err.weak": "The password is too short: at least 6 characters.",
+  "login.err.email": "Looks like there's a typo in the email address.",
+  "login.err.rate": "Too many attempts. Wait a minute and try again.",
+  "login.err.net": "Can't reach the server. Check your internet connection.",
+  "login.upHint": "Pick a password — no confirmation email needed. If your partner already invited this email, you'll land straight in your couple.",
+  "login.createNow": "Create an account with this email",
+  "pair.signedTg": "You signed in with Telegram",
+  "pair.tgHint": "Signing in with Telegram creates a new, empty account. If your couple is already set up with your email, sign in or sign up with it — Telegram will link to that account.",
+  "pair.useEmail": "Use email instead"
+}

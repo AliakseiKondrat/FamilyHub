@@ -1231,3 +1231,11 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .faq-item.on > .row:first-child::after { display: none; }
 .section.compact .row.faq-a { padding-top: 0; padding-bottom: 12px; min-height: 0; }
 .chips-wrap .chip.on { background: var(--label); color: var(--bg); }
+.login-tabs { display: flex; gap: 4px; padding: 4px; margin: 0 auto 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.16); max-width: 320px; width: 100%; }
+.login-tabs button { flex: 1; border: 0; border-radius: 12px; padding: 10px 8px; font-size: 15px; font-weight: 700; color: #fff; background: transparent; }
+.login-tabs button.on { background: #fff; color: #111; }
+.login-hint.on-dark, .pair-tg p { color: rgba(255, 255, 255, 0.86); }
+.login-hint.on-dark { margin: -4px 12px 12px; }
+.pair-tg { margin: 4px 0 18px; padding: 12px 14px; border-radius: 18px; background: rgba(255, 255, 255, 0.14); }
+.pair-tg p { font-size: 14px; line-height: 1.4; margin: 0 0 10px; }
+.pair-tg .login-btn { margin-top: 0; }

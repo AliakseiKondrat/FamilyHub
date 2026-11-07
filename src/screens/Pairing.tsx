@@ -37,6 +37,8 @@ export function PairingScreen() {
   const [code, setCode] = useState(store.get(JOIN_KEY))
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  // Signed in with Telegram only: a new, empty account — people whose couple is already set up by email should use that.
+  const viaTelegram = (sync.email ?? '').endsWith('@users.telegram.invalid')
   const create = async () => {
     setBusy(true); setMsg('')
     const { error } = await supabase!.rpc('create_household', { ref: store.get(REF_KEY) || null })
@@ -57,7 +59,13 @@ export function PairingScreen() {
     <div className="login">
       <div className="login-logo lg on-accent">💞</div>
       <h1>{t('pair.welcome')}</h1>
-      <p className="login-tag">{t('pair.signedAs', { email: sync.email ?? '' })}</p>
+      <p className="login-tag">{viaTelegram ? t('pair.signedTg') : t('pair.signedAs', { email: sync.email ?? '' })}</p>
+      {viaTelegram && (
+        <div className="pair-tg">
+          <p>{t('pair.tgHint')}</p>
+          <button className="glass-btn lg login-btn" onClick={() => signOut()}>📧 {t('pair.useEmail')}</button>
+        </div>
+      )}
       {mode === 'choose' ? <>
         <button className="glass-btn lg login-btn" disabled={busy} onClick={create}>{busy ? '…' : `💞 ${t('pair.create')}`}</button>
         <p className="login-msg" style={{ marginTop: 6 }}>{t('pair.createHint')}</p>

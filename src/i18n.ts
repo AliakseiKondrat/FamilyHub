@@ -1361,6 +1361,17 @@ const ru = {
   'guide.settings.searchBody': 'Не помнишь, где настройка? Напиши слово — найдутся и настройки, и ответы на вопросы.',
   'guide.settings.groups': 'Категории',
   'guide.settings.groupsBody': 'Внутри каждой — свои пункты. Вопросы и ответы — в «Данные и помощь».',
+  'login.err.creds': 'Неверная почта или пароль. Если вы здесь впервые — сначала создайте аккаунт.',
+  'login.err.exists': 'Аккаунт с этой почтой уже есть — просто войдите с паролем.',
+  'login.err.weak': 'Пароль слишком короткий: нужно хотя бы 6 символов.',
+  'login.err.email': 'Похоже, в адресе почты опечатка.',
+  'login.err.rate': 'Слишком много попыток. Подождите минуту и попробуйте снова.',
+  'login.err.net': 'Нет связи с сервером. Проверьте интернет.',
+  'login.upHint': 'Придумайте пароль — письмо подтверждать не нужно. Если партнёр уже позвал вас по этой почте, вы сразу попадёте в вашу пару.',
+  'login.createNow': 'Создать аккаунт с этой почтой',
+  'pair.signedTg': 'Вы вошли через Telegram',
+  'pair.tgHint': 'Вход через Telegram создаёт новый пустой аккаунт. Если ваша пара уже заведена на почту — войдите или зарегистрируйтесь по ней, и Telegram привяжется к этому аккаунту.',
+  'pair.useEmail': 'Войти по почте',
 }
 
 type Dict = typeof ru
@@ -2725,6 +2736,17 @@ const en: Partial<Dict> = {
   'guide.settings.searchBody': 'Don\'t remember where a setting is? Type a word — you\'ll find settings and answers to questions.',
   'guide.settings.groups': 'Categories',
   'guide.settings.groupsBody': 'Each has its own items inside. Questions and answers are in «Data & help».',
+  'login.err.creds': 'Wrong email or password. If you\'re new here, create an account first.',
+  'login.err.exists': 'There\'s already an account with this email — just sign in with your password.',
+  'login.err.weak': 'The password is too short: at least 6 characters.',
+  'login.err.email': 'Looks like there\'s a typo in the email address.',
+  'login.err.rate': 'Too many attempts. Wait a minute and try again.',
+  'login.err.net': 'Can\'t reach the server. Check your internet connection.',
+  'login.upHint': 'Pick a password — no confirmation email needed. If your partner already invited this email, you\'ll land straight in your couple.',
+  'login.createNow': 'Create an account with this email',
+  'pair.signedTg': 'You signed in with Telegram',
+  'pair.tgHint': 'Signing in with Telegram creates a new, empty account. If your couple is already set up with your email, sign in or sign up with it — Telegram will link to that account.',
+  'pair.useEmail': 'Use email instead',
 }
 
 const pl: Partial<Dict> = {
@@ -4089,6 +4111,17 @@ const pl: Partial<Dict> = {
   'guide.settings.searchBody': 'Nie pamiętasz, gdzie jest ustawienie? Wpisz słowo — znajdą się ustawienia i odpowiedzi na pytania.',
   'guide.settings.groups': 'Kategorie',
   'guide.settings.groupsBody': 'Każda ma swoje pozycje. Pytania i odpowiedzi są w „Dane i pomoc”.',
+  'login.err.creds': 'Zły e-mail lub hasło. Jeśli jesteś tu pierwszy raz, najpierw załóż konto.',
+  'login.err.exists': 'Konto z tym e-mailem już istnieje — po prostu zaloguj się hasłem.',
+  'login.err.weak': 'Hasło jest za krótkie: co najmniej 6 znaków.',
+  'login.err.email': 'Wygląda na to, że w adresie e-mail jest literówka.',
+  'login.err.rate': 'Za dużo prób. Poczekaj minutę i spróbuj ponownie.',
+  'login.err.net': 'Brak połączenia z serwerem. Sprawdź internet.',
+  'login.upHint': 'Wymyśl hasło — nie trzeba potwierdzać e-maila. Jeśli partner już zaprosił ten adres, od razu trafisz do waszej pary.',
+  'login.createNow': 'Załóż konto z tym e-mailem',
+  'pair.signedTg': 'Zalogowano przez Telegram',
+  'pair.tgHint': 'Logowanie przez Telegram tworzy nowe, puste konto. Jeśli wasza para jest już założona na e-mail — zaloguj się lub zarejestruj nim, a Telegram połączy się z tym kontem.',
+  'pair.useEmail': 'Zaloguj się e-mailem',
 }
 
 const es: Partial<Dict> = {
@@ -5453,6 +5486,17 @@ const es: Partial<Dict> = {
   'guide.settings.searchBody': '¿No recuerdas dónde está un ajuste? Escribe una palabra: encontrarás ajustes y respuestas a preguntas.',
   'guide.settings.groups': 'Categorías',
   'guide.settings.groupsBody': 'Cada una tiene sus opciones. Las preguntas y respuestas están en «Datos y ayuda».',
+  'login.err.creds': 'Correo o contraseña incorrectos. Si eres nuevo, crea primero una cuenta.',
+  'login.err.exists': 'Ya hay una cuenta con este correo: entra con tu contraseña.',
+  'login.err.weak': 'La contraseña es demasiado corta: al menos 6 caracteres.',
+  'login.err.email': 'Parece que hay una errata en el correo.',
+  'login.err.rate': 'Demasiados intentos. Espera un minuto y vuelve a probar.',
+  'login.err.net': 'No hay conexión con el servidor. Revisa internet.',
+  'login.upHint': 'Elige una contraseña; no hace falta confirmar el correo. Si tu pareja ya invitó este correo, entrarás directamente en vuestra pareja.',
+  'login.createNow': 'Crear una cuenta con este correo',
+  'pair.signedTg': 'Has entrado con Telegram',
+  'pair.tgHint': 'Entrar con Telegram crea una cuenta nueva y vacía. Si vuestra pareja ya está creada con tu correo, entra o regístrate con él y Telegram se vinculará a esa cuenta.',
+  'pair.useEmail': 'Entrar con correo',
 }
 
 const it: Partial<Dict> = {
@@ -7150,6 +7194,17 @@ const it: Partial<Dict> = {
   'guide.settings.searchBody': 'Non ricordi dov\'è un\'impostazione? Scrivi una parola: troverai impostazioni e risposte alle domande.',
   'guide.settings.groups': 'Categorie',
   'guide.settings.groupsBody': 'Ognuna ha le sue voci. Domande e risposte sono in «Dati e aiuto».',
+  'login.err.creds': 'Email o password errati. Se sei nuovo, crea prima un account.',
+  'login.err.exists': 'Esiste già un account con questa email: accedi con la tua password.',
+  'login.err.weak': 'La password è troppo corta: almeno 6 caratteri.',
+  'login.err.email': 'Sembra che ci sia un errore nell\'indirizzo email.',
+  'login.err.rate': 'Troppi tentativi. Aspetta un minuto e riprova.',
+  'login.err.net': 'Nessuna connessione al server. Controlla internet.',
+  'login.upHint': 'Scegli una password: non serve confermare l\'email. Se il partner ha già invitato questa email, entrerai subito nella vostra coppia.',
+  'login.createNow': 'Crea un account con questa email',
+  'pair.signedTg': 'Hai effettuato l\'accesso con Telegram',
+  'pair.tgHint': 'L\'accesso con Telegram crea un account nuovo e vuoto. Se la vostra coppia è già creata con la tua email, accedi o registrati con quella e Telegram si collegherà a quell\'account.',
+  'pair.useEmail': 'Accedi con l\'email',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

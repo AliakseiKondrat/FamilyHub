@@ -1,0 +1,13 @@
+{
+  "login.err.creds": "Zły e-mail lub hasło. Jeśli jesteś tu pierwszy raz, najpierw załóż konto.",
+  "login.err.exists": "Konto z tym e-mailem już istnieje — po prostu zaloguj się hasłem.",
+  "login.err.weak": "Hasło jest za krótkie: co najmniej 6 znaków.",
+  "login.err.email": "Wygląda na to, że w adresie e-mail jest literówka.",
+  "login.err.rate": "Za dużo prób. Poczekaj minutę i spróbuj ponownie.",
+  "login.err.net": "Brak połączenia z serwerem. Sprawdź internet.",
+  "login.upHint": "Wymyśl hasło — nie trzeba potwierdzać e-maila. Jeśli partner już zaprosił ten adres, od razu trafisz do waszej pary.",
+  "login.createNow": "Załóż konto z tym e-mailem",
+  "pair.signedTg": "Zalogowano przez Telegram",
+  "pair.tgHint": "Logowanie przez Telegram tworzy nowe, puste konto. Jeśli wasza para jest już założona na e-mail — zaloguj się lub zarejestruj nim, a Telegram połączy się z tym kontem.",
+  "pair.useEmail": "Zaloguj się e-mailem"
+}
