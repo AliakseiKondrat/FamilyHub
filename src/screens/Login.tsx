@@ -51,6 +51,7 @@ export default function Login() {
           ✈️ {t('tg.signIn')}
         </button>
       )}
+      {inTelegram() && <div className="login-hint">{t('tg.signInHint')}</div>}
       <button className="login-switch" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setMsg(null) }}>
         {mode === 'in' ? t('noAccount') : t('haveAccount')}
       </button>

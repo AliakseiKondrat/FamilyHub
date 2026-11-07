@@ -13,7 +13,7 @@ import {
 } from '../lib/unlocks'
 import type { State, UserId } from '../types'
 import { FeedbackList } from './Pairing'
-import { telegramSetup } from '../lib/telegram'
+import { telegramDiag, telegramSetup, type BotDiag } from '../lib/telegram'
 
 /* ---------- previews ---------- */
 const isDark = () => document.documentElement.dataset.theme === 'dark'
@@ -338,11 +338,7 @@ export function DevPage() {
               h.referred_by ? `💌 ${h.referred_by}` : ''].filter(Boolean).join(' · ')} />
         ))}
       </Section>
-      {SYNC_ENABLED && (
-        <Section header="Telegram" footer={t('tg.setupHint')}>
-          <button className="row tap accent" onClick={() => telegramSetup().then((r) => toast(r.error ? t('dev.err', { msg: r.error }) : t('tg.setupDone', { bot: r.bot ?? '?' })))}>✈️ {t('tg.setup')}</button>
-        </Section>
-      )}
+      {SYNC_ENABLED && <BotHealth />}
       <FeedbackList />
       <div className="col-hint" style={{ margin: '4px 30px 10px' }}>{t('dev.rulesHint')}</div>
       {KINDS.map((k) => (
@@ -431,5 +427,43 @@ function CoupleSheet({ h, all, onClose, onChanged, onError }: {
         <button className="row tap accent" onClick={grant}>{t('dev.grant')}</button>
       </Section>
     </Sheet>
+  )
+}
+
+/** Developers: connect the bot and see whether it works — webhook, delivery errors, who it can write to. */
+function BotHealth() {
+  const s = useApp()
+  const t = useT()
+  const [d, setD] = useState<BotDiag | null>(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { telegramDiag().then(setD) }, [])
+  const setup = async () => {
+    setBusy(true)
+    const r = await telegramSetup()
+    setBusy(false)
+    setD(r)
+    toast(r.error === 'not configured' ? t('tgd.noToken') : r.error ? t('dev.err', { msg: r.error }) : t('tg.setupDone', { bot: r.bot ?? '?' }))
+  }
+  const ok = (v?: boolean) => (v ? '✅' : '⚠️')
+  const noToken = d?.error === 'not configured'
+  return (
+    <Section header="Telegram" footer={noToken ? t('tg.setupHint') : t('tgd.hint')}>
+      {d === null ? <div className="row"><span className="label">…</span></div> : noToken ? (
+        <div className="row"><span className="label">⚠️ {t('tgd.noToken')}</span></div>
+      ) : d.error && d.error !== 'not configured' && d.bot === undefined ? (
+        <div className="row"><span className="label">⚠️ {d.error}</span></div>
+      ) : (
+        <>
+          <div className="row"><span className="label">{ok(!!d.bot)} {t('tgd.bot')}</span><span className="value">{d.bot ? '@' + d.bot : '—'}</span></div>
+          <div className="row"><span className="label">{ok(d.webhook)} {t('tgd.webhook')}</span><span className="value">{d.webhook ? t('tgd.ours') : d.webhookUrl ?? t('tgd.none')}</span></div>
+          <div className="row"><span className="label">{ok(!d.pending)} {t('tgd.pending')}</span><span className="value">{d.pending ?? 0}</span></div>
+          {d.lastError && <Row icon="⚠️" title={t('tgd.lastError')} sub={`${d.lastError}${d.lastErrorAt ? ' · ' + fmtDate(d.lastErrorAt.slice(0, 10), s.lang) + ' ' + d.lastErrorAt.slice(11, 16) : ''}`} />}
+          <div className="row"><span className="label">{ok(d.meLinked)} {t('tgd.me')}</span><span className="value">{d.meLinked ? '✓' : '—'}</span></div>
+          <div className="row"><span className="label">👥 {t('tgd.linked')}</span><span className="value">{d.linked ?? 0}</span></div>
+        </>
+      )}
+      <button className="row tap accent" disabled={busy} onClick={setup}>✈️ {busy ? '…' : t('tg.setup')}</button>
+      {d?.bot && <a className="row tap accent" href={`https://t.me/${d.bot}`} target="_blank" rel="noreferrer">💬 {t('tgd.open')}</a>}
+    </Section>
   )
 }

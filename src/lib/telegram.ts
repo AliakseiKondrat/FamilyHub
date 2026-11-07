@@ -79,9 +79,29 @@ export async function telegramLink() {
   await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'link', initData: app.initData }) }).catch(() => null)
 }
 
-/** Developers: point the bot at the function and add the «Family Hub» menu button. */
-export async function telegramSetup(): Promise<{ webhook?: boolean; menu?: boolean; bot?: string; error?: string }> {
+/** The bot's health as the developers see it. */
+export interface BotDiag {
+  bot?: string | null; webhook?: boolean; webhookUrl?: string | null; pending?: number; lastError?: string | null; lastErrorAt?: string | null
+  linked?: number; meLinked?: boolean; hook?: boolean; menu?: boolean; error?: string
+}
+async function devCall(type: 'setup' | 'diag'): Promise<BotDiag> {
   const token = (await supabase?.auth.getSession())?.data.session?.access_token
-  return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` }, body: JSON.stringify({ type: 'setup' }) })
+  return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` }, body: JSON.stringify({ type }) })
     .then((x) => x.json()).catch((e) => ({ error: String(e) }))
 }
+/** Developers: point the bot at the function and add the «Family Hub» menu button; answers with the bot's health. */
+export const telegramSetup = () => devCall('setup')
+export const telegramDiag = () => devCall('diag')
+
+/* ---------- linking Telegram to an existing account (from the PWA) ---------- */
+async function call<T>(type: string): Promise<T & { error?: string }> {
+  const token = (await supabase?.auth.getSession())?.data.session?.access_token
+  if (!token) return { error: 'not signed in' } as T & { error?: string }
+  return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type }) })
+    .then((x) => x.json()).catch((e) => ({ error: String(e) }))
+}
+/** Is my Telegram linked (a chat the bot can write to), and what's the bot called. error 'not configured' = no bot yet. */
+export const telegramStatus = () => call<{ linked?: boolean; bot?: string | null }>('status')
+/** A one-time link to the bot: opening it in Telegram ties that chat to me. */
+export const telegramLinkCode = () => call<{ url?: string | null; bot?: string | null }>('linkCode')
+export const telegramUnlink = () => call<{ ok?: boolean }>('unlink')

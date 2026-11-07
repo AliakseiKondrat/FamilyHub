@@ -1,0 +1,14 @@
+{
+ "tg.signInHint": "Masz już konto? Zaloguj się e-mailem powyżej — Telegram sam się z nim połączy. Logowanie przez Telegram tworzy nowe konto.",
+ "tgd.noToken": "Brak sekretu TELEGRAM_BOT_TOKEN w Supabase",
+ "tgd.hint": "Wszystko gra, gdy wszędzie jest ✅. „Podłącz bota” można naciskać dowolnie — ustawi webhook i przycisk menu od nowa.",
+ "tgd.bot": "Bot",
+ "tgd.webhook": "Webhook",
+ "tgd.ours": "nasz",
+ "tgd.none": "nie ustawiony",
+ "tgd.pending": "Czeka na dostarczenie",
+ "tgd.lastError": "Ostatni błąd dostarczenia",
+ "tgd.me": "Mój Telegram połączony",
+ "tgd.linked": "Połączonych osób",
+ "tgd.open": "Otwórz bota w Telegramie"
+}

@@ -1,0 +1,11 @@
+{
+ "tgc.where": "Dónde avisar",
+ "tgc.push": "App",
+ "tgc.both": "Ambos",
+ "tgc.link": "Vincular Telegram",
+ "tgc.linked": "vinculado",
+ "tgc.unlink": "Desvincular Telegram",
+ "tgc.hint": "Las notificaciones llegan donde te venga mejor: como push de la app, como mensaje del bot de Telegram o de las dos formas.",
+ "tgc.fallback": "Mientras Telegram no esté vinculado, las notificaciones llegan como push de la app. Pulsa «Vincular Telegram»: se abrirá el bot; ahí pulsa «Iniciar».",
+ "tgc.noBot": "El bot de Telegram aún no está conectado a la app. Por ahora las notificaciones llegan como push de la app."
+}

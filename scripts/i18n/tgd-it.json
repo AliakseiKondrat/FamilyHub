@@ -1,0 +1,14 @@
+{
+ "tg.signInHint": "Hai già un account? Accedi con l'email qui sopra: Telegram si collegherà da solo. L'accesso con Telegram crea un nuovo account.",
+ "tgd.noToken": "Manca il segreto TELEGRAM_BOT_TOKEN in Supabase",
+ "tgd.hint": "Tutto a posto quando ovunque c'è ✅. Puoi toccare «Collega il bot» quando vuoi: reimposta webhook e pulsante del menu.",
+ "tgd.bot": "Bot",
+ "tgd.webhook": "Webhook",
+ "tgd.ours": "il nostro",
+ "tgd.none": "non impostato",
+ "tgd.pending": "In attesa di consegna",
+ "tgd.lastError": "Ultimo errore di consegna",
+ "tgd.me": "Il mio Telegram è collegato",
+ "tgd.linked": "Persone collegate",
+ "tgd.open": "Apri il bot in Telegram"
+}

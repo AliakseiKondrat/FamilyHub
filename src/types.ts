@@ -267,7 +267,8 @@ export interface Prefs {
   showCompletedTasks: boolean
   budgetFilter: 'all' | 'shared' | 'mine'
   /** Read by the server when sending pushes. */
-  notify: { activity: boolean; reminders: boolean; morning: boolean; morningTime: string; eventLead: number }
+  /** channel: where notifications go — the PWA's web push, the Telegram bot, or both (default push). */
+  notify: { activity: boolean; reminders: boolean; morning: boolean; morningTime: string; eventLead: number; channel?: 'push' | 'tg' | 'both' }
   /** Large-screen layout: auto picks by width, phone forces the single column. */
   layout: 'auto' | 'phone' | 'wide'
   /** My status buttons on Today, and how long a status stays before it fades. */

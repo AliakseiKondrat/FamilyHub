@@ -19,6 +19,7 @@ import { itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
 import { DeleteDataSection, FaqPage, FeedbackSheet, InviteSection } from './Pairing'
 import { openTour } from './Tour'
+import { telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
@@ -541,6 +542,47 @@ function RegionPage() {
 }
 
 /* ---------- Notifications ---------- */
+/** Where my notifications go: PWA push, the Telegram bot, or both; plus linking Telegram to this account. */
+function TelegramChannel() {
+  const s = useApp()
+  const t = useT()
+  const [st, setSt] = useState<{ linked?: boolean; bot?: string | null; error?: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const refresh = () => telegramStatus().then(setSt)
+  useEffect(() => {
+    refresh()
+    // Back from Telegram after linking: check again.
+    const f = () => { if (document.visibilityState === 'visible') refresh() }
+    document.addEventListener('visibilitychange', f)
+    return () => document.removeEventListener('visibilitychange', f)
+  }, [])
+  const n = s.prefs.notify
+  const channel = n.channel ?? 'push'
+  const noBot = st?.error === 'not configured'
+  const link = async () => {
+    setBusy(true)
+    const r = await telegramLinkCode()
+    setBusy(false)
+    if (!r.url) { toast(r.error === 'not configured' ? t('tgc.noBot') : '⚠︎ ' + (r.error ?? 'Telegram')); return }
+    window.open(r.url, '_blank')
+  }
+  return (
+    <Section header={t('tgc.where')} footer={noBot ? t('tgc.noBot') : channel !== 'push' && !st?.linked ? t('tgc.fallback') : t('tgc.hint')}>
+      <div className="row"><Segmented value={channel} onChange={(v) => setPrefs({ notify: { ...n, channel: v as 'push' | 'tg' | 'both' } })}
+        options={[{ value: 'push', label: t('tgc.push') }, { value: 'tg', label: 'Telegram' }, { value: 'both', label: t('tgc.both') }]} /></div>
+      {st === null ? <div className="row"><span className="label">Telegram</span><span className="value">…</span></div>
+        : st.linked ? (
+          <>
+            <div className="row"><span className="label">✈️ Telegram</span><span className="value">✓ {t('tgc.linked')}{st.bot ? ` · @${st.bot}` : ''}</span></div>
+            <button className="row tap destructive" disabled={busy} onClick={async () => { setBusy(true); await telegramUnlink(); setBusy(false); refresh() }}>{t('tgc.unlink')}</button>
+          </>
+        ) : !noBot && (
+          <button className="row tap accent" disabled={busy} onClick={link}>✈️ {t('tgc.link')}</button>
+        )}
+    </Section>
+  )
+}
+
 function NotificationsPage() {
   const s = useApp()
   const t = useT()
@@ -569,6 +611,7 @@ function NotificationsPage() {
           : { icon: '🔔', label: t('pushEnable'), onClick: () => run(enablePush) },
       ] : undefined}>
       {busy && <div className="empty" style={{ padding: 12 }}>…</div>}
+      {SYNC_ENABLED && <TelegramChannel />}
       <Section header={t('what')}>
         <ToggleRow icon="💞" label={t('nActivity', { name: s.users[s.me === 'a' ? 'j' : 'a'].name })} on={n.activity} onChange={(activity) => setN({ activity })} />
         <ToggleRow icon="⏰" label={t('nReminders')} on={n.reminders} onChange={(reminders) => setN({ reminders })} />

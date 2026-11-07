@@ -1,0 +1,14 @@
+{
+ "tg.signInHint": "Already have an account? Sign in with email above — Telegram links to it by itself. Signing in with Telegram creates a new account.",
+ "tgd.noToken": "No TELEGRAM_BOT_TOKEN secret in Supabase",
+ "tgd.hint": "All is well when everything is ✅. You can tap «Connect the bot» any time — it sets the webhook and menu button again.",
+ "tgd.bot": "Bot",
+ "tgd.webhook": "Webhook",
+ "tgd.ours": "ours",
+ "tgd.none": "not set",
+ "tgd.pending": "Waiting for delivery",
+ "tgd.lastError": "Last delivery error",
+ "tgd.me": "My Telegram is linked",
+ "tgd.linked": "People linked",
+ "tgd.open": "Open the bot in Telegram"
+}

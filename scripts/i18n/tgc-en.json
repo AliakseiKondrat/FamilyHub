@@ -1,0 +1,11 @@
+{
+ "tgc.where": "Where to send",
+ "tgc.push": "App",
+ "tgc.both": "Both",
+ "tgc.link": "Link Telegram",
+ "tgc.linked": "linked",
+ "tgc.unlink": "Unlink Telegram",
+ "tgc.hint": "Notifications come where it suits you: as app push, as a message from the Telegram bot, or both.",
+ "tgc.fallback": "Until Telegram is linked, notifications come as app push. Tap «Link Telegram» — the bot opens, then tap «Start» there.",
+ "tgc.noBot": "The Telegram bot isn't connected to the app yet. For now notifications come as app push."
+}

@@ -1,0 +1,11 @@
+{
+ "tgc.where": "Dove inviare",
+ "tgc.push": "App",
+ "tgc.both": "Entrambi",
+ "tgc.link": "Collega Telegram",
+ "tgc.linked": "collegato",
+ "tgc.unlink": "Scollega Telegram",
+ "tgc.hint": "Le notifiche arrivano dove ti è più comodo: come push dell'app, come messaggio del bot Telegram o in entrambi i modi.",
+ "tgc.fallback": "Finché Telegram non è collegato, le notifiche arrivano come push dell'app. Tocca «Collega Telegram»: si apre il bot, lì tocca «Avvia».",
+ "tgc.noBot": "Il bot Telegram non è ancora collegato all'app. Per ora le notifiche arrivano come push dell'app."
+}

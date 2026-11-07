@@ -1,0 +1,11 @@
+{
+ "tgc.where": "Gdzie wysyłać",
+ "tgc.push": "Aplikacja",
+ "tgc.both": "Oba",
+ "tgc.link": "Połącz Telegram",
+ "tgc.linked": "połączony",
+ "tgc.unlink": "Odłącz Telegram",
+ "tgc.hint": "Powiadomienia przychodzą tam, gdzie wolisz: jako push z aplikacji, jako wiadomość od bota w Telegramie albo i tak, i tak.",
+ "tgc.fallback": "Dopóki Telegram nie jest połączony, powiadomienia przychodzą jako push z aplikacji. Naciśnij „Połącz Telegram” — otworzy się bot, naciśnij w nim „Start”.",
+ "tgc.noBot": "Bot Telegram nie jest jeszcze podłączony do aplikacji. Na razie powiadomienia przychodzą jako push z aplikacji."
+}
