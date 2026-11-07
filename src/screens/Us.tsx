@@ -12,7 +12,7 @@ import {
 import type { State } from '../types'
 import { ITEMS } from '../lib/catalog'
 import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
-import { SceneView, openCollection } from './Collection'
+import { FlameGlyph, HatOn, SceneView } from './Collection'
 import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles, YearRow } from './UsHub'
 import { LoveNotesSection, notesOf } from './LoveNotes'
 import { CheckinSection } from './Checkin'
@@ -73,6 +73,7 @@ function MascotView({ big, onTap }: { big?: boolean; onTap?: () => void }) {
     <button className={`mascot-view mascot-${mood}`} style={{ '--mascot': `${size}px` } as CSSProperties}
       onClick={() => { onTap?.(); setHearts((n) => n + 1); haptic() }} aria-label="mascot">
       <span className="mascot-emoji">{ITEMS[activeMascot(s)].emoji}</span>
+      <HatOn />
       <span className="mascot-badge">{mood === 'sleeping' ? '💤' : mood === 'vacation' ? '🏖️' : st.badge}</span>
       {hearts > 0 && <span key={hearts} className="mascot-hearts">💗💕💗</span>}
     </button>
@@ -96,7 +97,7 @@ function Flame() {
   const { p, pause } = useGame()
   return (
     <span className={'flame-chip' + (p.todayFed ? ' on' : '')}>
-      {pause ? '🏖️' : '🔥'} {t('us.days', { n: p.streak })}
+      {pause ? '🏖️' : <FlameGlyph />} {t('us.days', { n: p.streak })}
     </span>
   )
 }
@@ -162,6 +163,33 @@ export function RitualCard() {
 }
 
 /* ---------- the screen ---------- */
+/** «Us» is split in three so it never shows everything at once: the two of you, the daily ritual, rewards. */
+type UsTab = 'together' | 'ritual' | 'rewards'
+const TAB_KEY = 'familyhub:us-tab'
+const readTab = (): UsTab => { try { const v = localStorage.getItem(TAB_KEY); return v === 'together' || v === 'rewards' ? v : 'ritual' } catch { return 'ritual' } }
+
+/** The two of you: what's ahead, surprises, talks, dates, savings, memories — sections without anything in them stay hidden. */
+function Together() {
+  const s = useApp()
+  const n = notesOf(s)
+  const hasNotes = n.unread.length + n.pending.length + n.history.length > 0
+  return (
+    <>
+      <YearRow banner />
+      <FirstSteps />
+      <Coming />
+      <Tiles kind="together" />
+      {hasNotes && <LoveNotesSection />}
+      <BlindSection />
+      <CheckinSection />
+      <ImportantDates />
+      <Savings />
+      <Flashback />
+      <Thought />
+      <Section><YearRow /></Section>
+    </>
+  )
+}
 export default function Us({ back }: { back?: boolean }) {
   const s = useApp()
   const t = useT()
@@ -169,6 +197,8 @@ export default function Us({ back }: { back?: boolean }) {
   const { g, p, stage, tree, quests, marks, taps, pause, mood } = useGame()
   const [view, setView] = useState<'mascot' | 'tree'>(g.mascot ? 'mascot' : 'tree')
   const [how, setHow] = useState(false)
+  const [tab, setTab] = useState<UsTab>(readTab)
+  const pick = (x: UsTab) => { setTab(x); try { localStorage.setItem(TAB_KEY, x) } catch { /* ignore */ } }
   const d = today()
   const partner = other(s.me)
 
@@ -176,17 +206,7 @@ export default function Us({ back }: { back?: boolean }) {
   if (!g.enabled) {
     return (
       <Screen title={t('mod.us')} accent="us" back={back} searchable={false} hero={<div className="us-hero"><CoupleCard /></div>}>
-        <FirstSteps />
-        <Thought />
-        <Coming />
-        <Tiles />
-        <LoveNotesSection />
-        <BlindSection />
-        <CheckinSection />
-        <ImportantDates />
-        <Savings />
-        <Flashback />
-        <Section><YearRow /></Section>
+        <Together />
         <Section footer={t('us.off')}><Row icon="⚙️" title={t('us.settings')} chevron onClick={() => nav.settings('game')} /></Section>
       </Screen>
     )
@@ -205,89 +225,98 @@ export default function Us({ back }: { back?: boolean }) {
     <Screen title={t('mod.us')} accent="us" back={back} searchable={false}
       hero={<div className="us-hero">
         <CoupleCard />
-        {both && <Segmented value={view} onChange={setView}
-          options={[{ value: 'mascot', label: `${ITEMS[activeMascot(s)].emoji} ${t('us.mascot')}` }, { value: 'tree', label: `🌳 ${t('us.tree')}` }]} />}
-        {showMascot ? (
-          <>
-            <SceneView id={activeScene(s)} className={activeScene(s) !== 'scene:none' ? 'mascot-scene' : undefined}>
-              <MascotView big onTap={g.taps ? tap : undefined} />
-            </SceneView>
-            <div className="hero-num" style={{ fontSize: 26 }}>{mascotName(s, t)}</div>
-            <div className="hero-sub">{t(`mstage.${stage}` as TKey)} · {t(`mascot.${mood}` as TKey)}</div>
-          </>
-        ) : (
-          <>
-            <TreeView big />
-            <div className="hero-num" style={{ fontSize: 26 }}>{t(`tstage.${tree.index}` as TKey)}</div>
-            <div className="hero-sub">{t('us.treePoints', { n: p.treePoints })} · {nextTree
-              ? t('us.toStage', { name: t(`tstage.${tree.index + 1}` as TKey), n: nextTree.at - p.treePoints }) : t('us.maxStage')}</div>
-          </>
-        )}
-        <div className="us-flame"><Flame /><span>{t('us.best', { n: p.best })}</span></div>
-        <XpBar />
+        <button className="us-status lg" onClick={() => pick('ritual')}>
+          <span className="us-status-m">{g.mascot ? ITEMS[activeMascot(s)].emoji : TREE_STAGES[tree.index].emoji}</span>
+          <Flame />
+          <span className="us-status-l">{t('us.level', { n: p.level })} · «{t(`title.${titleOf(p.level)}` as TKey)}»</span>
+        </button>
       </div>}>
 
-      <YearRow banner />
-      <FirstSteps />
-      <RewardTrack />
-      <Section header={t('us.mood')}><MoodRow /></Section>
-      <Thought />
-      <Coming />
-      <Tiles />
-      <LoveNotesSection />
-      <BlindSection />
-      <CheckinSection />
+      <div className="us-tabs">
+        <Segmented value={tab} onChange={pick} options={[
+          { value: 'together', label: `💞 ${t('us.tab.together')}` },
+          { value: 'ritual', label: `🔥 ${t('us.tab.ritual')}` },
+          { value: 'rewards', label: `🏆 ${t('us.tab.rewards')}` },
+        ]} />
+      </div>
 
-      {g.quests && (
-        <Section header={t('us.quests')} footer={t('us.questsHint')}
-          action={<button onClick={() => update((st) => { const n = st.game.shuffle?.date === d ? st.game.shuffle.n : 0; st.game.shuffle = { date: d, n: n + 1 } })}>↻ {t('us.another')}</button>}>
-          {quests.map((q) => {
-            const m = marks.get(q.id)
-            return <Row key={q.id} left={<Check on={!!m} onChange={() => toggleQuest(q.id)} color="var(--orange)" />}
-              title={<><span className="quest-kind">{QUEST_ICON[q.mode]}</span>{questText(q, s.lang)}</>} dim={!!m} sub={m ? `${s.users[m.createdBy].emoji} ${s.users[m.createdBy].name} · +5 XP` : undefined}
-              onClick={() => toggleQuest(q.id)} />
-          })}
+      {tab === 'together' && <Together />}
+
+      {tab === 'rewards' && <>
+        <div className="us-card"><XpBar /></div>
+        <RewardTrack />
+        <Tiles kind="rewards" />
+        <Section header={t('us.stats')}>
+          <div className="hero-row us-stats">
+            <div><div className="hero-num">{p.actions}</div><div className="hero-lbl">{t('us.actions')}</div></div>
+            <div><div className="hero-num">{p.fed.size}</div><div className="hero-lbl">{t('us.fedDays')}</div></div>
+            <div><div className="hero-num">{p.best}</div><div className="hero-lbl">{t('us.bestFlame')}</div></div>
+          </div>
         </Section>
-      )}
-      {g.quests && <MarathonCard />}
+      </>}
 
-      {g.taps && g.mascot && (
-        <Section header={t('us.taps')} footer={t('us.tapsHint', { n: TAP_GOAL })}>
-          <Row icon="💗" title={taps.a >= TAP_GOAL && taps.j >= TAP_GOAL ? t('us.tapsDone')
-            : t('us.tapsNow', { a: taps[s.me], b: taps[partner], n: TAP_GOAL, name: s.users[partner].name })} onClick={tap} />
+      {tab === 'ritual' && <>
+        <div className="us-hero us-ritual">
+          {both && <Segmented value={view} onChange={setView}
+            options={[{ value: 'mascot', label: `${ITEMS[activeMascot(s)].emoji} ${t('us.mascot')}` }, { value: 'tree', label: `🌳 ${t('us.tree')}` }]} />}
+          {showMascot ? (
+            <>
+              <SceneView id={activeScene(s)} className={activeScene(s) !== 'scene:none' ? 'mascot-scene' : undefined}>
+                <MascotView big onTap={g.taps ? tap : undefined} />
+              </SceneView>
+              <div className="hero-num" style={{ fontSize: 26 }}>{mascotName(s, t)}</div>
+              <div className="hero-sub">{t(`mstage.${stage}` as TKey)} · {t(`mascot.${mood}` as TKey)}</div>
+            </>
+          ) : (
+            <>
+              <TreeView big />
+              <div className="hero-num" style={{ fontSize: 26 }}>{t(`tstage.${tree.index}` as TKey)}</div>
+              <div className="hero-sub">{t('us.treePoints', { n: p.treePoints })} · {nextTree
+                ? t('us.toStage', { name: t(`tstage.${tree.index + 1}` as TKey), n: nextTree.at - p.treePoints }) : t('us.maxStage')}</div>
+            </>
+          )}
+          <div className="us-flame"><Flame /><span>{t('us.best', { n: p.best })}</span></div>
+          <XpBar />
+        </div>
+        <Section header={t('us.mood')}><MoodRow /></Section>
+
+        {g.quests && (
+          <Section header={t('us.quests')} footer={t('us.questsHint')}
+            action={<button onClick={() => update((st) => { const n = st.game.shuffle?.date === d ? st.game.shuffle.n : 0; st.game.shuffle = { date: d, n: n + 1 } })}>↻ {t('us.another')}</button>}>
+            {quests.map((q) => {
+              const m = marks.get(q.id)
+              return <Row key={q.id} left={<Check on={!!m} onChange={() => toggleQuest(q.id)} color="var(--orange)" />}
+                title={<><span className="quest-kind">{QUEST_ICON[q.mode]}</span>{questText(q, s.lang)}</>} dim={!!m} sub={m ? `${s.users[m.createdBy].emoji} ${s.users[m.createdBy].name} · +5 XP` : undefined}
+                onClick={() => toggleQuest(q.id)} />
+            })}
+          </Section>
+        )}
+        {g.quests && <MarathonCard />}
+
+        {g.taps && g.mascot && (
+          <Section header={t('us.taps')} footer={t('us.tapsHint', { n: TAP_GOAL })}>
+            <Row icon="💗" title={taps.a >= TAP_GOAL && taps.j >= TAP_GOAL ? t('us.tapsDone')
+              : t('us.tapsNow', { a: taps[s.me], b: taps[partner], n: TAP_GOAL, name: s.users[partner].name })} onClick={tap} />
+          </Section>
+        )}
+
+        <Section header={t('us.week')} footer={`${t('us.legend')} · ${t('us.freezes', { n: p.freezesLeft, m: FREEZES_PER_MONTH })}`}>
+          <div className="week-strip">
+            {days.map((x) => (
+              <div key={x} className={'ws-day' + (x === d ? ' today' : '')}>
+                <span>{p.fed.has(x) ? '🔥' : p.frozen.has(x) ? '❄️' : p.paused.has(x) ? '🏖️' : '·'}</span>
+                <small>{fmtDate(x, s.lang, { weekday: 'narrow' })}</small>
+              </div>
+            ))}
+          </div>
+          {pause && <Row icon="🏖️" title={t('us.pausedTill', { date: fmtDate(pause.to, s.lang) })} />}
         </Section>
-      )}
 
-      <ImportantDates />
-      <Savings />
-      <Flashback />
-
-      <Section header={t('us.week')} footer={`${t('us.legend')} · ${t('us.freezes', { n: p.freezesLeft, m: FREEZES_PER_MONTH })}`}>
-        <div className="week-strip">
-          {days.map((x) => (
-            <div key={x} className={'ws-day' + (x === d ? ' today' : '')}>
-              <span>{p.fed.has(x) ? '🔥' : p.frozen.has(x) ? '❄️' : p.paused.has(x) ? '🏖️' : '·'}</span>
-              <small>{fmtDate(x, s.lang, { weekday: 'narrow' })}</small>
-            </div>
-          ))}
-        </div>
-        {pause && <Row icon="🏖️" title={t('us.pausedTill', { date: fmtDate(pause.to, s.lang) })} />}
-      </Section>
-
-      <Section header={t('us.stats')}>
-        <div className="hero-row us-stats">
-          <div><div className="hero-num">{p.actions}</div><div className="hero-lbl">{t('us.actions')}</div></div>
-          <div><div className="hero-num">{p.fed.size}</div><div className="hero-lbl">{t('us.fedDays')}</div></div>
-          <div><div className="hero-num">{p.best}</div><div className="hero-lbl">{t('us.bestFlame')}</div></div>
-        </div>
-      </Section>
-
-      <Section>
-        <YearRow />
-        <Row icon="❓" title={t('us.how')} chevron onClick={() => setHow(true)} />
-        <Row icon="✨" title={t('col.title')} chevron onClick={() => openCollection(nav, 'mascot')} />
-        <Row icon="⚙️" title={t('set.game')} chevron onClick={() => nav.settings('game')} />
-      </Section>
+        <Section>
+          <Row icon="❓" title={t('us.how')} chevron onClick={() => setHow(true)} />
+          <Row icon="⚙️" title={t('set.game')} chevron onClick={() => nav.settings('game')} />
+        </Section>
+      </>}
 
       {how && (
         <Sheet title={t('us.how')} onClose={() => setHow(false)}>

@@ -1,0 +1,14 @@
+{
+ "col.kind.flame": "Llamas",
+ "col.kind.frame": "Marcos",
+ "col.kind.hat": "Gorros",
+ "col.shelf.flame": "Llamas",
+ "col.shelf.frame": "Marcos",
+ "col.shelf.hat": "Gorros",
+ "col.hint.flame": "El color en que arde vuestra llama, compartida por los dos.",
+ "col.hint.frame": "El marco alrededor de vuestros avatares en la tarjeta de pareja, compartido.",
+ "col.hint.hat": "Lo que lleva vuestra mascota, compartida por los dos.",
+ "col.shelfHint.flame": "El color y el carácter de vuestra llama: en Hoy, en Nosotros y donde se vea la cuenta de días.",
+ "col.shelfHint.frame": "Un marco alrededor de los avatares de la pareja: degradados, brillo, giro, dibujos.",
+ "col.shelfHint.hat": "Gorros, gafas y bufandas para la mascota: los lleva en todas partes."
+}

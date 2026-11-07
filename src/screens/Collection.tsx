@@ -5,10 +5,10 @@ import { useNav } from '../nav'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, ToggleRow, haptic, toast } from '../ui'
 import { SYNC_ENABLED } from '../config'
 import { fmtDate } from '../lib/date'
-import { CARDS, CATALOG, DEFAULTS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
+import { CARDS, CATALOG, DEFAULTS, FLAMES, FRAMES, HATS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
 import { marathonOf, nextWeekOf } from '../lib/marathon'
 import {
-  activeCard, activeLook, activeMascot, activePiggy, devGrant, devGrants, devHouseholds, devRevoke, devSetFreeForAll, devSetRule,
+  activeCard, activeFlame, activeFrame, activeHat, activeLook, activeMascot, activePiggy, devGrant, devGrants, devHouseholds, devRevoke, devSetFreeForAll, devSetRule,
   devUpdateHousehold, isOpen, itemsOf, lookOf, ruleOf, startTryOn, stopTryOn, thankForGift, unseenGifts, useTryOn, useUnlocks,
   type Grant, type Household, type HouseholdGrant, type Status,
 } from '../lib/unlocks'
@@ -92,6 +92,12 @@ function ItemPreview({ item, big }: { item: Item; big?: boolean }) {
       return <div className={cls} style={{ padding: big ? 14 : 8, display: 'block', background: 'var(--fill)' }}><Postcard id={item.id} text={t('col.sample')} small={!big} /></div>
     case 'piggy':
       return <div className={cls}><div className="piggy-prev"><PiggyBar id={item.id} pct={62} /></div></div>
+    case 'flame':
+      return <div className={cls}><span style={{ fontSize: big ? 84 : 46 }}><FlameGlyph id={item.id} /></span></div>
+    case 'frame':
+      return <div className={cls}><FramedAvatars id={item.id} /></div>
+    case 'hat':
+      return <div className={cls}><span className="mascot-view still" style={{ '--mascot': `${big ? 96 : 52}px` } as CSSProperties}><span className="mascot-emoji">{ITEMS[activeMascot(s)].emoji}</span><HatOn id={item.id} /></span></div>
   }
 }
 
@@ -122,6 +128,9 @@ function chosen(item: Item, s: State) {
     case 'scene': return (s.game.scene && isOpen(s.game.scene, s) ? s.game.scene : DEFAULTS.scene) === item.id
     case 'card': return activeCard(s) === item.id
     case 'piggy': return activePiggy(s) === item.id
+    case 'flame': return activeFlame(s) === item.id
+    case 'frame': return activeFrame(s) === item.id
+    case 'hat': return activeHat(s) === item.id
   }
 }
 
@@ -134,6 +143,9 @@ function choose(item: Item) {
       case 'scene': st.game = { ...st.game, scene: item.id === DEFAULTS.scene ? undefined : item.id }; break
       case 'card': st.game = { ...st.game, card: item.id === DEFAULTS.card ? undefined : item.id }; break
       case 'piggy': st.game = { ...st.game, piggy: item.id === DEFAULTS.piggy ? undefined : item.id }; break
+      case 'flame': st.game = { ...st.game, flame: item.id === DEFAULTS.flame ? undefined : item.id }; break
+      case 'frame': st.game = { ...st.game, frame: item.id === DEFAULTS.frame ? undefined : item.id }; break
+      case 'hat': st.game = { ...st.game, hat: item.id === DEFAULTS.hat ? undefined : item.id }; break
     }
   })
   haptic()
@@ -141,8 +153,8 @@ function choose(item: Item) {
 
 /* ---------- the collection screen ---------- */
 /** Shelves: themes and atmospheres share one (atmospheres are themes that come alive), the world's cultures have their own. */
-export type Shelf = 'look' | 'world' | 'mascot' | 'scene' | 'card' | 'piggy'
-const SHELVES: Shelf[] = ['look', 'world', 'mascot', 'scene', 'card', 'piggy']
+export type Shelf = 'look' | 'world' | 'mascot' | 'hat' | 'scene' | 'frame' | 'flame' | 'card' | 'piggy'
+const SHELVES: Shelf[] = ['look', 'world', 'mascot', 'hat', 'scene', 'frame', 'flame', 'card', 'piggy']
 const shelfItems = (sh: Shelf): Item[] => sh === 'look' ? CATALOG.filter((i) => (i.kind === 'theme' || i.kind === 'atmo') && !isCulture(i))
   : sh === 'world' ? worldOrder() : itemsOf(sh)
 /** Countries already ours first, then by when their week comes round. */
@@ -508,4 +520,35 @@ function WorldHeader() {
       <span>🛂 {t('mr.stamps', { n: m.stamps.length })} · {t('mr.ofAll', { n: CATALOG.filter(isCulture).length })}</span>
     </div>
   )
+}
+
+/* ---------- the flame's colour, the couple's frame, the mascot's hat ---------- */
+/** The flame in the couple's colour (filters and a little animation — no extra images). */
+export function FlameGlyph({ id }: { id?: string }) {
+  const s = useApp()
+  const f = FLAMES[ITEMS[id ?? activeFlame(s)]?.key ?? 'classic'] ?? FLAMES.classic
+  return <span className={'flame-g' + (f.anim ? ` fl-${f.anim}` : '')} style={f.filter ? { filter: f.filter } : undefined}>{f.glyph}</span>
+}
+/** Class, CSS variables and a little decoration for the ring around the couple's avatars. */
+export function frameOf(id: string): { cls: string; style?: CSSProperties; deco?: string } {
+  const f = FRAMES[ITEMS[id]?.key ?? 'none'] ?? {}
+  if (!f.ring) return { cls: '' }
+  return { cls: ' framed' + (f.spin ? ' spin' : ''), style: { '--ring': f.ring, '--glow': f.glow ?? 'transparent' } as CSSProperties, deco: f.deco }
+}
+function FramedAvatars({ id }: { id: string }) {
+  const s = useApp()
+  const fr = frameOf(id)
+  return (
+    <span className={'couple-avatars' + fr.cls} style={fr.style}>
+      <span>{s.users[s.me].emoji}</span><span>{s.users[s.me === 'a' ? 'j' : 'a'].emoji}</span>
+      {fr.deco && <><i className="frame-deco d1">{fr.deco}</i><i className="frame-deco d2">{fr.deco}</i></>}
+    </span>
+  )
+}
+/** What the mascot wears, placed over a .mascot-view (sizes follow --mascot). */
+export function HatOn({ id }: { id?: string }) {
+  const s = useApp()
+  const h = HATS[ITEMS[id ?? activeHat(s)]?.key ?? 'none']
+  if (!h?.glyph) return null
+  return <span className={`mascot-hat ${h.pos}`}>{h.glyph}</span>
 }

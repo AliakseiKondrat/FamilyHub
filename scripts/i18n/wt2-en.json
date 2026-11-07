@@ -1,0 +1,6 @@
+{
+ "wt.mySite": "Own site",
+ "wt.mySites": "Our sites to search",
+ "wt.siteUrl": "Site address",
+ "wt.mySitesHint": "Add a site where you watch — every title gets a button that searches it (through Google, limited to that site). If you know its search page, put {q} where the title goes. Shared by both of you."
+}

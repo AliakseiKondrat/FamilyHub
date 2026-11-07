@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react'
-import { base, update, useApp, visible } from '../store'
+import { base, other, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
-import { Empty, GlassButton, Marks, Row, Screen, Section, Segmented, Sheet, Stars, TextRow, VisibilityFields } from '../ui'
+import { Empty, GlassButton, Marks, Row, Screen, Section, Segmented, Sheet, Stars, TextRow, VisibilityFields, haptic } from '../ui'
 import type { UserId, WatchItem, WatchLink, WatchStatus } from '../types'
 import { CoverBox, CoverPicker } from '../cover'
 
 const KIND_EMOJI = { movie: '🎬', series: '📺', other: '🎞️' }
+
+/** «S2 · E5» for a series we're in the middle of. */
+export const epLabel = (w: WatchItem, t: ReturnType<typeof useT>) => (w.kind === 'series' && (w.season || w.episode) ? t('wt.ep', { s: w.season ?? 1, e: w.episode ?? 1 }) : '')
+
+/** Whose turn it is to choose: the other person than whoever chose last (nobody yet = either of you). */
+export function chooserOf(items: WatchItem[]): UserId | undefined {
+  const last = items.filter((w) => w.pickedBy && w.pickedAt).sort((a, b) => (a.pickedAt! < b.pickedAt! ? 1 : -1))[0]
+  return last ? other(last.pickedBy!) : undefined
+}
+/** Moving a title to «watching» records who chose it. */
+const startWatching = (w: WatchItem, me: UserId): WatchItem => ({ ...w, status: 'watching', pickedBy: me, pickedAt: new Date().toISOString() })
 
 /** Streaming services with a button on every title; "custom" is any site the two of you use. */
 export const SERVICES = {
@@ -14,6 +25,15 @@ export const SERVICES = {
   appletv: { name: 'Apple TV', short: 'tv', search: (q: string) => `https://tv.apple.com/search?term=${q}`, match: /tv\.apple\.com/ },
 } as const
 type ServiceId = keyof typeof SERVICES
+
+/** A search on one of our own sites: its search page with {q}, else Google limited to that site. */
+export function siteSearch(url: string, title: string) {
+  const q = encodeURIComponent(title)
+  if (url.includes('{q}')) return url.replace('{q}', q)
+  let host = url
+  try { host = new URL(/^https?:/.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, '') } catch { /* keep as typed */ }
+  return `https://www.google.com/search?q=${encodeURIComponent(`site:${host}`)}+${q}`
+}
 
 export function detectService(url: string): WatchLink {
   for (const [id, sv] of Object.entries(SERVICES)) if (sv.match.test(url)) return { service: id, url }
@@ -67,6 +87,7 @@ export default function Watch({ back }: { back?: boolean }) {
   const [pick, setPick] = useState<WatchItem | null>(null)
   const all = visible(s.watch, s.me)
   const list = all.filter((w) => w.status === tab)
+  const chooser = chooserOf(all)
 
   // Fetch posters for titles that have never been looked up.
   useEffect(() => {
@@ -86,6 +107,12 @@ export default function Watch({ back }: { back?: boolean }) {
       right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), title: '', kind: 'movie', status: tab, links: [] })} />}
       actions={[{ icon: '🎲', label: t('whatToWatch'), onClick: random }]}
       head={<Segmented value={tab} onChange={setTab} options={(['want', 'watching', 'done'] as WatchStatus[]).map((x) => ({ value: x, label: `${t(`ws.${x}`)} · ${all.filter((w) => w.status === x).length}` }))} />}>
+      {tab === 'want' && all.length > 0 && (
+        <Section footer={t('wt.turnHint')}>
+          <Row icon="🎯" title={chooser ? t('wt.turn', { name: s.users[chooser].name }) : t('wt.turnAny')}
+            detail={chooser === s.me ? t('wt.you') : undefined} />
+        </Section>
+      )}
       {list.length === 0 && <Empty emoji="🍿" text={t('empty')} />}
       <div className="poster-grid">
         {list.map((w) => (
@@ -97,6 +124,7 @@ export default function Watch({ back }: { back?: boolean }) {
             <div className="poster-sub">
               {w.status === 'done' && w.rating
                 ? (['a', 'j'] as UserId[]).filter((u) => w.rating?.[u]).map((u) => <span key={u}>{s.users[u].emoji}{w.rating![u]}★</span>)
+                : epLabel(w, t) ? <span className="ep-badge">📺 {epLabel(w, t)}</span>
                 : <span>{t(`wk.${w.kind}`)}{w.year ? ` · ${w.year}` : ''}</span>}
             </div>
           </button>
@@ -111,7 +139,7 @@ export default function Watch({ back }: { back?: boolean }) {
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <button className="glass-btn lg" onClick={random}>🎲 {t('random')}</button>
-            <button className="glass-btn lg tint" onClick={() => { update((st) => { st.watch.find((x) => x.id === pick.id)!.status = 'watching' }); setPick(null) }}>▶︎ {t('ws.watching')}</button>
+            <button className="glass-btn lg tint" onClick={() => { update((st) => { st.watch = st.watch.map((x) => (x.id === pick.id ? startWatching(x, st.me) : x)) }); setPick(null) }}>▶︎ {t('ws.watching')}</button>
           </div>
         </Sheet>
       )}
@@ -132,12 +160,14 @@ function WatchEditor({ item, onClose }: { item: WatchItem; onClose: () => void }
     setV({ ...v, links: url.trim() ? [...rest, { service, url: url.trim(), label }] : rest })
   }
   const custom = linkOf('custom')
+  const [sites, setSites] = useState(false)
 
   return (
     <Sheet title={isNew ? t('add') : v.title} onClose={onClose} doneDisabled={!v.title.trim()}
       onDone={() => update((st) => {
         // A renamed title gets its poster looked up again.
-        const x = { ...v, poster: v.title !== item.title && v.poster === item.poster && !v.poster?.startsWith('photo:') ? undefined : v.poster }
+        let x: WatchItem = { ...v, poster: v.title !== item.title && v.poster === item.poster && !v.poster?.startsWith('photo:') ? undefined : v.poster }
+        if (x.status === 'watching' && item.status !== 'watching') x = startWatching(x, st.me)
         if (isNew) st.watch.unshift(x); else st.watch = st.watch.map((w) => (w.id === x.id ? x : w))
       })}>
       {v.poster && <CoverBox className="poster-img" style={{ width: 150, margin: '4px auto 6px' }} src={v.poster} />}
@@ -158,9 +188,11 @@ function WatchEditor({ item, onClose }: { item: WatchItem; onClose: () => void }
                 </a>
               )
             })}
-            {custom
-              ? <a className="svc-btn custom" href={custom.url} target="_blank" rel="noreferrer">▶︎ {custom.label ?? t('customSite')}</a>
-              : <div className="svc-btn custom" style={{ opacity: 0.5 }}>＋ {t('customSite')}</div>}
+            {(s.watchSites ?? []).map((x, i) => (
+              <a key={`site${i}`} className="svc-btn custom" href={siteSearch(x.url, v.title)} target="_blank" rel="noreferrer">🔎 {x.name}</a>
+            ))}
+            {custom && <a className="svc-btn custom" href={custom.url} target="_blank" rel="noreferrer">▶︎ {custom.label ?? t('customSite')}</a>}
+            <button className="svc-btn custom" onClick={() => setSites(true)}>＋ {t('wt.mySite')}</button>
           </div>
         </>
       )}
@@ -188,6 +220,13 @@ function WatchEditor({ item, onClose }: { item: WatchItem; onClose: () => void }
         <Segmented inSheet value={v.status} onChange={(status) => setV({ ...v, status })}
           options={(['want', 'watching', 'done'] as WatchStatus[]).map((x) => ({ value: x, label: t(`ws.${x}`) }))} />
       </div>
+      {v.kind === 'series' && v.status !== 'done' && (
+        <Section header={t('wt.where')} footer={v.pickedBy ? t('wt.chose', { name: s.users[v.pickedBy].name }) : undefined}>
+          <Row title={t('wt.season')} right={<Stepper value={v.season ?? 1} onChange={(season) => setV({ ...v, season, episode: season !== (v.season ?? 1) ? 1 : v.episode })} />} />
+          <Row title={t('wt.episode')} right={<Stepper value={v.episode ?? 1} onChange={(episode) => setV({ ...v, episode, season: v.season ?? 1 })} />} />
+          <button className="row tap accent" onClick={() => { setV({ ...v, season: v.season ?? 1, episode: (v.episode ?? 1) + 1, status: v.status === 'want' ? 'watching' : v.status }); haptic() }}>✓ {t('wt.next')}</button>
+        </Section>
+      )}
       {v.status === 'done' && (
         <Section header={t('rating')}>
           {(['a', 'j'] as UserId[]).map((u) => (
@@ -205,6 +244,48 @@ function WatchEditor({ item, onClose }: { item: WatchItem; onClose: () => void }
           <button className="row tap destructive" onClick={() => { update((st) => { st.watch = st.watch.filter((w) => w.id !== v.id) }); onClose() }}>{t('delete')}</button>
         </Section>
       )}
+      {sites && <SitesSheet onClose={() => setSites(false)} />}
+    </Sheet>
+  )
+}
+
+function Stepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <span className="stepper">
+      <button onClick={() => onChange(Math.max(1, value - 1))} aria-label="−">−</button>
+      <b>{value}</b>
+      <button onClick={() => { onChange(value + 1); haptic() }} aria-label="+">+</button>
+    </span>
+  )
+}
+
+/** Our own sites for looking titles up — shared by the couple, a button on every title. */
+function SitesSheet({ onClose }: { onClose: () => void }) {
+  const s = useApp()
+  const t = useT()
+  const [name, setName] = useState('')
+  const [url, setUrl] = useState('')
+  const list = s.watchSites ?? []
+  const add = () => {
+    if (!name.trim() || !url.trim()) return
+    update((st) => { st.watchSites = [...(st.watchSites ?? []), { name: name.trim(), url: url.trim() }] })
+    setName(''); setUrl(''); haptic()
+  }
+  return (
+    <Sheet title={t('wt.mySites')} onClose={onClose}>
+      {list.length > 0 && (
+        <Section>
+          {list.map((x, i) => (
+            <Row key={i} icon="🔎" title={x.name} sub={x.url}
+              right={<button className="ls-del" aria-label={t('delete')} onClick={() => update((st) => { st.watchSites = (st.watchSites ?? []).filter((_, k) => k !== i) })}>×</button>} />
+          ))}
+        </Section>
+      )}
+      <Section footer={t('wt.mySitesHint')}>
+        <TextRow value={name} onChange={setName} placeholder={t('siteName')} />
+        <TextRow value={url} onChange={setUrl} placeholder={t('wt.siteUrl')} />
+        <button className="row tap accent" disabled={!name.trim() || !url.trim()} onClick={add}>＋ {t('add')}</button>
+      </Section>
     </Sheet>
   )
 }

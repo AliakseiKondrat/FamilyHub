@@ -6,7 +6,7 @@ export type Theme = 'auto' | 'light' | 'dark'
 
 export type ModuleId =
   | 'today' | 'groceries' | 'tasks' | 'calendar' | 'budget' | 'watch' | 'recipes' | 'music'
-  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle' | 'wishlist' | 'us'
+  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle' | 'wishlist' | 'us' | 'lists'
 
 /** Fields every record carries: author plus the two visibility rules (surprise, private). */
 export interface Base {
@@ -86,6 +86,10 @@ export interface WatchItem extends Base {
   title: string; kind: 'movie' | 'series' | 'other'; status: WatchStatus
   rating?: Partial<Record<UserId, number>>; url?: string; notes?: string
   links?: WatchLink[]; poster?: string; year?: string
+  /** Series: where we stopped. */
+  season?: number; episode?: number
+  /** Who chose it for tonight (moved it to «watching»), so the choice can take turns. */
+  pickedBy?: UserId; pickedAt?: string
 }
 
 export interface Track extends Base {
@@ -111,9 +115,13 @@ export type PetKind = 'vaccine' | 'parasite' | 'vet' | 'groom' | 'other'
 export interface PetRecord extends Base { kind: PetKind; title: string; date: string; nextDue?: string; notes?: string }
 export interface Weight { id: string; date: string; kg: number }
 
-export type NoteModule = 'home' | 'inbox' | 'archive' | 'dates'
+export type NoteModule = 'home' | 'inbox' | 'archive' | 'dates' | 'lists'
+/** One line of a list in the Lists section. */
+export interface ListItem { id: string; text: string; done?: boolean; by?: UserId }
 export interface Note extends Base {
   module: NoteModule; title: string; notes?: string; url?: string
+  /** Lists: the list's emoji and its items. */
+  emoji?: string; items?: ListItem[]
   due?: string; repeat?: Repeat; done?: boolean; tags?: string[]
   /** Picture for the link: web image URL or "photo:<key>"; '' = none. */
   cover?: string; site?: string
@@ -225,6 +233,10 @@ export interface GameSettings {
   scene?: string
   card?: string
   piggy?: string
+  /** The flame's colour, the couple card's frame and what the mascot wears (collection). */
+  flame?: string
+  frame?: string
+  hat?: string
   /** The «Around the world» marathon: runs (joined → left) and cultures claimed with jokers (marathon.ts). */
   marathon?: { runs: { from: string; to?: string }[]; claims?: string[] }
   /** "Another quest" presses for a given day, so both phones reshuffle alike. */
@@ -314,6 +326,8 @@ export interface State {
   since?: string
   /** «Our photo»: a photo from the album shown on the couple card. */
   couplePhoto?: string
+  /** Our own sites to look titles up on (Watch): a search page with {q}, or any site address (searched through Google). */
+  watchSites?: { name: string; url: string }[]
   lang: Lang
   country: Country
   theme: Theme

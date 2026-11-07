@@ -11,7 +11,7 @@ import type { ModuleId, Note, NoteModule, State } from '../types'
 import { newTask } from './Tasks'
 import { CoverPicker, Thumb, fromPreview, hostOf, relink, useAutoCovers } from '../cover'
 
-const ICON: Record<NoteModule, string> = { home: '🏠', inbox: '📥', archive: '🗂️', dates: '💕' }
+const ICON: Record<NoteModule, string> = { home: '🏠', inbox: '📥', archive: '🗂️', dates: '💕', lists: '📝' }
 
 /** Home, Inbox, Archive and Dates share one list screen with small per-module twists. */
 export default function Notes({ module, back }: { module: NoteModule; back?: boolean }) {

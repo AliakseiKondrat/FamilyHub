@@ -148,10 +148,70 @@ const toHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(Math.max(0, Mat
 /** Mix colour a with b: t = share of b. */
 export const mix = (a: string, b: string, t: number) => { const x = hex(a), y = hex(b); return toHex(x.map((v, i) => v + (y[i] - v) * t)) }
 
-/** [background, card, pressed card, tint] for light and dark, built from the culture's colours. */
+/** [background, card, pressed card, tint] for light and dark: a clearly tinted ground and cards warmed by the second colour. */
 export function culturePalette(c: Culture): { light: [string, string, string, string]; dark: [string, string, string, string] } {
   return {
-    light: [mix(c.a1, '#ffffff', 0.9), '#ffffff', mix(c.a1, '#ffffff', 0.82), mix(c.a1, '#000000', 0.12)],
-    dark: [mix(c.a1, '#000000', 0.9), mix(c.a1, '#000000', 0.82), mix(c.a1, '#000000', 0.72), mix(c.a1, '#ffffff', 0.35)],
+    light: [mix(c.a1, '#ffffff', 0.84), mix(c.a2, '#ffffff', 0.95), mix(c.a1, '#ffffff', 0.74), mix(c.a1, '#000000', 0.15)],
+    dark: [mix(c.a1, '#000000', 0.84), mix(c.a1, '#000000', 0.74), mix(c.a1, '#000000', 0.64), mix(c.a1, '#ffffff', 0.42)],
   }
+}
+
+/* ---------- patterns: every culture gets a wallpaper of its own, drawn with CSS ---------- */
+export type Pattern = 'tartan' | 'waves' | 'dots' | 'stripes' | 'diag' | 'zellige' | 'stars' | 'snow' | 'checks' | 'sun' | 'folk' | 'kente' | 'grid' | 'scales'
+export const PATTERN: Record<string, Pattern> = {
+  // Season A
+  sco: 'tartan', by: 'folk', fi: 'snow', kr: 'grid', cn: 'stars', vn: 'scales', it: 'checks', br: 'diag', is: 'snow', in: 'dots', ie: 'diag',
+  ir: 'zellige', jp: 'waves', gr: 'stripes', th: 'scales', nl: 'stripes', ua: 'folk', kz: 'sun', nz: 'waves', no: 'snow', es: 'dots', tr: 'zellige',
+  pt: 'scales', dk: 'grid', se: 'stripes', hr: 'checks', us: 'stars', fr: 'stripes', eg: 'sun', ma: 'zellige', id: 'scales', pe: 'kente', cu: 'diag',
+  gb: 'grid', ke: 'kente', au: 'sun', ch: 'grid', de: 'checks', cz: 'folk', at: 'stripes', hu: 'folk', ge: 'dots', am: 'scales', mx: 'kente', np: 'stars',
+  pl: 'folk', be: 'grid', ar: 'sun', ca: 'snow', ee: 'grid', ru: 'folk', ph: 'stars',
+  // Season B
+  bg: 'folk', et: 'kente', lv: 'folk', mn: 'sun', sg: 'scales', la: 'scales', do: 'diag', tt: 'diag', il: 'grid', lk: 'dots', za: 'kente', az: 'zellige',
+  uz: 'zellige', si: 'snow', sk: 'folk', kh: 'scales', rs: 'folk', lt: 'folk', co: 'stripes', cl: 'stars', mt: 'grid', ro: 'folk', fj: 'waves', ec: 'sun',
+  jm: 'stripes', me: 'waves', mv: 'waves', al: 'grid', tn: 'zellige', jo: 'sun', lb: 'grid', cy: 'waves', tz: 'kente', sn: 'kente', gh: 'kente', ng: 'kente',
+  mg: 'dots', bt: 'scales', kg: 'sun', my: 'stripes', pk: 'stars', gt: 'kente', cr: 'diag', bo: 'kente', mu: 'waves', uy: 'sun', ve: 'stars', om: 'zellige',
+  ae: 'stars', md: 'folk', ad: 'snow', bs: 'waves', world: 'stars',
+}
+
+const rgba = (c: string, a: number) => { const [r, g, b] = hex(c); return `rgba(${r}, ${g}, ${b}, ${a})` }
+
+/**
+ * A wallpaper: CSS layers over a base colour. `k` scales the pattern and `turn` tilts the striped ones, so two cultures
+ * with the same kind of pattern still look different.
+ */
+export function patternWall(p: Pattern, c1: string, c2: string, base: string, strength: number, k = 1, turn = 0): string {
+  const A = rgba(c1, strength), B = rgba(c2, strength * 1.1), S = (n: number) => `${Math.round(n * k)}px`
+  switch (p) {
+    case 'tartan': return `repeating-linear-gradient(${turn}deg, ${A} 0 ${S(7)}, transparent ${S(7)} ${S(24)}, ${B} ${S(24)} ${S(28)}, transparent ${S(28)} ${S(50)}), repeating-linear-gradient(${90 + turn}deg, ${A} 0 ${S(7)}, transparent ${S(7)} ${S(24)}, ${B} ${S(24)} ${S(28)}, transparent ${S(28)} ${S(50)}), ${base}`
+    case 'waves': { const w = `radial-gradient(circle at 50% 100%, ${A} 0 ${S(3)}, transparent ${S(4)} ${S(7)}, ${A} ${S(8)} ${S(10)}, transparent ${S(11)} ${S(14)}, ${B} ${S(15)} ${S(17)}, transparent ${S(18)})`
+      return `${w} 0 0 / ${S(36)} ${S(18)}, ${w} ${S(18)} ${S(9)} / ${S(36)} ${S(18)}, ${base}` }
+    case 'dots': return `radial-gradient(${A} ${S(3)}, transparent ${S(3.6)}) 0 0 / ${S(24)} ${S(24)}, radial-gradient(${B} ${S(2)}, transparent ${S(2.6)}) ${S(12)} ${S(12)} / ${S(24)} ${S(24)}, ${base}`
+    case 'stripes': return `repeating-linear-gradient(${90 + turn}deg, ${A} 0 ${S(16)}, transparent ${S(16)} ${S(32)}, ${B} ${S(32)} ${S(40)}, transparent ${S(40)} ${S(64)}), ${base}`
+    case 'diag': return `repeating-linear-gradient(${135 + turn}deg, ${A} 0 ${S(10)}, transparent ${S(10)} ${S(28)}, ${B} ${S(28)} ${S(36)}, transparent ${S(36)} ${S(56)}), ${base}`
+    case 'zellige': return `radial-gradient(circle, transparent ${S(5)}, ${B} ${S(6)} ${S(7.5)}, transparent ${S(8.5)}) 0 0 / ${S(30)} ${S(30)}, conic-gradient(from 45deg, ${A} 25%, transparent 0 50%, ${A} 0 75%, transparent 0) 0 0 / ${S(30)} ${S(30)}, ${base}`
+    case 'stars': {
+      const st = (x: number, y: number, r: number, col: string) => `radial-gradient(${r}px ${r}px at ${x}% ${y}%, ${col}, transparent) 0 0 / ${S(110)} ${S(110)}`
+      return [st(18, 22, 2.2, A), st(62, 14, 1.6, B), st(84, 58, 2.6, A), st(36, 70, 1.8, B), st(70, 88, 1.4, A), st(8, 84, 1.8, B), base].join(', ')
+    }
+    case 'snow': return `radial-gradient(${A} ${S(1.8)}, transparent ${S(2.4)}) 0 0 / ${S(34)} ${S(34)}, radial-gradient(${B} ${S(1.2)}, transparent ${S(1.8)}) ${S(17)} ${S(9)} / ${S(34)} ${S(34)}, radial-gradient(${A} ${S(1)}, transparent ${S(1.5)}) ${S(8)} ${S(24)} / ${S(34)} ${S(34)}, ${base}`
+    case 'checks': return `repeating-linear-gradient(0deg, ${A} 0 ${S(14)}, transparent ${S(14)} ${S(28)}), repeating-linear-gradient(90deg, ${A} 0 ${S(14)}, transparent ${S(14)} ${S(28)}), ${base}`
+    case 'sun': return `repeating-conic-gradient(from ${turn}deg at 50% -8%, ${A} 0 5deg, transparent 5deg 13deg), radial-gradient(circle at 50% -8%, ${B}, transparent 55%), ${base}`
+    case 'folk': return `linear-gradient(45deg, transparent 40%, ${A} 40% 60%, transparent 60%) 0 0 / ${S(16)} ${S(16)}, linear-gradient(-45deg, transparent 40%, ${A} 40% 60%, transparent 60%) 0 0 / ${S(16)} ${S(16)}, repeating-linear-gradient(0deg, transparent 0 ${S(64)}, ${B} ${S(64)} ${S(70)}), ${base}`
+    case 'kente': return `repeating-linear-gradient(90deg, ${A} 0 ${S(8)}, ${B} ${S(8)} ${S(16)}, transparent ${S(16)} ${S(40)}), repeating-linear-gradient(0deg, transparent 0 ${S(40)}, ${B} ${S(40)} ${S(48)}), ${base}`
+    case 'grid': return `linear-gradient(${A} 1.5px, transparent 1.5px) 0 0 / ${S(26)} ${S(26)}, linear-gradient(90deg, ${A} 1.5px, transparent 1.5px) 0 0 / ${S(26)} ${S(26)}, radial-gradient(${B} ${S(2)}, transparent ${S(2.6)}) ${S(13)} ${S(13)} / ${S(26)} ${S(26)}, ${base}`
+    case 'scales': return `radial-gradient(circle at 50% 0, transparent ${S(9)}, ${A} ${S(10)} ${S(11.5)}, transparent ${S(12.5)}) 0 0 / ${S(24)} ${S(12)}, radial-gradient(circle at 50% 0, transparent ${S(9)}, ${B} ${S(10)} ${S(11.5)}, transparent ${S(12.5)}) ${S(12)} ${S(6)} / ${S(24)} ${S(12)}, ${base}`
+  }
+}
+
+/** The culture's wallpaper for light and dark (its own pattern, scale and tilt). */
+export function cultureWall(c: Culture): [string, string] {
+  let h = 0
+  for (const ch of c.code) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const k = 0.8 + (h % 7) / 10, turn = (h % 5) * 9
+  const p = PATTERN[c.code] ?? 'dots'
+  const pal = culturePalette(c)
+  return [
+    patternWall(p, c.a1, c.a2, pal.light[0], 0.12, k, turn),
+    patternWall(p, mix(c.a1, '#ffffff', 0.25), mix(c.a2, '#ffffff', 0.2), pal.dark[0], 0.1, k, turn),
+  ]
 }

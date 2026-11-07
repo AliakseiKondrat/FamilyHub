@@ -16,6 +16,7 @@ import Music, { MiniPlayer } from './screens/Music'
 import Recipes from './screens/Recipes'
 import Pet from './screens/Pet'
 import Notes from './screens/Notes'
+import Lists from './screens/Lists'
 import Places from './screens/Places'
 import Travel, { TripDetail } from './screens/Travel'
 import Photos from './screens/Photos'
@@ -53,6 +54,7 @@ function moduleScreen(id: ModuleId, back: boolean): ReactNode {
     case 'recipes': return <Recipes back={back} />
     case 'pet': return <Pet back={back} />
     case 'home': case 'inbox': case 'archive': return <Notes module={id} back={back} />
+    case 'lists': return <Lists back={back} />
     case 'dates': return <Places back={back} />
     case 'travel': return <Travel back={back} />
     case 'photos': return <Photos back={back} />

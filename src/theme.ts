@@ -31,7 +31,7 @@ export const PRESETS: Record<string, [string, string]> = {
 
 export const DEFAULT_ACCENT: Record<Accent, string> = {
   today: 'indigo', calendar: 'sunset', tasks: 'ocean', groceries: 'lime', budget: 'emerald', watch: 'grape',
-  recipes: 'mango', pet: 'amber', home: 'sky', travel: 'night', dates: 'rose', inbox: 'slate', archive: 'steel',
+  recipes: 'mango', pet: 'amber', home: 'sky', travel: 'night', dates: 'rose', inbox: 'slate', archive: 'steel', lists: 'ocean',
   photos: 'orchid', cycle: 'bloom', wishlist: 'peach', us: 'peach', music: 'music', more: 'graphite', settings: 'graphite',
 }
 

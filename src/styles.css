@@ -1132,3 +1132,59 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .hub-tile.prog { background: linear-gradient(135deg, #f59e0b, #ef4444); }
 .hub-tile.world { background: linear-gradient(135deg, #0ea5e9, #22c55e); }
 .row-sub .col-bar { display: block; height: 5px; }
+
+/* ---------- «Us» in three tabs: a compact header, then together / ritual / rewards ---------- */
+.us-status { display: flex; align-items: center; gap: 10px; margin: 10px auto 0; padding: 8px 14px 8px 10px; border: 0; border-radius: 22px;
+  font: inherit; color: inherit; max-width: 100%; }
+.us-status-m { font-size: 26px; line-height: 1; }
+.us-status-l { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.us-tabs { margin: 0 0 6px; }
+.us-card { margin: 0 16px 18px; padding: 14px 16px; border-radius: var(--radius); background: var(--cell); box-shadow: var(--card-shadow); }
+.us-ritual { margin: 0 16px 18px; padding: 14px 12px 16px; border-radius: var(--radius); background: var(--cell); box-shadow: var(--card-shadow);
+  display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--label); }
+.us-ritual .seg { align-self: stretch; margin: 0 0 12px; }
+.us-ritual .hero-sub { color: var(--label2); opacity: 1; }
+.us-ritual .us-flame { color: var(--label); }
+.us-ritual .xp-top, .us-ritual .xp-top b { color: var(--label2); }
+.us-ritual .xp-top b { color: var(--label); }
+.hub-tile.places { background: linear-gradient(135deg, #ec4899, #f97316); }
+.hub-tile.leaders { background: linear-gradient(135deg, #6366f1, #a855f7); }
+
+/* ---------- flame colours, couple frames, mascot hats ---------- */
+.flame-g { display: inline-block; line-height: 1; }
+.fl-rainbow { animation: fl-rainbow 4s linear infinite; }
+@keyframes fl-rainbow { from { filter: hue-rotate(0deg) saturate(1.4); } to { filter: hue-rotate(360deg) saturate(1.4); } }
+.fl-pulse { animation: fl-pulse 1.6s ease-in-out infinite; }
+@keyframes fl-pulse { 50% { transform: scale(1.18); } }
+.fl-flicker { animation: fl-flicker 2.2s ease-in-out infinite; }
+@keyframes fl-flicker { 0%, 100% { transform: rotate(-5deg) scale(1); } 50% { transform: rotate(5deg) scale(1.08); } }
+@property --fa { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.couple-avatars.framed > span { border: 3px solid transparent; box-shadow: 0 0 14px var(--glow);
+  background: linear-gradient(color-mix(in srgb, var(--cell) 92%, transparent), color-mix(in srgb, var(--cell) 92%, transparent)) padding-box, var(--ring) border-box; }
+.couple-avatars.framed > span.couple-photo { padding: 0; }
+.couple-avatars.framed.spin { animation: fr-spin 6s linear infinite; }
+@keyframes fr-spin { to { --fa: 360deg; } }
+.frame-deco { position: absolute; font-style: normal; font-size: 16px; pointer-events: none; animation: fl-flicker 3s ease-in-out infinite; }
+.frame-deco.d1 { left: -10px; bottom: -4px; }
+.frame-deco.d2 { right: -12px; top: -8px; animation-delay: -1.5s; }
+.mascot-hat { position: absolute; left: 50%; line-height: 1; pointer-events: none; transform: translateX(-50%); }
+.mascot-hat.top { top: calc(var(--mascot) * -0.26); font-size: calc(var(--mascot) * 0.5); transform: translateX(-50%) rotate(-8deg); }
+.mascot-hat.eyes { top: calc(var(--mascot) * 0.24); font-size: calc(var(--mascot) * 0.46); }
+.mascot-hat.neck { bottom: calc(var(--mascot) * 0.02); font-size: calc(var(--mascot) * 0.36); }
+.mascot-view.still { display: inline-block; position: relative; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .fl-rainbow, .fl-pulse, .fl-flicker, .couple-avatars.framed.spin, .frame-deco { animation: none; } }
+[data-header] .couple-avatars.framed > span:not(.couple-photo), [data-header] .couple-avatars.framed > span.couple-photo {
+  border: 3px solid transparent; box-shadow: 0 0 14px var(--glow);
+  background: linear-gradient(color-mix(in srgb, var(--cell) 92%, transparent), color-mix(in srgb, var(--cell) 92%, transparent)) padding-box, var(--ring) border-box; }
+
+/* ---------- Watch: where we stopped, whose turn ---------- */
+.ep-badge { font-weight: 700; color: var(--accent); }
+.stepper { display: inline-flex; align-items: center; gap: 4px; }
+.stepper button { width: 34px; height: 34px; border-radius: 12px; border: 0; background: var(--fill); color: var(--label); font-size: 20px; font-weight: 700; line-height: 1; }
+.stepper b { min-width: 34px; text-align: center; font-size: 17px; }
+
+/* ---------- Lists ---------- */
+.ls-emoji { width: 44px !important; flex: none; text-align: center; font-size: 22px; }
+.ls-del { border: 0; background: none; color: var(--label3, var(--label2)); font-size: 22px; padding: 0 4px; line-height: 1; }
+.chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+.chips-wrap .chip { background: var(--fill); color: var(--label); box-shadow: none; }

@@ -1,0 +1,14 @@
+{
+ "col.kind.flame": "Płomyki",
+ "col.kind.frame": "Ramki",
+ "col.kind.hat": "Czapki",
+ "col.shelf.flame": "Płomyki",
+ "col.shelf.frame": "Ramki",
+ "col.shelf.hat": "Czapki",
+ "col.hint.flame": "Jakim kolorem płonie wasz płomyk — wspólny dla was obojga.",
+ "col.hint.frame": "Ramka wokół waszych awatarów na karcie pary — wspólna.",
+ "col.hint.hat": "Co nosi wasza maskotka — wspólna dla was obojga.",
+ "col.shelfHint.flame": "Kolor i charakter waszego płomyka: na „Dziś”, w „My” i wszędzie, gdzie widać licznik dni.",
+ "col.shelfHint.frame": "Ramka wokół awatarów pary: gradienty, poświata, obrót, wzory.",
+ "col.shelfHint.hat": "Czapki, okulary i szaliki dla maskotki — nosi je wszędzie."
+}

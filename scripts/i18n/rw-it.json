@@ -1,0 +1,14 @@
+{
+ "col.kind.flame": "Fiamme",
+ "col.kind.frame": "Cornici",
+ "col.kind.hat": "Cappellini",
+ "col.shelf.flame": "Fiamme",
+ "col.shelf.frame": "Cornici",
+ "col.shelf.hat": "Cappellini",
+ "col.hint.flame": "Il colore della vostra fiamma, condivisa da entrambi.",
+ "col.hint.frame": "La cornice intorno ai vostri avatar sulla scheda della coppia, condivisa.",
+ "col.hint.hat": "Cosa indossa la vostra mascotte, condivisa da entrambi.",
+ "col.shelfHint.flame": "Il colore e il carattere della vostra fiamma: in Oggi, in Noi e ovunque si veda il conteggio dei giorni.",
+ "col.shelfHint.frame": "Una cornice intorno agli avatar della coppia: sfumature, bagliore, rotazione, motivi.",
+ "col.shelfHint.hat": "Cappellini, occhiali e sciarpe per la mascotte: li porta ovunque."
+}

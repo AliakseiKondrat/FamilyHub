@@ -134,6 +134,9 @@ export function activeScene(s: State = getState()) {
 }
 export const activeCard = (s: State = getState()) => ok(s.game.card, 'card', s) ?? DEFAULTS.card
 export const activePiggy = (s: State = getState()) => ok(s.game.piggy, 'piggy', s) ?? DEFAULTS.piggy
+export const activeFlame = (s: State = getState()) => ok(s.game.flame, 'flame', s) ?? DEFAULTS.flame
+export const activeFrame = (s: State = getState()) => ok(s.game.frame, 'frame', s) ?? DEFAULTS.frame
+export const activeHat = (s: State = getState()) => ok(s.game.hat, 'hat', s) ?? DEFAULTS.hat
 
 /** Re-render on server changes as well as state changes. */
 export function useUnlocks() {

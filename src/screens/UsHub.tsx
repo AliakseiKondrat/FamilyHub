@@ -5,8 +5,8 @@ import { useNav } from '../nav'
 import { DateRow, Row, Section, Sheet, TextRow, haptic } from '../ui'
 import { addDays, diffDays, fmtDate, occursOn, today } from '../lib/date'
 import { thoughtFor } from '../lib/thoughts'
-import { activeLook, activePiggy, lookOf } from '../lib/unlocks'
-import { PiggyBar, openCollection } from './Collection'
+import { activeFrame, activeLook, activePiggy, lookOf } from '../lib/unlocks'
+import { PiggyBar, frameOf, openCollection } from './Collection'
 import { MarathonSheet } from './Progress'
 import { PhotoThumb, useBlobUrl } from './Photos'
 import { NoteComposer } from './LoveNotes'
@@ -52,11 +52,13 @@ export function CoupleCard() {
   const me = s.users[s.me], partner = s.users[other(s.me)]
   const photo = s.couplePhoto && s.photos.some((p) => p.id === s.couplePhoto) ? s.couplePhoto : undefined
   const decor = lookOf(activeLook(s)).decor
+  const fr = frameOf(activeFrame(s))
   return (
     <div className="couple-card">
-      <button className="couple-avatars" onClick={() => setSheet('photo')} aria-label={t('hub.photo')}>
+      <button className={'couple-avatars' + fr.cls} style={fr.style} onClick={() => setSheet('photo')} aria-label={t('hub.photo')}>
         {photo ? <span className="couple-photo"><CouplePhoto id={photo} /></span> : <><span>{me.emoji}</span><span>{partner.emoji}</span></>}
         {decor && <i className="couple-decor">{decor}</i>}
+        {fr.deco && <><i className="frame-deco d1">{fr.deco}</i><i className="frame-deco d2">{fr.deco}</i></>}
       </button>
       <div className="couple-names">{me.name} & {partner.name}</div>
       <button className="couple-since lg" onClick={() => setSheet('since')}>{n ? `💕 ${t('hub.together', { n: n.toLocaleString() })}` : t('hub.askSince')}</button>
@@ -158,7 +160,7 @@ export function Coming() {
       const a = nextYearly(s.since, d)
       if (a > s.since && a <= end) out.push({ date: a, emoji: '💍', title: t('hub.anniversary', { n: +a.slice(0, 4) - +s.since.slice(0, 4) }) })
     }
-    return out.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 7)
+    return out.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4)
   }, [s.events, s.tasks, s.trips, s.since, s.me, d, s.lang]) // eslint-disable-line react-hooks/exhaustive-deps
   const when = (x: string) => (x === d ? t('today') : x === addDays(d, 1) ? t('tomorrow') : t('inDays', { n: diffDays(x, d) }))
   return (
@@ -170,8 +172,8 @@ export function Coming() {
   )
 }
 
-/* ---------- tiles: a perfect evening, the collection ---------- */
-export function Tiles() {
+/* ---------- tiles: things to do together, or the way to rewards ---------- */
+export function Tiles({ kind = 'together' }: { kind?: 'together' | 'rewards' }) {
   const t = useT()
   const nav = useNav()
   const [evening, setEvening] = useState(false)
@@ -180,6 +182,7 @@ export function Tiles() {
   const [world, setWorld] = useState(false)
   return (
     <div className="hub-tiles">
+      {kind === 'together' ? <>
       <button className="hub-tile note" onClick={() => setNote(true)}>
         <span className="ht-emoji">💌</span><b>{t('note.tile')}</b><span>{t('note.tileSub')}</span>
       </button>
@@ -189,6 +192,10 @@ export function Tiles() {
       <button className="hub-tile" onClick={() => setEvening(true)}>
         <span className="ht-emoji">🍿🍳</span><b>{t('hub.evening')}</b><span>{t('hub.eveningSub')}</span>
       </button>
+      <button className="hub-tile places" onClick={() => nav.open('dates')}>
+        <span className="ht-emoji">📍</span><b>{t('hub.places')}</b><span>{t('hub.placesSub')}</span>
+      </button>
+      </> : <>
       <button className="hub-tile" onClick={() => openCollection(nav, 'look')}>
         <span className="ht-emoji">✨</span><b>{t('col.title')}</b><span>{t('hub.collectionSub')}</span>
       </button>
@@ -198,6 +205,10 @@ export function Tiles() {
       <button className="hub-tile world" onClick={() => setWorld(true)}>
         <span className="ht-emoji">🌍</span><b>{t('mr.title')}</b><span>{t('mr.tileSub')}</span>
       </button>
+      <button className="hub-tile leaders" onClick={() => nav.settings('leaders')}>
+        <span className="ht-emoji">🥇</span><b>{t('lb.title')}</b><span>{t('lb.tileSub')}</span>
+      </button>
+      </>}
       {evening && <EveningSheet onClose={() => setEvening(false)} />}
       {note && <NoteComposer onClose={() => setNote(false)} />}
       {blind && <BlindWizard onClose={() => setBlind(false)} />}

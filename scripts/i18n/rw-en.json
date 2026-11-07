@@ -1,0 +1,14 @@
+{
+ "col.kind.flame": "Flames",
+ "col.kind.frame": "Frames",
+ "col.kind.hat": "Hats",
+ "col.shelf.flame": "Flames",
+ "col.shelf.frame": "Frames",
+ "col.shelf.hat": "Hats",
+ "col.hint.flame": "The colour your flame burns in — shared by both of you.",
+ "col.hint.frame": "The frame round your avatars on the couple card — shared.",
+ "col.hint.hat": "What your mascot wears — shared by both of you.",
+ "col.shelfHint.flame": "The colour and mood of your flame: on Today, in Us and wherever the day count shows.",
+ "col.shelfHint.frame": "A frame round the couple's avatars: gradients, glow, spin, patterns.",
+ "col.shelfHint.hat": "Hats, glasses and scarves for the mascot — it wears them everywhere."
+}

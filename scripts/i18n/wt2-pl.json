@@ -1,0 +1,6 @@
+{
+ "wt.mySite": "Własna strona",
+ "wt.mySites": "Nasze strony do szukania",
+ "wt.siteUrl": "Adres strony",
+ "wt.mySitesHint": "Dopisz stronę, na której oglądacie — przy każdym tytule pojawi się przycisk szukania na niej (przez Google w obrębie tej strony). Jeśli znasz adres wyszukiwarki, wstaw {q} w miejsce tytułu. Widoczne dla was obojga."
+}

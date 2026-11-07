@@ -1,5 +1,5 @@
 import type { Lang } from '../types'
-import { CULTURES, culturePalette, mix } from './cultures'
+import { CULTURES, cultureWall, culturePalette, mix, patternWall } from './cultures'
 
 /*
  * The collection: everything that makes the app look like "ours" — themes, atmospheres, the couple's mascot,
@@ -14,8 +14,8 @@ import { CULTURES, culturePalette, mix } from './cultures'
  */
 
 export type Tier = 'dev' | 'close' | 'public'
-export type Kind = 'theme' | 'atmo' | 'mascot' | 'scene' | 'card' | 'piggy'
-export const KINDS: Kind[] = ['theme', 'atmo', 'mascot', 'scene', 'card', 'piggy']
+export type Kind = 'theme' | 'atmo' | 'mascot' | 'scene' | 'card' | 'piggy' | 'flame' | 'frame' | 'hat'
+export const KINDS: Kind[] = ['theme', 'atmo', 'mascot', 'scene', 'card', 'piggy', 'flame', 'frame', 'hat']
 /**
  * What a close couple's threshold counts: couple level, best flame (days), joint actions, days with the flame, daily quests
  * done, passport stamps from the «Around the world» marathon. 'event' items are only earned through the marathon
@@ -177,6 +177,54 @@ export const PIGGIES: Record<string, { emoji: string; fill: [string, string] }> 
   suitcase: { emoji: '🧳', fill: ['#fcd34d', '#b45309'] },
 }
 
+/* ---------- the flame's colour, the couple card's frame, the mascot's hat ---------- */
+/** The flame: a glyph, a CSS filter for its colour, and maybe an animation. */
+export const FLAMES: Record<string, { glyph: string; filter?: string; anim?: 'rainbow' | 'pulse' | 'flicker' }> = {
+  classic: { glyph: '🔥' },
+  blue: { glyph: '🔥', filter: 'hue-rotate(200deg) saturate(1.4)' },
+  violet: { glyph: '🔥', filter: 'hue-rotate(255deg) saturate(1.3)' },
+  emerald: { glyph: '🔥', filter: 'hue-rotate(95deg) saturate(1.3)' },
+  rose: { glyph: '🔥', filter: 'hue-rotate(305deg) saturate(1.2)' },
+  gold: { glyph: '🔥', filter: 'sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.12)', anim: 'flicker' },
+  ice: { glyph: '🔥', filter: 'hue-rotate(175deg) saturate(0.6) brightness(1.35)' },
+  ember: { glyph: '🔥', filter: 'brightness(0.78) saturate(1.7) contrast(1.15)', anim: 'flicker' },
+  rainbow: { glyph: '🔥', anim: 'rainbow' },
+  heart: { glyph: '💗', anim: 'pulse' },
+  star: { glyph: '🌟', anim: 'pulse' },
+  sakura: { glyph: '🌸', anim: 'flicker' },
+  snow: { glyph: '❄️', anim: 'flicker' },
+  sun: { glyph: '☀️', anim: 'pulse' },
+  comet: { glyph: '☄️', anim: 'flicker' },
+}
+/** The ring around the couple's avatars: a CSS background for the ring, maybe a glow, a spin, little things around it. */
+export const FRAMES: Record<string, { ring?: string; glow?: string; spin?: boolean; deco?: string }> = {
+  none: {},
+  sunset: { ring: 'conic-gradient(from var(--fa, 0deg), #f97316, #ec4899, #8b5cf6, #f97316)' },
+  ocean: { ring: 'conic-gradient(from var(--fa, 0deg), #0ea5e9, #22d3ee, #6366f1, #0ea5e9)' },
+  mint: { ring: 'linear-gradient(135deg, #34d399, #a7f3d0, #10b981)' },
+  gold: { ring: 'linear-gradient(135deg, #b8860b, #f5d77a, #b8860b, #f5d77a)', glow: 'rgba(245, 215, 122, 0.55)' },
+  rainbow: { ring: 'conic-gradient(from var(--fa, 0deg), #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444)', spin: true },
+  neon: { ring: 'linear-gradient(135deg, #22d3ee, #a855f7)', glow: 'rgba(34, 211, 238, 0.75)' },
+  hearts: { ring: 'linear-gradient(135deg, #fb7185, #f472b6)', deco: '💗' },
+  sakura: { ring: 'linear-gradient(135deg, #fbcfe8, #f9a8d4, #fce7f3)', deco: '🌸' },
+  stars: { ring: 'conic-gradient(from var(--fa, 0deg), #1e1b4b, #6366f1, #fde68a, #1e1b4b)', deco: '✨', spin: true },
+  leaves: { ring: 'linear-gradient(135deg, #65a30d, #eab308, #c2410c)', deco: '🍃' },
+  snow: { ring: 'linear-gradient(135deg, #e0f2fe, #93c5fd, #ffffff)', deco: '❄️', glow: 'rgba(147, 197, 253, 0.6)' },
+  royal: { ring: 'conic-gradient(from var(--fa, 0deg), #6d28d9, #f5d77a, #6d28d9, #f5d77a, #6d28d9)', glow: 'rgba(109, 40, 217, 0.5)', spin: true, deco: '👑' },
+  dots: { ring: 'repeating-conic-gradient(#f43f5e 0 15deg, #fde68a 15deg 30deg)' },
+  candy: { ring: 'repeating-linear-gradient(45deg, #f472b6 0 6px, #ffffff 6px 12px)' },
+}
+/** Something the mascot wears: on its head, over the eyes or round its neck. */
+export const HATS: Record<string, { glyph?: string; pos: 'top' | 'eyes' | 'neck' }> = {
+  none: { pos: 'top' },
+  bow: { glyph: '🎀', pos: 'top' }, flower: { glyph: '🌸', pos: 'top' }, cap: { glyph: '🧢', pos: 'top' },
+  tophat: { glyph: '🎩', pos: 'top' }, grad: { glyph: '🎓', pos: 'top' }, crown: { glyph: '👑', pos: 'top' },
+  sunflower: { glyph: '🌻', pos: 'top' }, party: { glyph: '🎉', pos: 'top' }, headphones: { glyph: '🎧', pos: 'top' },
+  helmet: { glyph: '⛑️', pos: 'top' }, clover: { glyph: '🍀', pos: 'top' }, star: { glyph: '⭐', pos: 'top' },
+  rainbow: { glyph: '🌈', pos: 'top' }, shades: { glyph: '🕶️', pos: 'eyes' }, glasses: { glyph: '👓', pos: 'eyes' },
+  scarf: { glyph: '🧣', pos: 'neck' }, medal: { glyph: '🏅', pos: 'neck' },
+}
+
 /* ---------- the catalog ---------- */
 const item = (kind: Kind, key: string, emoji: string, name: Record<Lang, string>, rule?: Rule): Item => ({ id: `${kind}:${key}`, kind, key, emoji, name, rule })
 
@@ -254,6 +302,57 @@ export const CATALOG: Item[] = [
   item('piggy', 'rocket', '🚀', N('Ракета', 'Rocket', 'Rakieta', 'Cohete', 'Razzo'), R('flame', 21, 120)),
   item('piggy', 'moneytree', '🌳', N('Денежное дерево', 'Money tree', 'Drzewko szczęścia', 'Árbol del dinero', 'Albero dei soldi'), R('level', 38, 150)),
   item('piggy', 'hoard', '🐉', N('Драконье золото', "Dragon's hoard", 'Smoczy skarb', 'Tesoro del dragón', 'Tesoro del drago'), R('level', 75, 250, 3)),
+  // The flame's colour — shared by the couple.
+  item('flame', 'classic', '🔥', N('Классический', 'Classic', 'Klasyczny', 'Clásico', 'Classico')),
+  item('flame', 'blue', '💙', N('Голубое пламя', 'Blue flame', 'Niebieski płomień', 'Llama azul', 'Fiamma blu'), R('level', 10, 80)),
+  item('flame', 'heart', '💗', N('Сердечко', 'Little heart', 'Serduszko', 'Corazoncito', 'Cuoricino'), R('flame', 14, 100)),
+  item('flame', 'emerald', '💚', N('Изумрудное', 'Emerald', 'Szmaragdowy', 'Esmeralda', 'Smeraldo'), R('acts', 150, 100)),
+  item('flame', 'violet', '💜', N('Фиалковое', 'Violet', 'Fiołkowy', 'Violeta', 'Viola'), R('quests', 100, 120)),
+  item('flame', 'rose', '🌹', N('Розовое', 'Rose', 'Różany', 'Rosa', 'Rosa'), R('level', 30, 120)),
+  item('flame', 'star', '🌟', N('Звезда', 'Star', 'Gwiazda', 'Estrella', 'Stella'), R('stamps', 4, 150)),
+  item('flame', 'ice', '🧊', N('Ледяное', 'Ice', 'Lodowy', 'Hielo', 'Ghiaccio'), R('days', 60, 150)),
+  item('flame', 'sakura', '🌸', N('Сакура', 'Sakura', 'Sakura', 'Sakura', 'Sakura'), R('quests', 300, 180)),
+  item('flame', 'gold', '✨', N('Золотое', 'Golden', 'Złoty', 'Dorada', 'Dorata'), R('flame', 60, 200, 2)),
+  item('flame', 'ember', '🌋', N('Угли', 'Embers', 'Żar', 'Brasas', 'Brace'), R('acts', 500, 200)),
+  item('flame', 'snow', '❄️', N('Снежинка', 'Snowflake', 'Płatek śniegu', 'Copo de nieve', 'Fiocco di neve'), R('days', 150, 200)),
+  item('flame', 'rainbow', '🌈', N('Радужное', 'Rainbow', 'Tęczowy', 'Arcoíris', 'Arcobaleno'), R('level', 100, 300, 3)),
+  item('flame', 'sun', '☀️', N('Солнце', 'Sun', 'Słońce', 'Sol', 'Sole'), R('level', 150, 300)),
+  item('flame', 'comet', '☄️', N('Комета', 'Comet', 'Kometa', 'Cometa', 'Cometa'), R('level', 250, 400, 5)),
+  // Frames for the couple card — shared.
+  item('frame', 'none', '⭕', N('Без рамки', 'No frame', 'Bez ramki', 'Sin marco', 'Senza cornice')),
+  item('frame', 'sunset', '🌅', N('Закат', 'Sunset', 'Zachód', 'Atardecer', 'Tramonto'), R('level', 8, 80)),
+  item('frame', 'ocean', '🌊', N('Океан', 'Ocean', 'Ocean', 'Océano', 'Oceano'), R('flame', 10, 80)),
+  item('frame', 'leaves', '🍃', N('Листья', 'Leaves', 'Liście', 'Hojas', 'Foglie'), R('days', 30, 100)),
+  item('frame', 'hearts', '💗', N('Сердечки', 'Hearts', 'Serduszka', 'Corazones', 'Cuori'), R('flame', 21, 100)),
+  item('frame', 'candy', '🍭', N('Леденец', 'Candy', 'Lizak', 'Caramelo', 'Caramella'), R('quests', 60, 100)),
+  item('frame', 'mint', '🌿', N('Мятная', 'Mint', 'Miętowa', 'Menta', 'Menta'), R('acts', 100, 100)),
+  item('frame', 'sakura', '🌸', N('Сакура', 'Sakura', 'Sakura', 'Sakura', 'Sakura'), R('stamps', 8, 150)),
+  item('frame', 'stars', '✨', N('Звёздная', 'Starry', 'Gwiaździsta', 'Estrellada', 'Stellata'), R('level', 40, 150)),
+  item('frame', 'gold', '🥇', N('Золотая', 'Golden', 'Złota', 'Dorado', 'Dorata'), R('level', 60, 200)),
+  item('frame', 'snow', '❄️', N('Иней', 'Hoarfrost', 'Szron', 'Escarcha', 'Brina'), R('days', 150, 200)),
+  item('frame', 'neon', '💡', N('Неон', 'Neon', 'Neon', 'Neón', 'Neon'), R('quests', 200, 200)),
+  item('frame', 'dots', '🎪', N('Цирк', 'Circus', 'Cyrk', 'Circo', 'Circo'), R('acts', 300, 200)),
+  item('frame', 'rainbow', '🌈', N('Радуга', 'Rainbow', 'Tęcza', 'Arcoíris', 'Arcobaleno'), R('level', 120, 300, 3)),
+  item('frame', 'royal', '👑', N('Королевская', 'Royal', 'Królewska', 'Real', 'Reale'), R('level', 200, 400, 4)),
+  // What the mascot wears — shared.
+  item('hat', 'none', '🚫', N('Без шапочки', 'Nothing', 'Bez czapki', 'Sin nada', 'Niente')),
+  item('hat', 'bow', '🎀', N('Бантик', 'Bow', 'Kokardka', 'Lazo', 'Fiocco'), R('level', 3, 50)),
+  item('hat', 'flower', '🌸', N('Цветочек', 'Flower', 'Kwiatek', 'Florecita', 'Fiorellino'), R('flame', 5, 50)),
+  item('hat', 'cap', '🧢', N('Кепка', 'Cap', 'Czapka z daszkiem', 'Gorra', 'Cappellino'), R('acts', 30, 60)),
+  item('hat', 'party', '🎉', N('Праздник', 'Party', 'Impreza', 'Fiesta', 'Festa'), R('quests', 30, 60)),
+  item('hat', 'shades', '🕶️', N('Тёмные очки', 'Shades', 'Okulary przeciwsłoneczne', 'Gafas de sol', 'Occhiali da sole'), R('flame', 14, 80)),
+  item('hat', 'tophat', '🎩', N('Цилиндр', 'Top hat', 'Cylinder', 'Chistera', 'Cilindro'), R('level', 15, 80)),
+  item('hat', 'sunflower', '🌻', N('Подсолнух', 'Sunflower', 'Słonecznik', 'Girasol', 'Girasole'), R('days', 20, 80)),
+  item('hat', 'glasses', '👓', N('Очки умника', 'Smart glasses', 'Okulary mądrali', 'Gafas de listo', 'Occhiali da secchione'), R('acts', 80, 80)),
+  item('hat', 'grad', '🎓', N('Шапочка выпускника', 'Graduation cap', 'Biret', 'Birrete', 'Tocco'), R('level', 25, 100)),
+  item('hat', 'headphones', '🎧', N('Наушники', 'Headphones', 'Słuchawki', 'Auriculares', 'Cuffie'), R('days', 45, 100)),
+  item('hat', 'scarf', '🧣', N('Шарф', 'Scarf', 'Szalik', 'Bufanda', 'Sciarpa'), R('flame', 45, 120)),
+  item('hat', 'clover', '🍀', N('Клевер на удачу', 'Lucky clover', 'Koniczyna na szczęście', 'Trébol de la suerte', 'Quadrifoglio'), R('quests', 150, 120)),
+  item('hat', 'star', '⭐', N('Звёздочка', 'Little star', 'Gwiazdka', 'Estrellita', 'Stellina'), R('stamps', 2, 120)),
+  item('hat', 'helmet', '⛑️', N('Каска спасателя', 'Rescue helmet', 'Kask ratownika', 'Casco de rescate', 'Casco da soccorso'), R('acts', 200, 150)),
+  item('hat', 'rainbow', '🌈', N('Радуга', 'Rainbow', 'Tęcza', 'Arcoíris', 'Arcobaleno'), R('level', 50, 150)),
+  item('hat', 'crown', '👑', N('Корона', 'Crown', 'Korona', 'Corona', 'Corona'), R('level', 75, 250, 3)),
+  item('hat', 'medal', '🏅', N('Медаль за любовь', 'Medal for love', 'Medal za miłość', 'Medalla al amor', "Medaglia all'amore"), R('level', 300, 400, 5)),
   // «Around the world» — earned in the marathon (marathon.ts): weeks in a row and months of quests.
   item('mascot', 'parrot', '🦜', N('Попугай-путешественник', 'Travelling parrot', 'Papuga podróżniczka', 'Loro viajero', 'Pappagallo viaggiatore'), EV),
   item('mascot', 'camel', '🐫', N('Верблюд', 'Camel', 'Wielbłąd', 'Camello', 'Cammello'), EV),
@@ -277,12 +376,22 @@ export const CATALOG: Item[] = [
   ...CULTURES.map((c) => item('atmo', `c-${c.code}`, c.flag, c.name, EV)),
 ]
 
+/* Ordinary themes get a quiet pattern of their own (light, dark). */
+LOOKS.paper.wall = [patternWall('grid', '#8a5a3b', '#d4a373', LOOKS.paper.light[0], 0.1), patternWall('grid', mix('#8a5a3b', '#ffffff', 0.3), mix('#d4a373', '#ffffff', 0.3), LOOKS.paper.dark[0], 0.14)]
+LOOKS.mint.wall = [patternWall('dots', '#0f9d76', '#5eead4', LOOKS.mint.light[0], 0.14), patternWall('dots', mix('#0f9d76', '#ffffff', 0.3), mix('#5eead4', '#ffffff', 0.3), LOOKS.mint.dark[0], 0.18000000000000002)]
+LOOKS.dusk.wall = [patternWall('diag', '#5b5bd6', '#c026d3', LOOKS.dusk.light[0], 0.1), patternWall('diag', mix('#5b5bd6', '#ffffff', 0.3), mix('#c026d3', '#ffffff', 0.3), LOOKS.dusk.dark[0], 0.14)]
+LOOKS.latte.wall = [patternWall('scales', '#8b5e3c', '#c8a27a', LOOKS.latte.light[0], 0.14), patternWall('scales', mix('#8b5e3c', '#ffffff', 0.3), mix('#c8a27a', '#ffffff', 0.3), LOOKS.latte.dark[0], 0.18000000000000002)]
+LOOKS.sea.wall = [patternWall('waves', '#0284c7', '#2dd4bf', LOOKS.sea.light[0], 0.14), patternWall('waves', mix('#0284c7', '#ffffff', 0.3), mix('#2dd4bf', '#ffffff', 0.3), LOOKS.sea.dark[0], 0.18000000000000002)]
+LOOKS.berry.wall = [patternWall('dots', '#be185d', '#a855f7', LOOKS.berry.light[0], 0.14), patternWall('dots', mix('#be185d', '#ffffff', 0.3), mix('#a855f7', '#ffffff', 0.3), LOOKS.berry.dark[0], 0.18000000000000002)]
+LOOKS.forest.wall = [patternWall('stripes', '#2f6b3a', '#65a30d', LOOKS.forest.light[0], 0.1), patternWall('stripes', mix('#2f6b3a', '#ffffff', 0.3), mix('#65a30d', '#ffffff', 0.3), LOOKS.forest.dark[0], 0.14)]
+LOOKS.noir.wall = [patternWall('stripes', '#a16207', '#d4af37', LOOKS.noir.light[0], 0.08), patternWall('stripes', mix('#a16207', '#ffffff', 0.3), mix('#d4af37', '#ffffff', 0.3), LOOKS.noir.dark[0], 0.12)]
+
 /* Each culture's atmosphere: palette from its colours, things in the air, a scene with its landmarks. */
 for (const c of CULTURES) {
   const p = culturePalette(c)
   const dot = ['●', '✦', '✨'].includes(c.glyphs[0])
   LOOKS[`c-${c.code}`] = {
-    light: p.light, dark: p.dark, headers: [c.a1, c.a2], scene: `c-${c.code}`, decor: c.deco[0],
+    light: p.light, dark: p.dark, headers: [c.a1, c.a2], wall: cultureWall(c), scene: `c-${c.code}`, decor: c.deco[0],
     ambient: { glyphs: c.glyphs, motion: c.motion, count: c.glyphs[0] === '●' ? 16 : 10, ...(dot ? { color: mix(c.a2, '#ffffff', 0.35), glow: c.glyphs[0] === '●' ? mix(c.a2, '#ffffff', 0.6) : undefined } : {}) },
   }
   SCENES[`c-${c.code}`] = { bg: `linear-gradient(180deg, ${mix(c.a2, '#ffffff', 0.25)}, ${c.a1})`, deco: [[c.deco[0], 4, 58, 36], [c.deco[1] ?? c.deco[0], 76, 54, 34], [c.deco[2] ?? c.deco[0], 40, 6, 20]] }
@@ -292,5 +401,5 @@ export const isCulture = (i: Item) => i.kind === 'atmo' && i.key.startsWith('c-'
 
 export const ITEMS: Record<string, Item> = Object.fromEntries(CATALOG.map((i) => [i.id, i]))
 /** The default pick of each kind — always free. */
-export const DEFAULTS: Record<Kind, string> = { theme: 'theme:classic', atmo: 'theme:classic', mascot: 'mascot:fox', scene: 'scene:none', card: 'card:plain', piggy: 'piggy:classic' }
+export const DEFAULTS: Record<Kind, string> = { theme: 'theme:classic', atmo: 'theme:classic', mascot: 'mascot:fox', scene: 'scene:none', card: 'card:plain', piggy: 'piggy:classic', flame: 'flame:classic', frame: 'frame:none', hat: 'hat:none' }
 export const itemName = (i: Item, lang: Lang) => i.name[lang] ?? i.name.en

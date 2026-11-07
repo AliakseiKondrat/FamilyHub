@@ -1,0 +1,6 @@
+{
+ "wt.mySite": "Sitio propio",
+ "wt.mySites": "Nuestros sitios para buscar",
+ "wt.siteUrl": "Dirección del sitio",
+ "wt.mySitesHint": "Añade un sitio donde veis cosas: cada título tendrá un botón que busca en él (con Google, solo en ese sitio). Si conoces su página de búsqueda, pon {q} donde va el título. Lo veis los dos."
+}

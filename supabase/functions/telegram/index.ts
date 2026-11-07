@@ -67,6 +67,21 @@ const TX: Record<string, Record<string, string>> = {
 }
 const tx = (lang?: string) => TX[(lang ?? 'ru').slice(0, 2)] ?? TX.en
 const TARGETS = ['inbox', 'tasks', 'groceries', 'watch', 'recipes', 'wishes', 'places'] as const
+const GUESS: Record<string, string> = {
+  ru: 'Похоже, это в «{s}». Сохранить туда или выбрать другое?', en: 'Looks like «{s}». Save it there or pick another?',
+  pl: 'Wygląda na „{s}”. Zapisać tam czy wybrać inne?', es: 'Parece de «{s}». ¿Lo guardo ahí o eliges otro?', it: 'Sembra da «{s}». Lo salvo lì o scegli un altro?',
+}
+/** Guess the section from the link (and a word of the text), so the likely one is the first button. */
+function guessTarget(text: string): (typeof TARGETS)[number] | null {
+  const url = (text.match(/https?:\/\/\S+/)?.[0] ?? '').toLowerCase()
+  const all = `${url} ${text.toLowerCase()}`
+  if (/maps\.app\.goo\.gl|goo\.gl\/maps|google\.[a-z.]+\/maps|yandex\.[a-z]+\/maps|maps\.apple|2gis\.|tripadvisor|restaurantguru/.test(url)) return 'places'
+  if (/youtube\.com|youtu\.be|imdb\.com|netflix\.com|letterboxd|filmweb|player\.pl|cda\.pl|polsatboxgo|canalplus|skyshowtime|tv\.apple|primevideo|disneyplus|max\.com|hbomax|atresplayer|rtve\.es|movistarplus|kinopoisk/.test(url)) return 'watch'
+  if (/kwestiasmaku|aniagotuje|przepisy\.pl|mojewypieki|kuchnialidla|doradcasmaku|ugotuj\.to|smaker\.pl|kuchnia\.wp|allrecipes|bbcgoodfood|giallozafferano|recetasgratis|directoalpaladar|eda\.ru|povar\.ru|russianfood|recetas|recipe|рецепт|przepis|ricetta|receta/.test(all)) return 'recipes'
+  // Shops: Polish first (that's where we live), Spanish for the move, and the big international ones.
+  if (/allegro\.|olx\.pl|ceneo\.|empik\.|mediaexpert|x-kom|euro\.com\.pl|morele\.|mediamarkt|komputronik|vinted\.|temu\.|shein\.|zalando|answear|modivo|eobuwie|reserved\.|sinsay|mohito|ccc\.eu|pepco|notino|rossmann|douglas\.|hebe\.pl|smyk|decathlon|leroymerlin|castorama|ikea\.|amazon\.|aliexpress|zara\.com|hm\.com|etsy\.|ebay\.|sephora|wallapop|elcorteingles|pccomponentes|fnac\./.test(url)) return 'wishes'
+  return null
+}
 
 /** The member behind a Telegram user: their linked email → membership. */
 async function memberOf(tgId: number) {
@@ -116,8 +131,12 @@ async function onUpdate(token: string, u: any) {
     const member = await memberOf(from.id)
     if (!member) { await tg(token, 'sendMessage', { chat_id: chat, text: t.notLinked, reply_markup: openBtn }); return }
     const { data: p } = await sb.from('tg_pending').insert({ household: member.household, role: member.role, text: text.slice(0, 2000) }).select('id').single()
-    const rows = [TARGETS.slice(0, 3), TARGETS.slice(3, 5), TARGETS.slice(5)].map((r) => r.map((k) => ({ text: t[k], callback_data: `s:${p!.id}:${k}` })))
-    await tg(token, 'sendMessage', { chat_id: chat, text: t.where, reply_to_message_id: m.message_id, reply_markup: { inline_keyboard: rows } })
+    const guess = guessTarget(text)
+    const rest = TARGETS.filter((k) => k !== guess)
+    const btn = (k: string, star = false) => ({ text: (star ? '⭐ ' : '') + t[k], callback_data: `s:${p!.id}:${k}` })
+    const rows = [...(guess ? [[btn(guess, true)]] : []), rest.slice(0, 3).map((k) => btn(k)), rest.slice(3).map((k) => btn(k))].filter((r) => r.length)
+    const lang = (from?.language_code ?? 'ru').slice(0, 2)
+    await tg(token, 'sendMessage', { chat_id: chat, text: guess ? (GUESS[lang] ?? GUESS.en).replace('{s}', t[guess]) : t.where, reply_to_message_id: m.message_id, reply_markup: { inline_keyboard: rows } })
     return
   }
   if (u.callback_query) {

@@ -30,6 +30,7 @@ function count(s: State, id: ModuleId): number | string {
     }
     case 'home': case 'dates': case 'inbox': case 'archive':
       return visible(s.notes, me).filter((n) => n.module === id && !n.done).length
+    case 'lists': return visible(s.notes, me).filter((n) => n.module === 'lists').length
     default: return ''
   }
 }
