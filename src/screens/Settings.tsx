@@ -192,7 +192,7 @@ function DesignPage() {
       <Choice label={t('glass')} value={d.glass} onChange={(glass) => setDesign({ glass })}
         options={(['strong', 'normal', 'off'] as const).map((x) => ({ value: x, label: t(`glass.${x}`) }))} />
       <Choice label={t('headerStyle')} value={d.header} onChange={(header) => setDesign({ header })}
-        options={(['gradient', 'mesh', 'solid'] as const).map((x) => ({ value: x, label: t(`header.${x}`) }))} />
+        options={(['soft', 'gradient', 'mesh', 'solid'] as const).map((x) => ({ value: x, label: t(`header.${x}`) }))} />
       <Choice label={t('cardsStyle')} value={d.cards} onChange={(cards) => setDesign({ cards })}
         options={(['shadow', 'flat'] as const).map((x) => ({ value: x, label: t(`cards.${x}`) }))} />
       <Choice label={t('radius')} value={d.radius} onChange={(radius) => setDesign({ radius })}

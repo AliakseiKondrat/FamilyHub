@@ -244,7 +244,9 @@ export interface Design {
   glass: 'strong' | 'normal' | 'off'
   radius: 'compact' | 'normal' | 'round'
   textSize: 's' | 'm' | 'l'
-  header: 'gradient' | 'mesh' | 'solid'
+  header: 'gradient' | 'mesh' | 'solid' | 'soft'
+  /** Set once the v2 look (soft headers) has been offered, so switching back sticks. */
+  v2?: boolean
   cards: 'shadow' | 'flat'
   tabLabels: boolean
   reduceMotion: boolean

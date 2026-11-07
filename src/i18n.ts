@@ -803,6 +803,7 @@ const ru = {
   'tg.setup': 'Подключить бота',
   'tg.setupDone': 'Бот @{bot} подключён: вебхук и кнопка меню готовы ✓',
   'tg.setupHint': 'Сначала создайте бота в @BotFather и добавьте его токен в секреты Supabase как TELEGRAM_BOT_TOKEN. Потом нажмите — бот начнёт принимать ссылки, а в меню появится кнопка приложения.',
+  'header.soft': 'Пастель',
 }
 
 type Dict = typeof ru
@@ -1609,6 +1610,7 @@ const en: Partial<Dict> = {
   'tg.setup': 'Connect the bot',
   'tg.setupDone': 'Bot @{bot} connected: webhook and menu button are ready ✓',
   'tg.setupHint': 'First create a bot in @BotFather and add its token to the Supabase secrets as TELEGRAM_BOT_TOKEN. Then tap — the bot starts taking links and the app\'s button appears in its menu.',
+  'header.soft': 'Soft',
 }
 
 const pl: Partial<Dict> = {
@@ -2415,6 +2417,7 @@ const pl: Partial<Dict> = {
   'tg.setup': 'Podłącz bota',
   'tg.setupDone': 'Bot @{bot} podłączony: webhook i przycisk menu gotowe ✓',
   'tg.setupHint': 'Najpierw utwórz bota w @BotFather i dodaj jego token do sekretów Supabase jako TELEGRAM_BOT_TOKEN. Potem naciśnij — bot zacznie przyjmować linki, a w menu pojawi się przycisk aplikacji.',
+  'header.soft': 'Pastel',
 }
 
 const es: Partial<Dict> = {
@@ -3221,6 +3224,7 @@ const es: Partial<Dict> = {
   'tg.setup': 'Conectar el bot',
   'tg.setupDone': 'Bot @{bot} conectado: webhook y botón de menú listos ✓',
   'tg.setupHint': 'Primero crea un bot en @BotFather y añade su token a los secretos de Supabase como TELEGRAM_BOT_TOKEN. Luego pulsa: el bot empezará a recibir enlaces y en su menú aparecerá el botón de la app.',
+  'header.soft': 'Pastel',
 }
 
 const it: Partial<Dict> = {
@@ -4360,6 +4364,7 @@ const it: Partial<Dict> = {
   'tg.setup': 'Collega il bot',
   'tg.setupDone': 'Bot @{bot} collegato: webhook e pulsante del menu pronti ✓',
   'tg.setupHint': 'Prima crea un bot in @BotFather e aggiungi il suo token ai segreti di Supabase come TELEGRAM_BOT_TOKEN. Poi tocca: il bot inizierà a ricevere link e nel suo menu comparirà il pulsante dell\'app.',
+  'header.soft': 'Pastello',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

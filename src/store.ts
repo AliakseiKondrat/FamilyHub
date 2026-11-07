@@ -16,7 +16,7 @@ function load(): State {
       // Fill in settings added in newer versions of the app.
       // Lists added in newer versions start empty for an account (never with demo items).
       const d = SYNC_ENABLED ? blankState() : demoState(), p = JSON.parse(raw)
-      return { ...d, ...p, design: { ...d.design, ...p.design }, prefs: upgradePrefs(p.prefs), game: upgradeGame(p.game) }
+      return { ...d, ...p, design: { ...d.design, ...p.design, ...(p.design && !p.design.v2 ? { header: 'soft', v2: true } : {}) }, prefs: upgradePrefs(p.prefs), game: upgradeGame(p.game) }
     }
   } catch { /* storage unavailable: fall back to defaults */ }
   // Signed-in mode starts empty: demo data must never reach the real account (it once booked demo rent).

@@ -2,7 +2,7 @@ import type { Category, Design, GameSettings, ModuleId, Prefs, State, TodayBlock
 import { BUDGET_CATS, BUDGET_EMOJI, GROCERY_CATS, GROCERY_EMOJI } from './lib/categories'
 
 export const defaultDesign = (): Design => ({
-  accents: {}, glass: 'normal', radius: 'normal', textSize: 'm', header: 'gradient', cards: 'shadow',
+  accents: {}, glass: 'normal', radius: 'normal', textSize: 'm', header: 'soft', v2: true, cards: 'shadow',
   tabLabels: true, reduceMotion: false, haptics: true, tabTint: 'blue',
 })
 
