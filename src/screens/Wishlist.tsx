@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { base, other, update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { moduleLabel, useT, type TKey } from '../i18n'
 import {
-  Empty, EmojiField, GlassButton, Marks, Screen, Section, Segmented, Sheet, TextRow, ToggleRow, VisibilityFields, haptic, toast,
+  Empty, EmojiField, GlassButton, Marks, Row, Screen, Section, Segmented, Sheet, TextRow, ToggleRow, VisibilityFields, haptic, toast,
 } from '../ui'
 import { CoverBox, CoverPicker, fromPreview, relink, useAutoCovers } from '../cover'
-import { fmtMoney } from '../lib/date'
+import { fmtDate, fmtMoney, today } from '../lib/date'
 import { recordEmoji } from '../lib/emoji'
 import { currencyOf } from './Budget'
 import type { State, UserId, Wish, WishClaim } from '../types'
 
 const CURRENCIES = ['PLN', 'EUR', 'USD', 'GBP']
+const prio = (w: Wish) => w.priority ?? (w.top ? 2 : 0)
+const PRIO_MARK = ['', '💛', '❤️', '🔥']
 
 /** My private "I'll gift this" mark for a wish, if any (the other person's device never receives it). */
 const claimOf = (s: State, wishId: string) => visible(s.wishClaims, s.me).find((c) => c.wishId === wishId && c.privateTo === s.me)
@@ -33,7 +35,7 @@ export default function Wishlist({ back }: { back?: boolean }) {
   useAutoCovers(all, (id, p) => update((st) => { const x = st.wishes.find((k) => k.id === id); if (x) Object.assign(x, fromPreview(x, p)) }))
 
   const list = all.filter((w) => w.kind === tab && (tab === 'dream' || w.owner === whose))
-  const open = list.filter((w) => !w.got).sort((a, b) => Number(!!b.top) - Number(!!a.top))
+  const open = list.filter((w) => !w.got).sort((a, b) => prio(b) - prio(a))
   const done = list.filter((w) => w.got)
   const cur = currencyOf(s)
   const total = open.filter((w) => w.price && (w.currency ?? cur) === cur).reduce((a, w) => a + (w.price ?? 0), 0)
@@ -45,7 +47,8 @@ export default function Wishlist({ back }: { back?: boolean }) {
     return (
       <div key={w.id} className={'wish-card' + (w.got ? ' got' : '')} role="button" tabIndex={0} onClick={() => setEdit(w)}>
         <CoverBox className="wish-img" src={w.cover} fallback={<span>{recordEmoji(w) ?? (w.kind === 'dream' ? '✨' : '🎁')}</span>}>
-          {w.top && <span className="wish-top">❤️</span>}
+          {prio(w) > 0 && !w.got && <span className="wish-top">{PRIO_MARK[prio(w)]}{prio(w) === 3 ? ` ${t('wish.p3')}` : ''}</span>}
+          {w.got && w.gotFrom && <span className="wish-claim">🎁 {s.users[w.gotFrom].name}</span>}
           {showClaim && <span className="wish-claim">🎁 {mine!.bought ? t('wishBought') : t('wishIGiftOn')}</span>}
         </CoverBox>
         <div className="wish-body">
@@ -80,7 +83,7 @@ export default function Wishlist({ back }: { back?: boolean }) {
       )}
       {open.length > 0 && <div className="wish-grid">{open.map(card)}</div>}
       {done.length > 0 && <>
-        <div className="section-header" style={{ padding: '6px 30px 8px' }}><span>✅ {t('wishDone')}</span></div>
+        <div className="section-header" style={{ padding: '6px 30px 8px' }}><span>{tab === 'dream' ? `✅ ${t('wishDone')}` : whose === s.me ? `🎁 ${t('wish.gotMe')}` : `🎉 ${t('wish.gotPartner')}`}</span></div>
         <div className="wish-grid">{done.map(card)}</div>
       </>}
       {edit && <WishEditor wish={edit} onClose={() => setEdit(null)} />}
@@ -123,14 +126,31 @@ function WishEditor({ wish, onClose }: { wish: Wish; onClose: () => void }) {
           <ToggleRow icon="🎁" label={t('wishIGift')} on={!!claim} onChange={(on) => { setClaim(v.id, on); if (on) toast(`🎁 ${t('wishIGiftOn')}`) }} />
           {claim && <ToggleRow icon="🛍️" label={t('wishBought')} on={!!claim.bought}
             onChange={(bought) => update((st) => { const c = st.wishClaims.find((x) => x.id === claim.id); if (c) c.bought = bought })} />}
+          {claim && !v.got && <button className="row tap accent" onClick={() => {
+            update((st) => {
+              const w = st.wishes.find((x) => x.id === v.id)
+              if (w) { w.got = true; w.gotFrom = st.me; w.gotAt = today() }
+              st.wishClaims = st.wishClaims.filter((c) => c.wishId !== v.id)
+            })
+            toast(t('wish.handedToast'))
+            onClose()
+          }}>🎉 {t('wish.handed')}</button>}
         </Section>
       )}
+      {forPartner && claim && !v.got && <div className="col-hint" style={{ margin: '-8px 30px 14px' }}>{t('wish.handedHint', { name: s.users[partner].name })}</div>}
 
       <Section>
-        <ToggleRow icon="❤️" label={t('wishTop')} on={!!v.top} onChange={(top) => setV({ ...v, top: top || undefined })} />
         <ToggleRow icon="✅" label={v.kind === 'dream' ? t('wishCameTrue') : t('wishGot')} on={!!v.got} onChange={(got) => setV({ ...v, got: got || undefined })} />
       </Section>
 
+      {!v.got && (
+        <div style={{ margin: '0 14px 12px' }}>
+          <div className="section-header" style={{ padding: '0 18px 7px' }}>{t('wish.prio')}</div>
+          <Segmented inSheet value={String(prio(v))} onChange={(x) => setV({ ...v, priority: Number(x) as Wish['priority'], top: undefined })}
+            options={[0, 1, 2, 3].map((p) => ({ value: String(p), label: `${PRIO_MARK[p]} ${t(`wish.p${p}` as TKey)}`.trim() }))} />
+        </div>
+      )}
+      {v.got && v.gotFrom && <Section><Row icon="🎁" title={t('wish.fromName', { name: s.users[v.gotFrom].name })} sub={v.gotAt ? fmtDate(v.gotAt, s.lang, { day: 'numeric', month: 'long', year: 'numeric' }) : undefined} /></Section>}
       {v.createdBy === s.me && (
         <>
           <div className="section-header" style={{ padding: '0 32px 7px' }}>{t('wishWho')}</div>

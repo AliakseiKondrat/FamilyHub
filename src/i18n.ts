@@ -638,6 +638,17 @@ const ru = {
   'pl.spin': 'Крутить',
   'pl.spinAgain': 'Крутить ещё',
   'pl.letsGo': 'Идём сюда!',
+  'wish.prio': 'Насколько хочется',
+  'wish.p0': 'Обычно',
+  'wish.p1': 'Хочу',
+  'wish.p2': 'Очень',
+  'wish.p3': 'Больше всего',
+  'wish.handed': 'Подарок вручён',
+  'wish.handedHint': 'Когда вручишь, подарок появится у {name} в разделе «Мне подарили». До этого {name} ничего не видит.',
+  'wish.handedToast': 'Вручено! 🎉',
+  'wish.gotMe': 'Мне подарили',
+  'wish.gotPartner': 'Уже подарено',
+  'wish.fromName': 'Подарок · {name}',
 }
 
 type Dict = typeof ru
@@ -1279,6 +1290,17 @@ const en: Partial<Dict> = {
   'pl.spin': 'Spin',
   'pl.spinAgain': 'Spin again',
   'pl.letsGo': 'Let\'s go here!',
+  'wish.prio': 'How much it\'s wanted',
+  'wish.p0': 'Nice',
+  'wish.p1': 'Want',
+  'wish.p2': 'Really',
+  'wish.p3': 'Most of all',
+  'wish.handed': 'Gift handed over',
+  'wish.handedHint': 'Once you hand it over, it shows up for {name} in «I got». Until then {name} sees nothing.',
+  'wish.handedToast': 'Handed over! 🎉',
+  'wish.gotMe': 'I got',
+  'wish.gotPartner': 'Already given',
+  'wish.fromName': 'A gift · {name}',
 }
 
 const pl: Partial<Dict> = {
@@ -1920,6 +1942,17 @@ const pl: Partial<Dict> = {
   'pl.spin': 'Zakręć',
   'pl.spinAgain': 'Zakręć jeszcze raz',
   'pl.letsGo': 'Idziemy tutaj!',
+  'wish.prio': 'Jak bardzo',
+  'wish.p0': 'Zwykle',
+  'wish.p1': 'Chcę',
+  'wish.p2': 'Bardzo',
+  'wish.p3': 'Najbardziej',
+  'wish.handed': 'Prezent wręczony',
+  'wish.handedHint': 'Gdy go wręczysz, pojawi się u: {name} w sekcji „Dostałem/am”. Do tego czasu {name} nic nie widzi.',
+  'wish.handedToast': 'Wręczone! 🎉',
+  'wish.gotMe': 'Dostałem/am',
+  'wish.gotPartner': 'Już podarowane',
+  'wish.fromName': 'Prezent · {name}',
 }
 
 const es: Partial<Dict> = {
@@ -2561,6 +2594,17 @@ const es: Partial<Dict> = {
   'pl.spin': 'Girar',
   'pl.spinAgain': 'Girar otra vez',
   'pl.letsGo': '¡Vamos aquí!',
+  'wish.prio': 'Cuántas ganas',
+  'wish.p0': 'Normal',
+  'wish.p1': 'Quiero',
+  'wish.p2': 'Mucho',
+  'wish.p3': 'Lo que más',
+  'wish.handed': 'Regalo entregado',
+  'wish.handedHint': 'Cuando lo entregues, aparecerá para {name} en «Me han regalado». Hasta entonces {name} no ve nada.',
+  'wish.handedToast': '¡Entregado! 🎉',
+  'wish.gotMe': 'Me han regalado',
+  'wish.gotPartner': 'Ya regalado',
+  'wish.fromName': 'Un regalo · {name}',
 }
 
 const it: Partial<Dict> = {
@@ -3535,6 +3579,17 @@ const it: Partial<Dict> = {
   'pl.spin': 'Gira',
   'pl.spinAgain': 'Gira ancora',
   'pl.letsGo': 'Andiamo qui!',
+  'wish.prio': 'Quanto lo desideri',
+  'wish.p0': 'Normale',
+  'wish.p1': 'Voglio',
+  'wish.p2': 'Tanto',
+  'wish.p3': 'Più di tutto',
+  'wish.handed': 'Regalo consegnato',
+  'wish.handedHint': 'Quando lo consegni, comparirà a {name} in «Mi hanno regalato». Fino ad allora {name} non vede nulla.',
+  'wish.handedToast': 'Consegnato! 🎉',
+  'wish.gotMe': 'Mi hanno regalato',
+  'wish.gotPartner': 'Già regalato',
+  'wish.fromName': 'Un regalo · {name}',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

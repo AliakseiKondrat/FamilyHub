@@ -44,5 +44,8 @@ if (head.test(src)) {
   if (at < 0) throw new Error('anchor not found')
   src = src.slice(0, at) + `\nconst ${lang}: Partial<Dict> = {\n${lines.join('\n')}\n}\n` + src.slice(at)
 }
-writeFileSync(path, src)
+// Windows can hold the file for a moment while the dev server reads it: retry briefly.
+for (let i = 0; ; i++) {
+  try { writeFileSync(path, src); break } catch (e) { if (i >= 5) throw e; Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 300) }
+}
 console.log(`${lang}: +${lines.length} keys`)

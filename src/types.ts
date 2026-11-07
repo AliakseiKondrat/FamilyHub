@@ -127,6 +127,10 @@ export interface Wish extends Base {
   top?: boolean
   /** Received / came true. */
   got?: boolean
+  /** How much it's wanted: 0 just nice … 3 want it most (older wishes: `top` = 2). */
+  priority?: 0 | 1 | 2 | 3
+  /** Handed over by the partner (the giver marks it); shown in «I got». */
+  gotFrom?: UserId; gotAt?: string
 }
 /** "I'll gift this": always private to the giver, so the database never sends it to the person who wants it. */
 export interface WishClaim extends Base { wishId: string; bought?: boolean }
