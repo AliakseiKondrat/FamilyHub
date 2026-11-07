@@ -927,3 +927,4 @@ a { color: var(--blue); text-decoration: none; }
 @keyframes note-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.0); } 50% { box-shadow: 0 0 0 6px rgba(244, 114, 182, 0.25); } }
 .note-open .postcard { font-size: 19px; aspect-ratio: auto; min-height: 220px; }
 .rc-note { color: var(--pink) !important; font-weight: 600; }
+.badge.example { --c: var(--orange); font-size: 11px; font-weight: 600; padding: 1px 6px; white-space: nowrap; }

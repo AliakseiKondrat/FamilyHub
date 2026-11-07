@@ -18,6 +18,8 @@ export interface Base {
   revealAt?: string
   /** Only this user can see it. */
   privateTo?: UserId
+  /** A starter example for a new couple («example · can be deleted»): no points, no pushes. */
+  example?: boolean
   /** Picked by hand; otherwise guessed from the title ('' = none). */
   emoji?: string
 }

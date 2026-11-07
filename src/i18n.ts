@@ -521,6 +521,14 @@ const ru = {
   'note.yourReply': 'Твой ответ',
   'note.replyFrom': 'Ответ от {name}',
   'note.empty': 'Напишите {name} что-нибудь тёплое — записка придёт сюрпризом.',
+  'ex.badge': 'пример · можно удалить',
+  'ex.task': 'Полить цветы',
+  'ex.gro1': 'Молоко',
+  'ex.gro2': 'Хлеб',
+  'ex.event': 'Ужин вдвоём',
+  'ex.wish': 'Книга, о которой давно мечтаю',
+  'ex.remove': 'Убрать все примеры',
+  'ex.removed': 'Примеры убраны',
 }
 
 type Dict = typeof ru
@@ -1045,6 +1053,14 @@ const en: Partial<Dict> = {
   'note.yourReply': 'Your reply',
   'note.replyFrom': 'Reply from {name}',
   'note.empty': 'Write {name} something warm — the note arrives as a surprise.',
+  'ex.badge': 'example · can be deleted',
+  'ex.task': 'Water the plants',
+  'ex.gro1': 'Milk',
+  'ex.gro2': 'Bread',
+  'ex.event': 'Dinner for two',
+  'ex.wish': 'A book I\'ve wanted for ages',
+  'ex.remove': 'Remove all examples',
+  'ex.removed': 'Examples removed',
 }
 
 const pl: Partial<Dict> = {
@@ -1569,6 +1585,14 @@ const pl: Partial<Dict> = {
   'note.yourReply': 'Twoja odpowiedź',
   'note.replyFrom': 'Odpowiedź od: {name}',
   'note.empty': 'Napiszcie coś ciepłego — {name} dostanie liścik jako niespodziankę.',
+  'ex.badge': 'przykład · można usunąć',
+  'ex.task': 'Podlać kwiaty',
+  'ex.gro1': 'Mleko',
+  'ex.gro2': 'Chleb',
+  'ex.event': 'Kolacja we dwoje',
+  'ex.wish': 'Książka, o której od dawna marzę',
+  'ex.remove': 'Usuń wszystkie przykłady',
+  'ex.removed': 'Przykłady usunięte',
 }
 
 const es: Partial<Dict> = {
@@ -2093,6 +2117,14 @@ const es: Partial<Dict> = {
   'note.yourReply': 'Tu respuesta',
   'note.replyFrom': 'Respuesta de {name}',
   'note.empty': 'Escribid algo bonito: {name} recibirá la nota por sorpresa.',
+  'ex.badge': 'ejemplo · se puede borrar',
+  'ex.task': 'Regar las plantas',
+  'ex.gro1': 'Leche',
+  'ex.gro2': 'Pan',
+  'ex.event': 'Cena para dos',
+  'ex.wish': 'Un libro que quiero desde hace tiempo',
+  'ex.remove': 'Quitar todos los ejemplos',
+  'ex.removed': 'Ejemplos quitados',
 }
 
 const it: Partial<Dict> = {
@@ -2950,6 +2982,14 @@ const it: Partial<Dict> = {
   'note.yourReply': 'La tua risposta',
   'note.replyFrom': 'Risposta da {name}',
   'note.empty': 'Scrivete qualcosa di dolce: {name} riceverà il biglietto a sorpresa.',
+  'ex.badge': 'esempio · si può eliminare',
+  'ex.task': 'Annaffiare le piante',
+  'ex.gro1': 'Latte',
+  'ex.gro2': 'Pane',
+  'ex.event': 'Cena per due',
+  'ex.wish': 'Un libro che desidero da tempo',
+  'ex.remove': 'Rimuovi tutti gli esempi',
+  'ex.removed': 'Esempi rimossi',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

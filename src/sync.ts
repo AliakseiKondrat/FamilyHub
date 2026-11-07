@@ -8,6 +8,7 @@ import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
 import { defaultDesign, PERSONAL_KEYS, upgradeGame, SHARED_KEYS, upgradePrefs } from './defaults'
 import { clearUnlocks, loadUnlocks, setHouseholdGetter } from './lib/unlocks'
+import { seedExamples } from './lib/examples'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -242,7 +243,11 @@ async function onSession(session: Session | null) {
   loadUnlocks().catch(() => {})
   try {
     const hasSettings = await pull()
-    if (!hasSettings) enqueue([metaRow(SETTINGS_ID, shared(getState()), getState().me)])
+    if (!hasSettings) {
+      enqueue([metaRow(SETTINGS_ID, shared(getState()), getState().me)])
+      // A brand-new couple gets a few examples to look at (never our own household).
+      if (getHousehold() !== 'h1') seedExamples()
+    }
     setAuth({ online: true })
   } catch {
     setAuth({ online: false })

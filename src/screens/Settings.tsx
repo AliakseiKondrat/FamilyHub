@@ -16,6 +16,7 @@ import { MASCOT_STAGES, pausesOf, progress } from '../lib/game'
 import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
 import { itemName } from '../lib/catalog'
+import { hasExamples, removeExamples } from '../lib/examples'
 import { openTour } from './Tour'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
@@ -889,6 +890,7 @@ function DataPage() {
       <Section>
         <button className="row tap accent" onClick={exportData}>⬇️ {t('export')}</button>
         <button className="row tap accent" onClick={() => file.current?.click()}>⬆️ {t('importData')}</button>
+        {hasExamples(s) && <button className="row tap accent" onClick={() => { removeExamples(); toast(t('ex.removed')) }}>🧹 {t('ex.remove')}</button>}
         {!SYNC_ENABLED && <button className="row tap accent" onClick={() => { if (confirm(t('resetConfirm'))) replaceState({ ...demoState(), lang: s.lang }) }}>↺ {t('reset')}</button>}
         {/* Empties every list but keeps people, sections, design and the rest of the settings. In sync mode
             this goes through update() so the deletions reach the other phone too. */}

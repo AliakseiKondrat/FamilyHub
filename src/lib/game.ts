@@ -78,16 +78,16 @@ export function deriveActs(prev: State, next: State) {
   if (!next.game?.enabled || !next.acts) return
   const d = today()
   const was = byId(prev.tasks)
-  for (const k of next.tasks) if (k.done && !was.get(k.id)?.done) award(next, 'task', `${k.id}:${d}`)
+  for (const k of next.tasks) if (k.done && !k.example && !was.get(k.id)?.done) award(next, 'task', `${k.id}:${d}`)
   // Repeating tasks jump to the next date instead of being "done".
-  for (const k of next.tasks) { const p = was.get(k.id); if (p && p.due && k.due && k.due > p.due && k.repeat && k.repeat !== 'none') award(next, 'task', `${k.id}:${d}`) }
-  if (next.groceries.some((g) => g.done && !prev.groceries.find((p) => p.id === g.id)?.done)) award(next, 'grocery', d)
+  for (const k of next.tasks) { const p = was.get(k.id); if (!k.example && p && p.due && k.due && k.due > p.due && k.repeat && k.repeat !== 'none') award(next, 'task', `${k.id}:${d}`) }
+  if (next.groceries.some((g) => g.done && !g.example && !prev.groceries.find((p) => p.id === g.id)?.done)) award(next, 'grocery', d)
   const recipes = byId(prev.recipes)
   for (const r of next.recipes) if (r.cooked > (recipes.get(r.id)?.cooked ?? 0)) award(next, 'recipe', `${r.id}:${d}`)
   const watch = byId(prev.watch)
   for (const w of next.watch) if (w.status === 'done' && watch.get(w.id)?.status !== 'done') award(next, 'watch', w.id)
   const wishes = byId(prev.wishes)
-  for (const w of next.wishes) if (w.got && !wishes.get(w.id)?.got) award(next, 'wish', w.id)
+  for (const w of next.wishes) if (w.got && !w.example && !wishes.get(w.id)?.got) award(next, 'wish', w.id)
   const notes = byId(prev.notes)
   for (const n of next.notes) if (n.module === 'dates' && n.done && !notes.get(n.id)?.done) award(next, 'date', n.id)
   const trips = byId(prev.trips)
@@ -97,7 +97,7 @@ export function deriveActs(prev: State, next: State) {
   if (next.photos.length > prev.photos.length) award(next, 'photo', d)
   if (next.music.length > prev.music.length) award(next, 'music', d)
   const events = byId(prev.events)
-  if (next.events.some((e) => !events.has(e.id) && e.who === 'both' && !e.source)) award(next, 'event', d)
+  if (next.events.some((e) => !events.has(e.id) && e.who === 'both' && !e.source && !e.example)) award(next, 'event', d)
 }
 
 /* ---------- streak, XP, tree ---------- */

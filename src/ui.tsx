@@ -525,6 +525,7 @@ export function Marks({ x }: { x: Base }) {
     <>
       {x.surpriseFor && x.createdBy === s.me && <span className="badge" style={{ '--c': 'var(--pink)' } as CSSProperties}>🎁</span>}
       {x.privateTo && <span className="badge" style={{ '--c': 'var(--gray)' } as CSSProperties}>🔒</span>}
+      {x.example && <span className="badge example">{translate(s.lang, 'ex.badge')}</span>}
     </>
   )
 }

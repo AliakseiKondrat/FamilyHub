@@ -9,6 +9,7 @@ import { activeLook, activePiggy, lookOf } from '../lib/unlocks'
 import { PiggyBar, openCollection } from './Collection'
 import { PhotoThumb, useBlobUrl } from './Photos'
 import { NoteComposer } from './LoveNotes'
+import { hasExamples, removeExamples } from '../lib/examples'
 import type { CalEvent, State } from '../types'
 
 /*
@@ -98,18 +99,21 @@ export function FirstSteps() {
   const steps = [
     { key: 'since', done: !!s.since, go: () => setSince(true) },
     { key: 'mood', done: s.moods.some((m) => m.createdBy === s.me), go: () => document.querySelector('.mood-row')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) },
-    { key: 'list', done: s.groceries.length > 0 || s.tasks.length > 0, go: () => nav.open('groceries') },
-    { key: 'date', done: s.events.some((e) => e.repeat === 'yearly'), go: () => setDate(true) },
-    { key: 'wish', done: s.wishes.some((w) => w.createdBy === s.me), go: () => nav.open('wishlist') },
+    // Starter examples don't count: the steps are about the couple's own first entries.
+    { key: 'list', done: s.groceries.some((x) => !x.example) || s.tasks.some((x) => !x.example), go: () => nav.open('groceries') },
+    { key: 'date', done: s.events.some((e) => e.repeat === 'yearly' && !e.example), go: () => setDate(true) },
+    { key: 'wish', done: s.wishes.some((w) => w.createdBy === s.me && !w.example), go: () => nav.open('wishlist') },
   ] as const
   const done = steps.filter((x) => x.done).length
-  if (done === steps.length) return null
+  const examples = hasExamples(s)
+  if (done === steps.length && !examples) return null
   return (
     <Section header={`🚀 ${t('hub.steps')} · ${t('hub.stepsN', { done, total: steps.length })}`}
       action={<button onClick={() => update((st) => { st.prefs = { ...st.prefs, stepsHidden: true } })}>{t('hub.stepsHide')}</button>}>
       {steps.map((x) => (
         <Row key={x.key} icon={x.done ? '✅' : '⬜'} title={t(`hub.step.${x.key}`)} dim={x.done} chevron={!x.done} onClick={x.done ? undefined : x.go} />
       ))}
+      {examples && <button className="row tap accent" onClick={removeExamples}>🧹 {t('ex.remove')}</button>}
       {since && <SinceSheet onClose={() => setSince(false)} />}
       {date && <DateSheet onClose={() => setDate(false)} />}
     </Section>

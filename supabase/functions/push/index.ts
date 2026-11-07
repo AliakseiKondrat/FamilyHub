@@ -101,6 +101,7 @@ async function onRecord(rec: Row) {
   const { date, minutes } = localNow(c.tz)
   if (!visibleTo(rec, to, date) || !notifyPrefs(c, to).activity) return
   const d = rec.data ?? {}
+  if (d.example) return // starter examples for a new couple
   let key: keyof (typeof TX)['ru'] = rec.collection as any
   let body: string = d.title ?? ''
   switch (rec.collection) {
