@@ -89,7 +89,8 @@ export function deriveActs(prev: State, next: State) {
   const wishes = byId(prev.wishes)
   for (const w of next.wishes) if (w.got && !w.example && !wishes.get(w.id)?.got) award(next, 'wish', w.id)
   const notes = byId(prev.notes)
-  for (const n of next.notes) if (n.module === 'dates' && n.done && !notes.get(n.id)?.done) award(next, 'date', n.id)
+  // Places count per visit (Places.tsx); the old «been» tick still counts for places without visits.
+  for (const n of next.notes) if (n.module === 'dates' && n.done && !n.visits?.length && !notes.get(n.id)?.done) award(next, 'date', n.id)
   const trips = byId(prev.trips)
   for (const tr of next.trips) if (!trips.has(tr.id)) award(next, 'trip', tr.id)
   const goals = byId(prev.goals)

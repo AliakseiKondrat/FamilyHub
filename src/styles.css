@@ -967,3 +967,17 @@ a { color: var(--blue); text-decoration: none; }
 .bd-envelope b { font-size: 18px; }
 .bd-envelope span { font-size: 14px; opacity: 0.9; }
 .bd-left { margin-top: 6px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 4px 10px; font-weight: 700; }
+
+/* ---------- Places ---------- */
+.pl-filters { display: flex; gap: 8px; overflow-x: auto; flex-wrap: nowrap; margin-top: 10px; scrollbar-width: none; }
+.pl-filters::-webkit-scrollbar { display: none; }
+.pl-filters .chip { flex: none; }
+.pl-sort { display: flex; gap: 8px; margin: 0 16px 12px; overflow-x: auto; scrollbar-width: none; }
+.pl-sort .chip { flex: none; font-size: 13px; }
+.pl-wheel { margin: 0 16px 16px; border-radius: 24px; padding: 22px 16px; text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center;
+  background: linear-gradient(135deg, #be123c, #fb7185); color: #fff; min-height: 150px; justify-content: center; }
+.pl-wheel-emoji { font-size: 56px; line-height: 1; }
+.pl-wheel.spinning .pl-wheel-emoji { animation: pl-spin 0.5s linear infinite; }
+@keyframes pl-spin { to { transform: rotate(360deg); } }
+.pl-wheel b { font-size: 20px; }
+.pl-wheel span { font-size: 14px; opacity: 0.9; }

@@ -1,0 +1,7 @@
+{ "pl.wheel": "Ruota", "pl.sort.new": "Recenti", "pl.sort.az": "A–Z", "pl.sort.cheap": "Più economici", "pl.sort.rating": "Più votati",
+ "pl.emptyIdeas": "Aggiungete posti dove andare insieme: caffè, parchi, mostre — il link porta con sé l'immagine.", "pl.emptyBeen": "Qui ci saranno i posti dove siete già stati, con voti e recensioni.",
+ "pl.new": "Nuovo posto", "pl.name": "Nome", "pl.link": "Link (Google Maps, sito, social)", "pl.address": "Indirizzo", "pl.tags": "Tag separati da virgole: caffè, natura",
+ "pl.budget": "Budget", "pl.budget1": "Gratis", "pl.budget2": "Economico", "pl.budget3": "Medio", "pl.budget4": "Caro", "pl.price": "Prezzo esatto",
+ "pl.onMap": "Sulla mappa", "pl.visits": "Visite", "pl.markVisit": "Segna una visita", "pl.noVisits": "Non ci siete ancora stati: segnatelo quando andate.", "pl.visit": "Visita", "pl.saved": "Salvato ✓",
+ "pl.howWasIt": "Com'è stato?", "pl.review": "Due parole per ricordarlo…", "pl.again": "Ci torniamo?",
+ "pl.wheelHint": "Girala: la ruota sceglie dove andare", "pl.poolN": "Posti sulla ruota: {n}", "pl.onlyNew": "Solo posti dove non siamo stati", "pl.spin": "Gira", "pl.spinAgain": "Gira ancora", "pl.letsGo": "Andiamo qui!" }

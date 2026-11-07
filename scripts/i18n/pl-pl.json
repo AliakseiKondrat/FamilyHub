@@ -1,0 +1,7 @@
+{ "pl.wheel": "Koło", "pl.sort.new": "Najnowsze", "pl.sort.az": "A–Z", "pl.sort.cheap": "Najtańsze", "pl.sort.rating": "Najlepsze",
+ "pl.emptyIdeas": "Dodajcie miejsca, gdzie chcecie pójść razem: kawiarnie, parki, wystawy — link pobierze obrazek.", "pl.emptyBeen": "Tu będą miejsca, w których już byliście, z ocenami i opiniami.",
+ "pl.new": "Nowe miejsce", "pl.name": "Nazwa", "pl.link": "Link (Mapy Google, strona, social media)", "pl.address": "Adres", "pl.tags": "Tagi po przecinku: kawiarnia, natura",
+ "pl.budget": "Budżet", "pl.budget1": "Za darmo", "pl.budget2": "Tanio", "pl.budget3": "Średnio", "pl.budget4": "Drogo", "pl.price": "Dokładna cena",
+ "pl.onMap": "Na mapie", "pl.visits": "Wizyty", "pl.markVisit": "Zaznacz wizytę", "pl.noVisits": "Jeszcze nie byliście — zaznaczcie, gdy pójdziecie.", "pl.visit": "Wizyta", "pl.saved": "Zapisano ✓",
+ "pl.howWasIt": "Jak było?", "pl.review": "Kilka słów na pamiątkę…", "pl.again": "Wrócimy tu?",
+ "pl.wheelHint": "Zakręćcie — koło wybierze, dokąd iść", "pl.poolN": "Miejsc na kole: {n}", "pl.onlyNew": "Tylko tam, gdzie jeszcze nie byliśmy", "pl.spin": "Zakręć", "pl.spinAgain": "Zakręć jeszcze raz", "pl.letsGo": "Idziemy tutaj!" }

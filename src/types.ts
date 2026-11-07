@@ -100,7 +100,13 @@ export interface Note extends Base {
   due?: string; repeat?: Repeat; done?: boolean; tags?: string[]
   /** Picture for the link: web image URL or "photo:<key>"; '' = none. */
   cover?: string; site?: string
+  /** Places (the Dates section): budget 1 free … 4 pricey, exact price, address, visits with stars. */
+  budget?: 1 | 2 | 3 | 4; price?: number; address?: string
+  visits?: Visit[]
 }
+
+/** One time we went somewhere together. */
+export interface Visit { id: string; date: string; by: UserId; rating?: number; review?: string; again?: boolean }
 
 export interface Check { id: string; title: string; done: boolean }
 export interface PlanItem { id: string; date: string; time?: string; title: string }

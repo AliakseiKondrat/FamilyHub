@@ -1,0 +1,7 @@
+{ "pl.wheel": "Ruleta", "pl.sort.new": "Recientes", "pl.sort.az": "A–Z", "pl.sort.cheap": "Más baratos", "pl.sort.rating": "Mejor valorados",
+ "pl.emptyIdeas": "Añadid sitios a los que os apetece ir juntos: cafés, parques, exposiciones; el enlace trae la imagen.", "pl.emptyBeen": "Aquí estarán los sitios donde ya habéis estado, con notas y reseñas.",
+ "pl.new": "Sitio nuevo", "pl.name": "Nombre", "pl.link": "Enlace (Google Maps, web, redes)", "pl.address": "Dirección", "pl.tags": "Etiquetas con comas: café, naturaleza",
+ "pl.budget": "Presupuesto", "pl.budget1": "Gratis", "pl.budget2": "Barato", "pl.budget3": "Medio", "pl.budget4": "Caro", "pl.price": "Precio exacto",
+ "pl.onMap": "En el mapa", "pl.visits": "Visitas", "pl.markVisit": "Marcar visita", "pl.noVisits": "Aún no habéis ido: marcadlo cuando vayáis.", "pl.visit": "Visita", "pl.saved": "Guardado ✓",
+ "pl.howWasIt": "¿Qué tal fue?", "pl.review": "Unas palabras para el recuerdo…", "pl.again": "¿Volveremos aquí?",
+ "pl.wheelHint": "Gírala: la ruleta elige adónde ir", "pl.poolN": "Sitios en la ruleta: {n}", "pl.onlyNew": "Solo sitios donde no hemos estado", "pl.spin": "Girar", "pl.spinAgain": "Girar otra vez", "pl.letsGo": "¡Vamos aquí!" }

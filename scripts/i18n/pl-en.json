@@ -1,0 +1,7 @@
+{ "pl.wheel": "Wheel", "pl.sort.new": "Newest", "pl.sort.az": "A–Z", "pl.sort.cheap": "Cheapest", "pl.sort.rating": "Best rated",
+ "pl.emptyIdeas": "Add places you'd like to go together: cafés, parks, exhibitions — a link brings its picture.", "pl.emptyBeen": "Places you've been to will be here, with stars and reviews.",
+ "pl.new": "New place", "pl.name": "Name", "pl.link": "Link (Google Maps, website, social)", "pl.address": "Address", "pl.tags": "Tags with commas: café, nature",
+ "pl.budget": "Budget", "pl.budget1": "Free", "pl.budget2": "Cheap", "pl.budget3": "Moderate", "pl.budget4": "Pricey", "pl.price": "Exact price",
+ "pl.onMap": "On the map", "pl.visits": "Visits", "pl.markVisit": "Mark a visit", "pl.noVisits": "Not been yet — mark it once you go.", "pl.visit": "Visit", "pl.saved": "Saved ✓",
+ "pl.howWasIt": "How was it?", "pl.review": "A few words to remember it by…", "pl.again": "Shall we come back?",
+ "pl.wheelHint": "Spin it — the wheel picks where to go", "pl.poolN": "Places on the wheel: {n}", "pl.onlyNew": "Only places we haven't been", "pl.spin": "Spin", "pl.spinAgain": "Spin again", "pl.letsGo": "Let's go here!" }
