@@ -705,3 +705,57 @@ a { color: var(--blue); text-decoration: none; }
 .wish-price { margin-top: 4px; font-weight: 800; color: var(--orange); font-variant-numeric: tabular-nums; }
 .wish-site { margin-top: 4px; font-size: 13px; color: var(--label2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-layout='wide'] .screen-body > .wish-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+
+/* ---------- Couple ritual: pet, tree, flame ---------- */
+.ritual-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; }
+.rc-visual { flex: none; width: 74px; display: grid; place-items: center; }
+.rc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.rc-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rc-line b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-sub { font-size: 13px; color: var(--label2); }
+.flame-chip { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  background: color-mix(in srgb, var(--orange) 14%, transparent); color: var(--orange); }
+.flame-chip:not(.on) { filter: saturate(0.4); opacity: 0.8; }
+.xp { width: 100%; }
+.xp-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--label2); margin-bottom: 4px; }
+.xp-top b { color: var(--label); }
+.us-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.us-hero .seg { width: 100%; max-width: 320px; margin-bottom: 4px; }
+.us-hero .xp { max-width: 320px; }
+.us-hero .xp-top, .us-hero .xp-top b { color: rgba(255, 255, 255, 0.85); }
+.us-flame { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.8); }
+.us-flame .flame-chip { background: rgba(255, 255, 255, 0.92); }
+.mascot-view { position: relative; border: 0; background: none; padding: 0; cursor: pointer; width: calc(var(--mascot) * 1.25); height: calc(var(--mascot) * 1.15);
+  display: grid; place-items: center; -webkit-tap-highlight-color: transparent; }
+.mascot-emoji { font-size: var(--mascot); line-height: 1; display: block; }
+.mascot-badge { position: absolute; right: 2%; bottom: 4%; font-size: calc(var(--mascot) * 0.3); }
+.mascot-happy .mascot-emoji { animation: mascot-bounce 2.4s ease-in-out infinite; }
+.mascot-waiting .mascot-emoji { animation: mascot-sway 3.2s ease-in-out infinite; }
+.mascot-missing .mascot-emoji { filter: saturate(0.5); transform: rotate(-6deg); }
+.mascot-sleeping .mascot-emoji { filter: brightness(0.85); animation: mascot-breathe 4s ease-in-out infinite; }
+.mascot-vacation .mascot-emoji { animation: mascot-sway 4s ease-in-out infinite; }
+.mascot-view:active .mascot-emoji { transform: scale(0.92); }
+.mascot-hearts { position: absolute; left: 50%; top: 10%; transform: translateX(-50%); font-size: calc(var(--mascot) * 0.32); white-space: nowrap;
+  pointer-events: none; animation: mascot-hearts 1.2s ease-out forwards; }
+@keyframes mascot-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6%) } }
+@keyframes mascot-sway { 0%, 100% { transform: rotate(-4deg) } 50% { transform: rotate(4deg) } }
+@keyframes mascot-breathe { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.04) } }
+@keyframes mascot-hearts { from { opacity: 1; transform: translate(-50%, 0) scale(0.8) } to { opacity: 0; transform: translate(-50%, -90%) scale(1.15) } }
+.tree-view { position: relative; display: grid; place-items: center; height: calc(var(--tree) * 1.15); }
+.tree-emoji { font-size: var(--tree); line-height: 1; animation: mascot-sway 6s ease-in-out infinite; transform-origin: bottom center; }
+.tree-sparkle { position: absolute; top: 0; right: -10%; font-size: calc(var(--tree) * 0.3); }
+.mood-box { padding: 12px 14px; }
+.mood-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mood-btn { border: 0; border-radius: 14px; background: var(--fill); padding: 8px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font: inherit; color: var(--label2); cursor: pointer; transition: transform 0.15s, background 0.15s; }
+.mood-btn span { font-size: 26px; line-height: 1.1; }
+.mood-btn small { font-size: 11px; }
+.mood-btn.on { background: color-mix(in srgb, var(--orange) 18%, var(--cell)); color: var(--label); box-shadow: inset 0 0 0 2px var(--orange); transform: scale(1.04); }
+.mood-partner { margin-top: 10px; font-size: 13px; color: var(--label2); }
+.week-strip { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; padding: 12px 10px; }
+.ws-day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 16px; }
+.ws-day small { font-size: 10px; color: var(--label3); text-transform: uppercase; }
+.ws-day.today small { color: var(--orange); font-weight: 700; }
+.us-stats { padding: 14px 10px; }
+.us-stats .hero-num { color: var(--label); font-size: 24px; }
+.us-stats .hero-lbl { color: var(--label2); }

@@ -1,4 +1,4 @@
-import type { Category, Design, ModuleId, Prefs, State } from './types'
+import type { Category, Design, GameSettings, ModuleId, Prefs, State, TodayBlock } from './types'
 import { BUDGET_CATS, BUDGET_EMOJI, GROCERY_CATS, GROCERY_EMOJI } from './lib/categories'
 
 export const defaultDesign = (): Design => ({
@@ -18,13 +18,19 @@ export function upgradePrefs(saved: Partial<Prefs> | undefined): Prefs {
   if (missing.length) p.statusPresets = [...p.statusPresets.filter((x) => !x.together), ...missing.filter((x) => !x.together),
     ...p.statusPresets.filter((x) => x.together), ...missing.filter((x) => x.together)]
   p.presetsAdded = NEW_PRESETS
+  // New Today blocks go on top once; turning one off later keeps it off.
+  const known = new Set(saved?.blocksAdded ?? [])
+  const fresh = NEW_BLOCKS.filter((b) => !known.has(b) && !p.todayBlocks.some((x) => x.id === b))
+  if (fresh.length) p.todayBlocks = [...fresh.map((id) => ({ id, on: true })), ...p.todayBlocks]
+  p.blocksAdded = NEW_BLOCKS
   return p
 }
 
 export const defaultPrefs = (): Prefs => ({
   tabs: ['today', 'calendar', 'tasks', 'groceries'],
   todayActions: ['budget', 'music', 'photos', 'pet'],
-  todayBlocks: (['events', 'tasks', 'trip', 'budget', 'pet', 'music', 'memories', 'dateIdea', 'tomorrow'] as const).map((id) => ({ id, on: true })),
+  todayBlocks: (['ritual', 'events', 'tasks', 'trip', 'budget', 'pet', 'music', 'memories', 'dateIdea', 'tomorrow'] as const).map((id) => ({ id, on: true })),
+  blocksAdded: NEW_BLOCKS,
   weekStart: 1,
   startTab: 'today',
   swipeTabs: true,
@@ -61,13 +67,21 @@ export const defaultPrefs = (): Prefs => ({
   groceryEmoji: true,
 })
 
+export const defaultGame = (): GameSettings => ({
+  enabled: true, mascot: true, tree: true, quests: true, taps: true, moodAlerts: true,
+  mascotKind: 'otter', mascotName: '', questMode: 'all', pauses: [],
+})
+
+/** Today blocks added in newer versions: appended once to lists saved before them. */
+const NEW_BLOCKS: TodayBlock[] = ['ritual']
+
 export const defaultGroceryCats = (): Category[] => GROCERY_CATS.map((id) => ({ id, emoji: GROCERY_EMOJI[id] }))
 export const defaultBudgetCats = (): Category[] => BUDGET_CATS.map((id) => ({ id, emoji: BUDGET_EMOJI[id] }))
 
 /** Settings each person keeps for themselves (synced privately between their own devices). */
 export const PERSONAL_KEYS = ['lang', 'theme', 'design', 'prefs'] as const satisfies readonly (keyof State)[]
 /** Settings the two of you share. */
-export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength', 'groceryCats', 'budgetCats', 'splitA'] as const satisfies readonly (keyof State)[]
+export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cycleLength', 'periodLength', 'groceryCats', 'budgetCats', 'splitA', 'game'] as const satisfies readonly (keyof State)[]
 
 /** Modules that can live in the tab bar or be opened from More. */
-export const ALL_MODULES: ModuleId[] = ['today', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'wishlist', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']
+export const ALL_MODULES: ModuleId[] = ['today', 'us', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'wishlist', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']

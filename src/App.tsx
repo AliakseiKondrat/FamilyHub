@@ -20,6 +20,7 @@ import Travel, { TripDetail } from './screens/Travel'
 import Photos from './screens/Photos'
 import Cycle from './screens/Cycle'
 import Wishlist from './screens/Wishlist'
+import Us, { useLevelUp } from './screens/Us'
 import More from './screens/More'
 import Settings from './screens/Settings'
 import Login from './screens/Login'
@@ -45,6 +46,7 @@ function moduleScreen(id: ModuleId, back: boolean): ReactNode {
     case 'photos': return <Photos back={back} />
     case 'cycle': return <Cycle back={back} />
     case 'wishlist': return <Wishlist back={back} />
+    case 'us': return <Us back={back} />
   }
 }
 
@@ -133,6 +135,7 @@ export default function App() {
   const t = useT()
   const nav = useNav()
   const sync = useSync()
+  useLevelUp()
   const theme = useResolvedTheme(s.theme)
   const leaving = useLeaving(nav.stack)
   const [squish, setSquish] = useState(0)

@@ -1,6 +1,6 @@
 import type { Base, State, UserId } from './types'
 import { addDays, today } from './lib/date'
-import { defaultBudgetCats, defaultDesign, defaultGroceryCats, defaultPrefs } from './defaults'
+import { defaultBudgetCats, defaultDesign, defaultGame, defaultGroceryCats, defaultPrefs } from './defaults'
 
 let n = 0
 const b = (by: UserId = 'a', extra: Partial<Base> = {}): Base => ({
@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -132,6 +132,15 @@ export function demoState(): State {
       { ...b('j'), id: 'w5', title: 'Свой дом с садом', owner: 'both', kind: 'dream' },
     ],
     wishClaims: [{ ...b('a'), wishId: 'w3', privateTo: 'a' }],
+    // Three weeks of things done together, with two gaps the freezes cover.
+    acts: Array.from({ length: 21 }, (_, i) => i).filter((i) => i !== 6 && i !== 13).flatMap((i) => {
+      const day = d(-i - 1), kinds = (['task', 'recipe', 'grocery', 'watch', 'quest', 'task'] as const)
+      return [kinds[i % kinds.length], 'task' as const].map((kind, k) => ({
+        id: `act:${kind}:demo-${i}-${k}`, kind, ref: `demo-${i}-${k}`, date: day, createdBy: (k ? 'j' : 'a') as UserId, createdAt: new Date().toISOString(),
+      }))
+    }),
+    moods: [{ ...b('j'), date: t, value: 4 }],
+    game: defaultGame(),
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },
       { id: 'pr2', start: addDays(t, -32), end: addDays(t, -27) },

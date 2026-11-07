@@ -15,6 +15,7 @@ import { PhotoThumb } from './Photos'
 import { currencyOf, monthSpending } from './Budget'
 import { Cover, player } from './Music'
 import { StatusChips } from './Statuses'
+import { RitualCard } from './Us'
 import { findDeviceUrl, usePlatform } from '../lib/platform'
 
 export default function Today({ back }: { back?: boolean }) {
@@ -65,6 +66,7 @@ export default function Today({ back }: { back?: boolean }) {
   const actions = s.prefs.todayActions.filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j')).slice(0, 4).map(shortcut)
 
   const blocks: Record<TodayBlock, () => ReactNode> = {
+    ritual: () => <RitualCard key="ritual" />,
     trip: () => trip && (
       <button key="trip" className="banner" onClick={() => nav.push({ trip: trip.id })}>
         <span className="big-emoji">✈️</span>

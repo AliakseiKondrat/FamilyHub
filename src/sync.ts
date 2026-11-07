@@ -6,7 +6,7 @@ import { blankState } from './demo'
 import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
-import { defaultDesign, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defaults'
+import { defaultDesign, defaultGame, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defaults'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -14,7 +14,7 @@ import { defaultDesign, PERSONAL_KEYS, SHARED_KEYS, upgradePrefs } from './defau
  * pull (on start / when the app comes back to the foreground) and by Realtime in between.
  */
 
-const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods', 'statuses', 'wishes', 'wishClaims'] as const
+const COLLECTIONS = ['groceries', 'tasks', 'events', 'expenses', 'recurring', 'goals', 'watch', 'music', 'recipes', 'petRecords', 'weights', 'notes', 'trips', 'photos', 'periods', 'statuses', 'wishes', 'wishClaims', 'acts', 'moods'] as const
 type Coll = (typeof COLLECTIONS)[number]
 const SETTINGS_ID = 'meta:settings'
 const PERIOD_DAYS_ID = 'meta:period_days'
@@ -64,6 +64,12 @@ function applyPersonal(next: State, data: unknown) {
     design: { ...defaultDesign(), ...d.design },
     prefs: upgradePrefs(d.prefs),
   })
+}
+
+/** Shared settings from an older app version lack newer game fields; keep the defaults for those. */
+function applyShared(next: State, data: unknown) {
+  const d = data as Partial<State>
+  Object.assign(next, d, { game: { ...defaultGame(), ...d.game } })
 }
 
 function enqueue(rows: Row[]) {
@@ -135,7 +141,7 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
   for (const r of rows) {
     if (outbox[r.id] && !replace) continue // our own unsent edit is newer
     if (r.collection === 'meta') {
-      if (r.id === SETTINGS_ID && !r.deleted) Object.assign(next, r.data)
+      if (r.id === SETTINGS_ID && !r.deleted) applyShared(next, r.data)
       if (r.id === prefsId(next.me) && !r.deleted) applyPersonal(next, r.data)
       if (r.id === PERIOD_DAYS_ID && !r.deleted) next.sharedPeriodDays = (r.data as { days: string[] }).days
       continue
@@ -151,7 +157,7 @@ function applyRows(base: State, rows: Row[], replace: boolean): State {
     // Unsent local edits win over what the server returned.
     for (const r of Object.values(outbox)) {
       if (r.collection === 'meta') {
-        if (r.id === SETTINGS_ID) Object.assign(next, r.data)
+        if (r.id === SETTINGS_ID) applyShared(next, r.data)
         if (r.id === prefsId(next.me)) applyPersonal(next, r.data)
         continue
       }

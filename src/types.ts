@@ -6,7 +6,7 @@ export type Theme = 'auto' | 'light' | 'dark'
 
 export type ModuleId =
   | 'today' | 'groceries' | 'tasks' | 'calendar' | 'budget' | 'watch' | 'recipes' | 'music'
-  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle' | 'wishlist'
+  | 'pet' | 'home' | 'travel' | 'dates' | 'inbox' | 'archive' | 'photos' | 'cycle' | 'wishlist' | 'us'
 
 /** Fields every record carries: author plus the two visibility rules (surprise, private). */
 export interface Base {
@@ -123,6 +123,39 @@ export interface WishClaim extends Base { wishId: string; bought?: boolean }
 
 export interface Photo extends Base { album: string; caption?: string; width: number; height: number }
 
+/** Something done together that feeds the couple's mascot and grows their tree (id = act:<kind>:<ref>, so it counts once). */
+export interface Act {
+  id: string; kind: 'quest' | 'task' | 'grocery' | 'recipe' | 'watch' | 'wish' | 'date' | 'trip' | 'photo' | 'music'
+    | 'goal' | 'event' | 'checkin' | 'note' | 'blind' | 'taps'
+  ref: string; date: string; createdBy: UserId; createdAt: string
+  /** Love taps: this person's count for the day. */
+  count?: number
+}
+/** How someone feels today (1 hard … 5 great); a new entry replaces the earlier one of the day. */
+export interface Mood extends Base { date: string; value: number; note?: string }
+
+/** The couple's ritual: shared, so both phones show the same mascot and tree. */
+export interface GameSettings {
+  enabled: boolean
+  /** The couple's mascot — a game creature, never to be confused with the real pet in the Pet section. */
+  mascot: boolean
+  tree: boolean
+  quests: boolean
+  taps: boolean
+  /** Tell the partner when I mark a hard mood. */
+  moodAlerts: boolean
+  mascotKind: string
+  mascotName: string
+  /** Mascot stage pinned by hand (null = grows by itself). */
+  pinnedStage?: number
+  /** Quests for being together, at a distance, or both. */
+  questMode: 'near' | 'far' | 'all'
+  /** Vacation: these days neither count nor break the flame. */
+  pauses: { from: string; to: string }[]
+  /** "Another quest" presses for a given day, so both phones reshuffle alike. */
+  shuffle?: { date: string; n: number }
+}
+
 export interface Period { id: string; start: string; end?: string }
 
 export interface ModuleSettings { title?: string; emoji?: string; hidden?: boolean }
@@ -130,7 +163,7 @@ export interface ModuleSettings { title?: string; emoji?: string; hidden?: boole
 /** An editable category (groceries, budget): built-ins can be renamed/hidden, custom ones deleted. */
 export interface Category { id: string; title?: string; emoji: string; hidden?: boolean; custom?: boolean }
 
-export type TodayBlock = 'events' | 'tasks' | 'trip' | 'pet' | 'music' | 'memories' | 'dateIdea' | 'budget' | 'tomorrow'
+export type TodayBlock = 'ritual' | 'events' | 'tasks' | 'trip' | 'pet' | 'music' | 'memories' | 'dateIdea' | 'budget' | 'tomorrow'
 
 export interface Design {
   /** Per-section header gradient overrides (preset id). */
@@ -167,6 +200,8 @@ export interface Prefs {
   statusHours: number
   /** Ids of newer default status presets already offered, so deleting one keeps it deleted. */
   presetsAdded?: string[]
+  /** Today blocks already offered, so a newer block added later doesn't come back after being removed. */
+  blocksAdded?: TodayBlock[]
   /** Fetch a picture and title for pasted links. */
   linkPreviews: boolean
   showStatuses: boolean
@@ -217,6 +252,9 @@ export interface State {
   statuses: Status[]
   wishes: Wish[]
   wishClaims: WishClaim[]
+  acts: Act[]
+  moods: Mood[]
+  game: GameSettings
   /** Period days published by Julia's device — the only cycle data her partner receives. */
   sharedPeriodDays?: string[]
   cycleLength: number

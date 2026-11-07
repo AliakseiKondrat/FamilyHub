@@ -9,10 +9,11 @@ import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n
 import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, toast } from '../ui'
 import { demoState } from '../demo'
 import { SUPABASE_URL, SYNC_ENABLED } from '../config'
-import { LOCALES } from '../lib/date'
 import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign } from '../defaults'
+import { MASCOT_KINDS, MASCOT_STAGES, progress } from '../lib/game'
+import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
 import type { Category, Design, Lang, ModuleId, State, StatusPreset, Theme, TodayBlock, UserId } from '../types'
@@ -64,6 +65,7 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'google': return <GooglePage />
     case 'statuses': return <StatusesPage />
     case 'shortcuts': return <ShortcutsPage />
+    case 'game': return <GamePage />
     default: return <RootPage />
   }
 }
@@ -106,6 +108,7 @@ function RootPage() {
         {link('🧭', 'color-mix(in srgb, var(--blue) 20%, transparent)', t('tabBar'), 'tabs', s.prefs.tabs.map((m) => moduleLabel(s, m).emoji).join(''))}
         {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
         {link('💬', 'color-mix(in srgb, var(--green) 20%, transparent)', t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'))}
+        {link('🔥', 'linear-gradient(135deg,#f97316,#ec4899)', t('set.game'), 'game', s.game.enabled ? t('on') : t('off'))}
       </Section>
 
       <Section header={t('lists')}>
@@ -266,6 +269,7 @@ function TabsPage() {
 
 /* ---------- Today ---------- */
 const BLOCK_LABEL: Record<TodayBlock, { emoji: string; key: TKey }> = {
+  ritual: { emoji: '🔥', key: 'block.ritual' },
   events: { emoji: '📅', key: 'todayEvents' }, tasks: { emoji: '✅', key: 'todayTasks' }, trip: { emoji: '✈️', key: 'mod.travel' },
   budget: { emoji: '💰', key: 'mod.budget' }, pet: { emoji: '🐶', key: 'mod.pet' }, music: { emoji: '🎧', key: 'mod.music' },
   memories: { emoji: '📸', key: 'onThisDay' }, dateIdea: { emoji: '💕', key: 'dateIdea' }, tomorrow: { emoji: '📆', key: 'tomorrow' },
@@ -870,6 +874,70 @@ function DataPage() {
       </Section>
       <input ref={file} type="file" accept="application/json" hidden onChange={(e) => { importData(e.target.files?.[0]); e.target.value = '' }} />
       {!SYNC_ENABLED && <div className="section-footer" style={{ margin: '0 14px' }}>{t('prototype')}</div>}
+    </Screen>
+  )
+}
+
+/* ---------- Couple ritual (pet, tree, flame) ---------- */
+const setGame = (patch: Partial<State['game']>) => update((st) => { st.game = { ...st.game, ...patch } })
+
+function GamePage() {
+  const s = useApp()
+  const t = useT()
+  const g = s.game
+  const d = today()
+  const { level } = progress(s.acts, g.pauses, d)
+  const pause = g.pauses.find((x) => d >= x.from && d <= x.to)
+  const partner = s.users[s.me === 'a' ? 'j' : 'a'].name
+  const stages = MASCOT_STAGES.map((x, i) => ({ i, x })).filter(({ x }) => level >= x.from)
+  return (
+    <Screen title={t('set.game')} back accent="us" subtitle={t('game.enabledHint')}>
+      <Section footer={t('game.hideHint')}>
+        <ToggleRow icon="🔥" label={t('game.enabled')} on={g.enabled} onChange={(enabled) => setGame({ enabled })} />
+      </Section>
+      {g.enabled && <>
+        <Section>
+          <ToggleRow icon="🦦" label={t('game.mascot')} on={g.mascot} onChange={(mascot) => setGame({ mascot })} />
+          <ToggleRow icon="🌳" label={t('game.tree')} on={g.tree} onChange={(tree) => setGame({ tree })} />
+          <ToggleRow icon="✔️" label={t('game.quests')} on={g.quests} onChange={(quests) => setGame({ quests })} />
+          <ToggleRow icon="💗" label={t('game.taps')} on={g.taps} onChange={(taps) => setGame({ taps })} />
+          <ToggleRow icon="💙" label={t('game.moodAlerts', { name: partner })} on={g.moodAlerts} onChange={(moodAlerts) => setGame({ moodAlerts })} />
+        </Section>
+        {g.quests && <Choice label={t('game.mode')} value={g.questMode} onChange={(questMode) => setGame({ questMode })}
+          options={(['near', 'far', 'all'] as const).map((x) => ({ value: x, label: t(`gmode.${x}`) }))} />}
+        {g.mascot && <>
+          <Section header={t('game.name')}>
+            <TextRow value={g.mascotName} onChange={(mascotName) => setGame({ mascotName })} placeholder={t('us.mascotDefault')} />
+          </Section>
+          <div className="section-header" style={{ padding: '0 30px 8px' }}>{t('game.kind')}</div>
+          <div className="cat-grid">
+            {MASCOT_KINDS.map((k) => {
+              const locked = level < k.level
+              return (
+                <button key={k.id} className={'cat-btn' + (g.mascotKind === k.id ? ' on' : '')} disabled={locked}
+                  style={locked ? { opacity: 0.45 } : undefined} onClick={() => setGame({ mascotKind: k.id })}>
+                  <span className="ce">{k.emoji}</span>{locked ? `🔒 ${t('game.unlock', { n: k.level })}` : ''}
+                </button>
+              )
+            })}
+          </div>
+          <Section>
+            <SelectRow label={`🎒 ${t('game.stage')}`} value={g.pinnedStage === undefined ? 'auto' : String(g.pinnedStage)}
+              onChange={(v) => setGame({ pinnedStage: v === 'auto' ? undefined : Number(v) })}
+              options={[{ value: 'auto', label: t('game.auto') }, ...stages.map(({ i, x }) => ({ value: String(i), label: `${x.badge} ${t(`mstage.${i}` as TKey)}` }))]} />
+          </Section>
+        </>}
+        <Section header={t('game.pause')} footer={t('game.pauseHint')}>
+          {pause
+            ? <>
+                <Row icon="🏖️" title={t('us.pausedTill', { date: fmtDate(pause.to, s.lang) })} />
+                <button className="row tap destructive" onClick={() => setGame({ pauses: g.pauses.map((x) => (x === pause ? { ...x, to: addDays(d, -1) } : x)).filter((x) => x.to >= x.from) })}>{t('game.pauseEnd')}</button>
+              </>
+            : [3, 7, 14, 30].map((n) => (
+                <button key={n} className="row tap accent" onClick={() => setGame({ pauses: [...g.pauses, { from: d, to: addDays(d, n - 1) }] })}>🏖️ {t('game.pauseFor', { n })}</button>
+              ))}
+        </Section>
+      </>}
     </Screen>
   )
 }
