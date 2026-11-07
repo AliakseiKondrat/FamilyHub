@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { Look } from './lib/catalog'
 import type { ModuleId, State } from './types'
 import { getState } from './store'
 import { activeLook, lookOf } from './lib/unlocks'
@@ -82,4 +83,28 @@ export function applyLook(s: State, theme: 'light' | 'dark') {
   if (wall) el.style.setProperty('--wall', wall)
   el.dataset.wall = wall ? 'on' : 'off'
   el.dataset.look = id
+  // Character: titles in the look's own font, its card style, its roundness.
+  if (look.font) { loadFont(look.font); el.style.setProperty('--display', FONTS[look.font].stack) } else el.style.removeProperty('--display')
+  if (look.radius != null) el.style.setProperty('--radius', `${look.radius}px`); else el.style.removeProperty('--radius')
+  el.dataset.lookcards = look.cards ?? 'none'
+}
+
+/** Title fonts with Cyrillic and Latin (Polish, Spanish, Italian), loaded only when a look uses them. */
+export const FONTS: Record<NonNullable<Look['font']>, { css: string; stack: string }> = {
+  serif: { css: 'Playfair+Display:wght@700;900', stack: "'Playfair Display', Georgia, serif" },
+  classic: { css: 'Cormorant+Garamond:wght@600;700', stack: "'Cormorant Garamond', Georgia, serif" },
+  hand: { css: 'Caveat:wght@600;700', stack: "'Caveat', 'Segoe Print', cursive" },
+  script: { css: 'Marck+Script', stack: "'Marck Script', cursive" },
+  rounded: { css: 'Comfortaa:wght@600;700', stack: "'Comfortaa', 'Nunito', sans-serif" },
+  condensed: { css: 'Oswald:wght@500;600', stack: "'Oswald', 'Arial Narrow', sans-serif" },
+  festive: { css: 'Lobster', stack: "'Lobster', cursive" },
+  bold: { css: 'Russo+One', stack: "'Russo One', 'Arial Black', sans-serif" },
+}
+export function loadFont(f: NonNullable<Look['font']>) {
+  const id = `font-${f}`
+  if (document.getElementById(id)) return
+  const link = document.createElement('link')
+  link.id = id; link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?family=${FONTS[f].css}&subset=cyrillic,latin-ext&display=swap`
+  document.head.appendChild(link)
 }

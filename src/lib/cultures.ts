@@ -215,3 +215,30 @@ export function cultureWall(c: Culture): [string, string] {
     patternWall(p, mix(c.a1, '#ffffff', 0.25), mix(c.a2, '#ffffff', 0.2), pal.dark[0], 0.1, k, turn),
   ]
 }
+
+/* ---------- character: title font, card style, roundness ---------- */
+type Font = 'serif' | 'classic' | 'hand' | 'script' | 'rounded' | 'condensed' | 'festive' | 'bold'
+type Cards = 'paper' | 'outline' | 'neo' | 'glass' | 'pill' | 'sharp'
+const BY_PATTERN: Record<Pattern, [Font, Cards, number]> = {
+  tartan: ['serif', 'paper', 10], folk: ['classic', 'outline', 14], waves: ['rounded', 'pill', 26], zellige: ['classic', 'outline', 18],
+  kente: ['bold', 'neo', 12], stripes: ['condensed', 'sharp', 8], checks: ['hand', 'paper', 14], snow: ['condensed', 'glass', 20],
+  sun: ['bold', 'neo', 16], stars: ['bold', 'glass', 18], dots: ['hand', 'pill', 24], grid: ['condensed', 'sharp', 6],
+  scales: ['rounded', 'outline', 20], diag: ['festive', 'neo', 14],
+}
+/** The famous ones get their own touch. */
+const OWN: Record<string, Partial<{ font: Font; cards: Cards; radius: number }>> = {
+  fr: { font: 'serif', cards: 'outline', radius: 6 }, it: { font: 'script', cards: 'paper', radius: 16 }, mx: { font: 'festive', cards: 'neo', radius: 12 },
+  br: { font: 'festive' }, cu: { font: 'festive' }, ar: { font: 'script', cards: 'paper' }, es: { font: 'festive', cards: 'neo' },
+  jp: { font: 'rounded', cards: 'pill', radius: 28 }, kr: { font: 'rounded', cards: 'pill', radius: 24 }, cn: { font: 'classic', cards: 'neo', radius: 6 },
+  in: { font: 'script', cards: 'pill' }, gr: { font: 'classic', cards: 'outline', radius: 4 }, eg: { font: 'classic', cards: 'neo', radius: 4 },
+  us: { font: 'bold', cards: 'neo', radius: 10 }, gb: { font: 'serif', cards: 'outline', radius: 4 }, ie: { font: 'hand', cards: 'paper' },
+  ru: { font: 'classic', cards: 'outline' }, by: { font: 'classic', cards: 'outline' }, pl: { font: 'classic', cards: 'outline' },
+  ua: { font: 'classic', cards: 'outline' }, at: { font: 'script', cards: 'outline', radius: 12 }, cz: { font: 'serif' }, hu: { font: 'serif' },
+  ge: { font: 'classic', cards: 'paper' }, am: { font: 'classic', cards: 'paper' }, nl: { font: 'condensed', cards: 'pill', radius: 22 },
+  ch: { font: 'condensed', cards: 'sharp', radius: 2 }, de: { font: 'condensed', cards: 'sharp', radius: 4 }, au: { font: 'festive', cards: 'pill' },
+  th: { font: 'rounded', cards: 'pill' }, vn: { font: 'rounded', cards: 'pill' }, ph: { font: 'festive', cards: 'pill' }, world: { font: 'bold', cards: 'glass' },
+}
+export function cultureCharacter(code: string): { font: Font; cards: Cards; radius: number } {
+  const [font, cards, radius] = BY_PATTERN[PATTERN[code] ?? 'dots']
+  return { font, cards, radius, ...OWN[code] }
+}

@@ -5,6 +5,7 @@ import { useNav } from '../nav'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, ToggleRow, haptic, toast } from '../ui'
 import { SYNC_ENABLED } from '../config'
 import { fmtDate } from '../lib/date'
+import { FONTS, loadFont } from '../theme'
 import { CARDS, CATALOG, DEFAULTS, FLAMES, FRAMES, HATS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
 import { marathonOf, nextWeekOf } from '../lib/marathon'
 import {
@@ -31,8 +32,9 @@ function ThemePreview({ id }: { id: string }) {
     <div className="theme-prev" style={{ background: look.wall?.[dark ? 1 : 0] ?? pal[0] }}>
       <div className="tp-head" style={{ background: `linear-gradient(135deg, ${h1}, ${h2})` }} />
       <div className="tp-body">
-        <div className="tp-row" style={{ background: pal[1] }} />
-        <div className="tp-row" style={{ background: pal[1], width: '72%' }} />
+        {look.font && <span className="tp-font" style={{ fontFamily: FONTS[look.font].stack, color: pal[3] }} ref={() => loadFont(look.font!)}>Аа</span>}
+        <div className="tp-row" style={{ background: pal[1], borderRadius: look.radius != null ? Math.min(10, look.radius / 2) : undefined, boxShadow: look.cards === 'neo' ? `2px 2px 0 ${pal[3]}` : look.cards === 'outline' ? `inset 0 0 0 1px ${pal[3]}` : undefined }} />
+        <div className="tp-row" style={{ background: pal[1], width: '72%', borderRadius: look.radius != null ? Math.min(10, look.radius / 2) : undefined }} />
         <div className="tp-dot" style={{ background: pal[3] }} />
       </div>
       {look.decor && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: 18 }}>{look.decor}</span>}

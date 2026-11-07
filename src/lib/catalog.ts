@@ -1,5 +1,5 @@
 import type { Lang } from '../types'
-import { CULTURES, cultureWall, culturePalette, mix, patternWall } from './cultures'
+import { CULTURES, cultureCharacter, cultureWall, culturePalette, mix, patternWall } from './cultures'
 
 /*
  * The collection: everything that makes the app look like "ours" — themes, atmospheres, the couple's mascot,
@@ -47,7 +47,13 @@ export interface Look {
   ambient?: { glyphs: string[]; motion: 'fall' | 'rise' | 'float' | 'streak'; color?: string; glow?: string; count?: number }
   scene?: string
   decor?: string
+  /** Character beyond colour: the font of titles, how cards look, how round things are. */
+  font?: LookFont
+  cards?: LookCards
+  radius?: number
 }
+export type LookFont = 'serif' | 'classic' | 'hand' | 'script' | 'rounded' | 'condensed' | 'festive' | 'bold'
+export type LookCards = 'paper' | 'outline' | 'neo' | 'glass' | 'pill' | 'sharp'
 
 const STARS_DARK = 'radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 32% 42%, #fff, transparent), '
   + 'radial-gradient(1.5px 1.5px at 58% 12%, #e0e7ff, transparent), radial-gradient(1px 1px at 76% 34%, #fff, transparent), '
@@ -378,6 +384,16 @@ export const CATALOG: Item[] = [
   ...CULTURES.map((c) => item('atmo', `c-${c.code}`, c.flag, c.name, EV)),
 ]
 
+/* Ordinary themes and atmospheres: a character of their own. */
+const CHAR: Record<string, [LookFont | undefined, LookCards | undefined, number | undefined]> = {
+  paper: ['serif', 'paper', 10], mint: ['rounded', 'pill', 28], dusk: ['condensed', 'glass', 20], latte: ['classic', 'paper', 14],
+  sea: ['rounded', 'glass', 26], berry: ['hand', 'pill', 26], forest: ['classic', 'outline', 16], sunrise: ['festive', undefined, 22],
+  noir: ['serif', 'sharp', 4], aurora: ['condensed', 'glass', 22], cosmos: ['bold', 'glass', 18], gold: ['serif', 'outline', 12],
+  snow: ['condensed', 'glass', 22], sakura: ['rounded', 'pill', 28], leaves: ['hand', 'paper', 12], fireflies: ['classic', 'glass', 20],
+  valentine: ['script', 'pill', 26], starfall: ['serif', 'glass', 18],
+}
+for (const [k, [font, cards, radius]] of Object.entries(CHAR)) Object.assign(LOOKS[k], { font, cards, radius })
+
 /* Ordinary themes get a quiet pattern of their own (light, dark). */
 LOOKS.paper.wall = [patternWall('grid', '#8a5a3b', '#d4a373', LOOKS.paper.light[0], 0.1), patternWall('grid', mix('#8a5a3b', '#ffffff', 0.3), mix('#d4a373', '#ffffff', 0.3), LOOKS.paper.dark[0], 0.14)]
 LOOKS.mint.wall = [patternWall('dots', '#0f9d76', '#5eead4', LOOKS.mint.light[0], 0.14), patternWall('dots', mix('#0f9d76', '#ffffff', 0.3), mix('#5eead4', '#ffffff', 0.3), LOOKS.mint.dark[0], 0.18000000000000002)]
@@ -393,7 +409,7 @@ for (const c of CULTURES) {
   const p = culturePalette(c)
   const dot = ['●', '✦', '✨'].includes(c.glyphs[0])
   LOOKS[`c-${c.code}`] = {
-    light: p.light, dark: p.dark, headers: [c.a1, c.a2], wall: cultureWall(c), scene: `c-${c.code}`, decor: c.deco[0],
+    light: p.light, dark: p.dark, headers: [c.a1, c.a2], wall: cultureWall(c), scene: `c-${c.code}`, decor: c.deco[0], ...cultureCharacter(c.code),
     ambient: { glyphs: c.glyphs, motion: c.motion, count: c.glyphs[0] === '●' ? 16 : 10, ...(dot ? { color: mix(c.a2, '#ffffff', 0.35), glow: c.glyphs[0] === '●' ? mix(c.a2, '#ffffff', 0.6) : undefined } : {}) },
   }
   SCENES[`c-${c.code}`] = { bg: `linear-gradient(180deg, ${mix(c.a2, '#ffffff', 0.25)}, ${c.a1})`, deco: [[c.deco[0], 4, 58, 36], [c.deco[1] ?? c.deco[0], 76, 54, 34], [c.deco[2] ?? c.deco[0], 40, 6, 20]] }

@@ -1188,3 +1188,24 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .ls-del { border: 0; background: none; color: var(--label3, var(--label2)); font-size: 22px; padding: 0 4px; line-height: 1; }
 .chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
 .chips-wrap .chip { background: var(--fill); color: var(--label); box-shadow: none; }
+
+/* ---------- a look's character: card styles ---------- */
+[data-lookcards='paper'] .list, [data-lookcards='paper'] .card, [data-lookcards='paper'] .us-card, [data-lookcards='paper'] .us-ritual {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--blue) 18%, transparent), 0 6px 16px rgba(0, 0, 0, 0.06);
+  background-image: repeating-linear-gradient(0deg, transparent 0 27px, color-mix(in srgb, var(--blue) 7%, transparent) 27px 28px); }
+[data-lookcards='outline'] .list, [data-lookcards='outline'] .card, [data-lookcards='outline'] .us-card, [data-lookcards='outline'] .us-ritual {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--blue) 45%, transparent); }
+[data-lookcards='neo'] .list, [data-lookcards='neo'] .card, [data-lookcards='neo'] .us-card, [data-lookcards='neo'] .us-ritual {
+  box-shadow: inset 0 0 0 2px var(--label), 4px 4px 0 var(--blue); }
+[data-lookcards='neo'] .section { margin-right: 18px; }
+[data-lookcards='glass'] .list, [data-lookcards='glass'] .card, [data-lookcards='glass'] .us-card, [data-lookcards='glass'] .us-ritual {
+  background: color-mix(in srgb, var(--cell) 62%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px rgba(0, 0, 0, 0.12); }
+[data-lookcards='pill'] .list, [data-lookcards='pill'] .card { box-shadow: 0 10px 30px color-mix(in srgb, var(--blue) 16%, transparent); }
+[data-lookcards='pill'] .chip, [data-lookcards='pill'] .glass-btn { border-radius: 999px; }
+[data-lookcards='sharp'] .list, [data-lookcards='sharp'] .card, [data-lookcards='sharp'] .us-card, [data-lookcards='sharp'] .us-ritual {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--label) 18%, transparent); }
+[data-lookcards='sharp'] .chip, [data-lookcards='sharp'] .seg, [data-lookcards='sharp'] .seg button, [data-lookcards='sharp'] .seg-thumb { border-radius: 4px; }
+/* Titles in the look's font read a touch larger for script and hand fonts. */
+[data-look] .large-title { font-family: var(--display); }
+.tp-font { position: absolute; left: 10px; bottom: 6px; font-size: 22px; line-height: 1; font-weight: 700; }
