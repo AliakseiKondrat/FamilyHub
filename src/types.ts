@@ -206,6 +206,8 @@ export interface Prefs {
   presetsAdded?: string[]
   /** Today blocks already offered, so a newer block added later doesn't come back after being removed. */
   blocksAdded?: TodayBlock[]
+  /** My order of sections (sidebar on iPad/Mac and «More»); unset = tab bar sections first, then the default order. */
+  order?: ModuleId[]
   /** My own look from the collection: a theme or an atmosphere id (e.g. 'theme:dusk'). */
   look?: string
   /** Developers only: preview the app as a close couple or an ordinary one. */

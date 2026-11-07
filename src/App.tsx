@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { useApp } from './store'
 import { moduleLabel, useT } from './i18n'
 import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
-import { ALL_MODULES } from './defaults'
+import { ALL_MODULES, moduleOrder } from './defaults'
 import { Icon, haptic, toast } from './ui'
 import { accentColors, applyDesign } from './theme'
 import type { ModuleId } from './types'
@@ -87,7 +87,7 @@ function Sidebar() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
-  const mods = [...s.prefs.tabs, ...ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m))]
+  const mods = moduleOrder(s)
     .filter((m) => (!s.modules[m]?.hidden || s.prefs.tabs.includes(m)) && (m !== 'cycle' || s.me === 'j'))
   return (
     <aside className="sidebar lg">
@@ -103,7 +103,7 @@ function Sidebar() {
           const l = moduleLabel(s, m)
           const [c1, c2] = accentColors(m, s)
           return (
-            <button key={m} className={'sb-item' + (nav.tab === m ? ' on' : '') + (i === s.prefs.tabs.length - 1 ? ' sep' : '')}
+            <button key={m} className={'sb-item' + (nav.tab === m ? ' on' : '') + (!s.prefs.order?.length && i === s.prefs.tabs.length - 1 ? ' sep' : '')}
               onClick={() => (nav.tab === m && nav.stack.length ? history.go(-nav.stack.length) : nav.setTab(m))}>
               <span className="sb-ico" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>{l.emoji}</span>
               <span>{l.title}</span>

@@ -6,12 +6,12 @@ import { ANDROID, PRESETS as SHORTCUTS, androidSteps, androidUrl, presetSteps } 
 import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
-import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, toast } from '../ui'
+import { EmojiPicker, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, haptic, toast } from '../ui'
 import { demoState } from '../demo'
 import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
-import { ALL_MODULES, defaultDesign } from '../defaults'
+import { ALL_MODULES, defaultDesign, moduleOrder } from '../defaults'
 import { MASCOT_STAGES, progress } from '../lib/game'
 import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
@@ -320,16 +320,37 @@ function SectionsPage() {
   const s = useApp()
   const t = useT()
   const [mod, setMod] = useState<ModuleId | null>(null)
+  const [sorting, setSorting] = useState(false)
+  const order = moduleOrder(s)
+  const list = order.filter((m) => m !== 'cycle' || s.me === 'j')
+  // Moving among the sections I can see; the hidden cycle section keeps its place for the other person.
+  const move = (m: ModuleId, dir: -1 | 1) => {
+    const i = list.indexOf(m), j = i + dir
+    if (j < 0 || j >= list.length) return
+    const swapped = [...list]; [swapped[i], swapped[j]] = [swapped[j], swapped[i]]
+    const rest = order.filter((x) => !list.includes(x))
+    update((st) => { st.prefs = { ...st.prefs, order: [...swapped, ...rest] } })
+    haptic()
+  }
+  const arrow = (m: ModuleId, dir: -1 | 1, off: boolean) => (
+    <button className="glass-btn lg" style={{ height: 34, minWidth: 34, padding: 0, opacity: off ? 0.3 : 1 }} disabled={off}
+      aria-label={t(dir < 0 ? 'order.up' : 'order.down')} onClick={(e) => { e.stopPropagation(); move(m, dir) }}>{dir < 0 ? '▲' : '▼'}</button>
+  )
   return (
     <Screen title={t('sections')} back accent="settings" subtitle={t('sectionsHint')}>
-      <Section>
-        {ALL_MODULES.filter((m) => m !== 'cycle' || s.me === 'j').map((m) => {
+      <Section header={t('allSections')} footer={t('order.hint')} action={<button onClick={() => setSorting((v) => !v)}>{sorting ? t('done') : `⇅ ${t('order.edit')}`}</button>}>
+        {list.map((m, i) => {
           const l = moduleLabel(s, m)
           const [c1, c2] = accentColors(m, s)
           return <Row key={m} icon={l.emoji} iconBg={`linear-gradient(135deg, ${c1}, ${c2})`} title={l.title} dim={s.modules[m]?.hidden}
-            detail={s.modules[m]?.hidden ? t('hidden') : undefined} chevron onClick={() => setMod(m)} />
+            detail={!sorting && s.modules[m]?.hidden ? t('hidden') : undefined} chevron={!sorting}
+            right={sorting ? <span style={{ display: 'flex', gap: 6 }}>{arrow(m, -1, i === 0)}{arrow(m, 1, i === list.length - 1)}</span> : undefined}
+            onClick={sorting ? undefined : () => setMod(m)} />
         })}
       </Section>
+      {sorting && s.prefs.order?.length ? (
+        <Section><button className="row tap accent" onClick={() => update((st) => { st.prefs = { ...st.prefs, order: undefined } })}>{t('order.reset')}</button></Section>
+      ) : null}
       {mod && <ModuleSheet id={mod} onClose={() => setMod(null)} />}
     </Screen>
   )

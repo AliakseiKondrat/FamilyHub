@@ -5,7 +5,7 @@ import { useNav } from '../nav'
 import { GlassButton, Icon, Screen, haptic, toast } from '../ui'
 import { LOCALES, today } from '../lib/date'
 import { currencyOf, monthSpending } from './Budget'
-import { ALL_MODULES } from '../defaults'
+import { moduleOrder } from '../defaults'
 import { accentColors } from '../theme'
 import type { ModuleId, State } from '../types'
 import { findDeviceUrl, usePlatform } from '../lib/platform'
@@ -94,7 +94,7 @@ export default function More() {
   const platform = usePlatform()
   const [editing, setEditing] = useState(false)
   // Everything not already in the tab bar; the cycle tracker only exists for Julia.
-  const mods = ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j'))
+  const mods = moduleOrder(s).filter((m) => !s.prefs.tabs.includes(m) && !s.modules[m]?.hidden && (m !== 'cycle' || s.me === 'j'))
   const favs = (s.prefs.favorites ?? []).filter((m) => mods.includes(m))
   const rest = mods.filter((m) => !favs.includes(m))
   return (

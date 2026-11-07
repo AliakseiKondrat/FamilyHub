@@ -405,6 +405,11 @@ const ru = {
   'tier.dev': 'разработчики',
   'tier.close': 'близкая пара',
   'tier.public': 'обычная пара',
+  'order.edit': 'Изменить порядок',
+  'order.hint': 'В таком порядке разделы стоят в боковом меню на iPad и компьютере и в «Ещё». Нижняя панель настраивается отдельно.',
+  'order.reset': 'Порядок по умолчанию',
+  'order.up': 'Выше',
+  'order.down': 'Ниже',
 }
 
 type Dict = typeof ru
@@ -813,6 +818,11 @@ const en: Partial<Dict> = {
   'tier.dev': 'developers',
   'tier.close': 'close couple',
   'tier.public': 'regular couple',
+  'order.edit': 'Reorder',
+  'order.hint': 'Sections appear in this order in the sidebar on iPad and computer, and in «More». The tab bar is set up separately.',
+  'order.reset': 'Default order',
+  'order.up': 'Move up',
+  'order.down': 'Move down',
 }
 
 const pl: Partial<Dict> = {
@@ -1221,6 +1231,11 @@ const pl: Partial<Dict> = {
   'tier.dev': 'deweloperzy',
   'tier.close': 'bliska para',
   'tier.public': 'zwykła para',
+  'order.edit': 'Zmień kolejność',
+  'order.hint': 'W tej kolejności sekcje są w menu bocznym na iPadzie i komputerze oraz w „Więcej”. Dolny pasek ustawia się osobno.',
+  'order.reset': 'Domyślna kolejność',
+  'order.up': 'Wyżej',
+  'order.down': 'Niżej',
 }
 
 const es: Partial<Dict> = {
@@ -1629,6 +1644,11 @@ const es: Partial<Dict> = {
   'tier.dev': 'desarrolladores',
   'tier.close': 'pareja cercana',
   'tier.public': 'pareja normal',
+  'order.edit': 'Cambiar el orden',
+  'order.hint': 'En este orden aparecen las secciones en el menú lateral del iPad y del ordenador, y en «Más». La barra inferior se ajusta aparte.',
+  'order.reset': 'Orden por defecto',
+  'order.up': 'Subir',
+  'order.down': 'Bajar',
 }
 
 const it: Partial<Dict> = {
@@ -2370,6 +2390,11 @@ const it: Partial<Dict> = {
   'tier.dev': 'sviluppatori',
   'tier.close': 'coppia vicina',
   'tier.public': 'coppia normale',
+  'order.edit': 'Cambia ordine',
+  'order.hint': 'Le sezioni appaiono in quest\'ordine nel menu laterale su iPad e computer e in «Altro». La barra in basso si imposta a parte.',
+  'order.reset': 'Ordine predefinito',
+  'order.up': 'Sposta su',
+  'order.down': 'Sposta giù',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

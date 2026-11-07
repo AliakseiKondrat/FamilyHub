@@ -92,3 +92,10 @@ export const SHARED_KEYS = ['users', 'pet', 'modules', 'budgets', 'country', 'cy
 
 /** Modules that can live in the tab bar or be opened from More. */
 export const ALL_MODULES: ModuleId[] = ['today', 'us', 'calendar', 'tasks', 'groceries', 'budget', 'music', 'photos', 'watch', 'wishlist', 'recipes', 'pet', 'home', 'travel', 'dates', 'inbox', 'archive', 'cycle']
+
+/** Every section in my order: my own order if I set one (sections added later go to the end), else tab bar sections first. */
+export function moduleOrder(s: Pick<State, 'prefs'>): ModuleId[] {
+  const own = (s.prefs.order ?? []).filter((m) => ALL_MODULES.includes(m))
+  if (own.length) return [...own, ...ALL_MODULES.filter((m) => !own.includes(m))]
+  return [...s.prefs.tabs, ...ALL_MODULES.filter((m) => !s.prefs.tabs.includes(m))]
+}
