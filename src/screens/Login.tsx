@@ -2,6 +2,7 @@
 import { useT } from '../i18n'
 import { signIn, signUp, useSync } from '../sync'
 import { PairingScreen } from './Pairing'
+import { inTelegram, telegramSignIn } from '../lib/telegram'
 
 /** Email + password: works inside the installed iPhone app, unlike magic links that open in Safari. */
 export default function Login() {
@@ -45,6 +46,11 @@ export default function Login() {
       <button className="glass-btn lg login-btn" disabled={!ready || busy} style={{ opacity: !ready || busy ? 0.5 : 1 }} onClick={submit}>
         {busy ? '…' : mode === 'in' ? t('signIn') : t('signUp')}
       </button>
+      {inTelegram() && (
+        <button className="glass-btn lg login-btn" disabled={busy} onClick={async () => { setBusy(true); const err = await telegramSignIn(); setBusy(false); if (err) setMsg({ text: err }) }}>
+          ✈️ {t('tg.signIn')}
+        </button>
+      )}
       <button className="login-switch" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setMsg(null) }}>
         {mode === 'in' ? t('noAccount') : t('haveAccount')}
       </button>

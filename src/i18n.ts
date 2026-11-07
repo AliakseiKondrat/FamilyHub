@@ -799,6 +799,10 @@ const ru = {
   'del.explain': 'Это нельзя отменить. Напишите «{word}», чтобы подтвердить.',
   'del.confirm': 'Удалить навсегда',
   'del.done': 'Данные удалены',
+  'tg.signIn': 'Войти через Telegram',
+  'tg.setup': 'Подключить бота',
+  'tg.setupDone': 'Бот @{bot} подключён: вебхук и кнопка меню готовы ✓',
+  'tg.setupHint': 'Сначала создайте бота в @BotFather и добавьте его токен в секреты Supabase как TELEGRAM_BOT_TOKEN. Потом нажмите — бот начнёт принимать ссылки, а в меню появится кнопка приложения.',
 }
 
 type Dict = typeof ru
@@ -1601,6 +1605,10 @@ const en: Partial<Dict> = {
   'del.explain': 'This can\'t be undone. Type «{word}» to confirm.',
   'del.confirm': 'Delete for good',
   'del.done': 'Data deleted',
+  'tg.signIn': 'Sign in with Telegram',
+  'tg.setup': 'Connect the bot',
+  'tg.setupDone': 'Bot @{bot} connected: webhook and menu button are ready ✓',
+  'tg.setupHint': 'First create a bot in @BotFather and add its token to the Supabase secrets as TELEGRAM_BOT_TOKEN. Then tap — the bot starts taking links and the app\'s button appears in its menu.',
 }
 
 const pl: Partial<Dict> = {
@@ -2403,6 +2411,10 @@ const pl: Partial<Dict> = {
   'del.explain': 'Tego nie da się cofnąć. Wpisz „{word}”, aby potwierdzić.',
   'del.confirm': 'Usuń na zawsze',
   'del.done': 'Dane usunięte',
+  'tg.signIn': 'Zaloguj przez Telegram',
+  'tg.setup': 'Podłącz bota',
+  'tg.setupDone': 'Bot @{bot} podłączony: webhook i przycisk menu gotowe ✓',
+  'tg.setupHint': 'Najpierw utwórz bota w @BotFather i dodaj jego token do sekretów Supabase jako TELEGRAM_BOT_TOKEN. Potem naciśnij — bot zacznie przyjmować linki, a w menu pojawi się przycisk aplikacji.',
 }
 
 const es: Partial<Dict> = {
@@ -3205,6 +3217,10 @@ const es: Partial<Dict> = {
   'del.explain': 'No se puede deshacer. Escribe «{word}» para confirmar.',
   'del.confirm': 'Borrar para siempre',
   'del.done': 'Datos borrados',
+  'tg.signIn': 'Entrar con Telegram',
+  'tg.setup': 'Conectar el bot',
+  'tg.setupDone': 'Bot @{bot} conectado: webhook y botón de menú listos ✓',
+  'tg.setupHint': 'Primero crea un bot en @BotFather y añade su token a los secretos de Supabase como TELEGRAM_BOT_TOKEN. Luego pulsa: el bot empezará a recibir enlaces y en su menú aparecerá el botón de la app.',
 }
 
 const it: Partial<Dict> = {
@@ -4340,6 +4356,10 @@ const it: Partial<Dict> = {
   'del.explain': 'Non si può annullare. Scrivi «{word}» per confermare.',
   'del.confirm': 'Elimina per sempre',
   'del.done': 'Dati eliminati',
+  'tg.signIn': 'Accedi con Telegram',
+  'tg.setup': 'Collega il bot',
+  'tg.setupDone': 'Bot @{bot} collegato: webhook e pulsante del menu pronti ✓',
+  'tg.setupHint': 'Prima crea un bot in @BotFather e aggiungi il suo token ai segreti di Supabase come TELEGRAM_BOT_TOKEN. Poi tocca: il bot inizierà a ricevere link e nel suo menu comparirà il pulsante dell\'app.',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

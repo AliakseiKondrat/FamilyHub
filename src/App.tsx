@@ -31,6 +31,7 @@ import { getHousehold, useSync } from './sync'
 import Tour, { tourBus } from './screens/Tour'
 import { SYNC_ENABLED } from './config'
 import { takeInviteParams } from './screens/Pairing'
+import { inTelegram, loadTelegram, paintTelegram, telegramBack, telegramLink } from './lib/telegram'
 
 // ?join=CODE and ?ref=hN must survive the sign-up round trip.
 takeInviteParams()
@@ -172,7 +173,11 @@ export default function App() {
   // The look also changes when the server's unlocks arrive or a theme is being tried on.
   const unlocks = useServerUnlocks()
   const trying = useTryOn()
-  useEffect(() => { applyDesign(s, theme) }, [s, theme, unlocks, trying])
+  useEffect(() => { applyDesign(s, theme); paintTelegram(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()) }, [s, theme, unlocks, trying])
+  // Inside Telegram: its back button mirrors our screen stack, and the bot learns who's signed in.
+  useEffect(() => { telegramBack(nav.stack.length > 0) }, [nav.stack.length])
+  useEffect(() => { if (inTelegram()) loadTelegram() }, [])
+  useEffect(() => { if (sync.status === 'ready' && inTelegram()) telegramLink() }, [sync.status])
   // Book this month's recurring payments once the data is ready.
   useEffect(() => { if (sync.status === 'ready') bookRecurring() }, [sync.status])
   // Back from Google sign-in (?google=ok|error): say how it went and tidy the address.

@@ -1,0 +1,6 @@
+{
+ "tg.signIn": "Accedi con Telegram",
+ "tg.setup": "Collega il bot",
+ "tg.setupDone": "Bot @{bot} collegato: webhook e pulsante del menu pronti ✓",
+ "tg.setupHint": "Prima crea un bot in @BotFather e aggiungi il suo token ai segreti di Supabase come TELEGRAM_BOT_TOKEN. Poi tocca: il bot inizierà a ricevere link e nel suo menu comparirà il pulsante dell'app."
+}

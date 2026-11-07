@@ -7,6 +7,7 @@ import { popWithoutAnimation, useNav } from './nav'
 import { today } from './lib/date'
 import { accentStyle, type Accent } from './theme'
 import { guessEmoji, recordEmoji } from './lib/emoji'
+import { telegramHaptic } from './lib/telegram'
 
 /* ---------- Icons (SF Symbols look-alikes) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -361,6 +362,7 @@ if (typeof document !== 'undefined') {
 let hapticLabel: HTMLLabelElement | null = null
 export function haptic() {
   if (!getState().design.haptics) return
+  if (telegramHaptic()) return
   if (navigator.vibrate) { navigator.vibrate(8); return }
   if (!hapticLabel) {
     hapticLabel = document.createElement('label')

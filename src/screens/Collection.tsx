@@ -13,6 +13,7 @@ import {
 } from '../lib/unlocks'
 import type { State, UserId } from '../types'
 import { FeedbackList } from './Pairing'
+import { telegramSetup } from '../lib/telegram'
 
 /* ---------- previews ---------- */
 const isDark = () => document.documentElement.dataset.theme === 'dark'
@@ -337,6 +338,11 @@ export function DevPage() {
               h.referred_by ? `💌 ${h.referred_by}` : ''].filter(Boolean).join(' · ')} />
         ))}
       </Section>
+      {SYNC_ENABLED && (
+        <Section header="Telegram" footer={t('tg.setupHint')}>
+          <button className="row tap accent" onClick={() => telegramSetup().then((r) => toast(r.error ? t('dev.err', { msg: r.error }) : t('tg.setupDone', { bot: r.bot ?? '?' })))}>✈️ {t('tg.setup')}</button>
+        </Section>
+      )}
       <FeedbackList />
       <div className="col-hint" style={{ margin: '4px 30px 10px' }}>{t('dev.rulesHint')}</div>
       {KINDS.map((k) => (
