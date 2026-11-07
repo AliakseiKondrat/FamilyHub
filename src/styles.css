@@ -1209,3 +1209,4 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 /* Titles in the look's font read a touch larger for script and hand fonts. */
 [data-look] .large-title { font-family: var(--display); }
 .tp-font { position: absolute; left: 10px; bottom: 6px; font-size: 22px; line-height: 1; font-weight: 700; }
+[data-flag='on'][data-header='soft'] .aura { background: none; }

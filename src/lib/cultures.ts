@@ -137,16 +137,180 @@ export const SEASON_B: Culture[] = ([
 /** Week 53, in the years that have one. */
 export const WORLD: Culture = row(['world', '🌍', 'Вокруг света', 'Around the world', 'Dookoła świata', 'La vuelta al mundo', 'Il giro del mondo', '#0ea5e9', '#a855f7', '✦', 'streak', '🌍 ✈️ 🗺️'])
 
+
+/* ---------- colours: a palette from the culture's two colours ---------- */
+const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
+const toHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('')
+const rgba = (c: string, a: number) => { const [r, g, b] = hex(c); return `rgba(${r}, ${g}, ${b}, ${a})` }
+/** Mix colour a with b: t = share of b. */
+export const mix = (a: string, b: string, t: number) => { const x = hex(a), y = hex(b); return toHex(x.map((v, i) => v + (y[i] - v) * t)) }
+
+/* ---------- flags: a softly blurred flag behind the top of the screen, and the theme's colours taken from it ---------- */
+/**
+ * Flags in a tiny language: segments joined by '|', each kind:args —
+ * h/v stripes, x Nordic cross (bg,cross[,inner]), X saltire, + centred cross, o disc (bg,disc[,x,y]), t hoist triangle, q canton,
+ * D diagonal band, S diagonal split. An empty bg draws only the shape over what is below. Everything is drawn with soft edges,
+ * as if blurred, so a flag reads as a glow of its colours rather than a sharp picture.
+ */
+export const FLAGS: Record<string, string> = {
+  sco: 'X:#005eb8,#ffffff',
+  by: 'h:#ffffff,#c8313e,#ffffff',
+  fi: 'x:#ffffff,#002f6c',
+  kr: 'o:#ffffff,#cd2e3a,50,42|o:,#0047a0,50,60',
+  cn: 'o:#de2910,#ffde00,24,28',
+  vn: 'o:#da251d,#ffcd00',
+  it: 'v:#009246,#ffffff,#ce2b37',
+  br: 'o:#009c3b,#fedf00|o:,#002776',
+  is: 'x:#02529c,#ffffff,#dc1e35',
+  in: 'h:#ff9933,#ffffff,#138808|o:,#000080',
+  ie: 'v:#169b62,#ffffff,#ff883e',
+  ir: 'h:#239f40,#ffffff,#da0000',
+  jp: 'o:#ffffff,#bc002d',
+  gr: 'h:#0d5eaf,#ffffff,#0d5eaf,#ffffff,#0d5eaf|q:#0d5eaf',
+  th: 'h:#a51931,#f4f5f8,#2d2a4a,#2d2a4a,#f4f5f8,#a51931',
+  nl: 'h:#ae1c28,#ffffff,#21468b',
+  ua: 'h:#0057b7,#ffd700',
+  kz: 'o:#00afca,#fec50c',
+  nz: 'h:#012169,#012169|o:,#c8102e,74,46|q:#012169',
+  no: 'x:#ba0c2f,#ffffff,#00205b',
+  es: 'h:#aa151b,#f1bf00,#f1bf00,#aa151b',
+  tr: 'o:#e30a17,#ffffff,38,50',
+  pt: 'v:#006600,#006600,#ff0000,#ff0000,#ff0000|o:,#ffcc00,40,50',
+  dk: 'x:#c8102e,#ffffff',
+  se: 'x:#006aa7,#fecc00',
+  hr: 'h:#ff0000,#ffffff,#171796|o:,#ff0000',
+  us: 'h:#b22234,#ffffff,#b22234,#ffffff,#b22234,#ffffff,#b22234|q:#3c3b6e',
+  fr: 'v:#0055a4,#ffffff,#ef4135',
+  eg: 'h:#ce1126,#ffffff,#000000|o:,#c09300',
+  ma: 'o:#c1272d,#006233',
+  id: 'h:#ce1126,#ffffff',
+  pe: 'v:#d91023,#ffffff,#d91023',
+  cu: 'h:#002a8f,#ffffff,#002a8f,#ffffff,#002a8f|t:#cf142b',
+  gb: 'X:#012169,#ffffff|+:,#c8102e',
+  ke: 'h:#000000,#bb0000,#006600|o:,#bb0000',
+  au: 'h:#012169,#012169|q:#012169|o:,#ffffff,74,58',
+  ch: '+:#da291c,#ffffff',
+  de: 'h:#000000,#dd0000,#ffce00',
+  cz: 'h:#ffffff,#d7141a|t:#11457e',
+  at: 'h:#ed2939,#ffffff,#ed2939',
+  hu: 'h:#cd2a3e,#ffffff,#436f4d',
+  ge: '+:#ffffff,#ff0000',
+  am: 'h:#d90012,#0033a0,#f2a800',
+  mx: 'v:#006847,#ffffff,#ce1126|o:,#8c6a3c',
+  np: 'h:#dc143c,#dc143c,#003893|o:,#ffffff,30,40',
+  pl: 'h:#ffffff,#dc143c',
+  be: 'v:#000000,#fdda24,#ef3340',
+  ar: 'h:#74acdf,#ffffff,#74acdf|o:,#f6b40e',
+  ca: 'v:#d80621,#ffffff,#ffffff,#d80621|o:,#d80621',
+  ee: 'h:#0072ce,#000000,#ffffff',
+  ru: 'h:#ffffff,#0039a6,#d52b1e',
+  ph: 'h:#0038a8,#ce1126|t:#ffffff',
+  bg: 'h:#ffffff,#00966e,#d62612',
+  et: 'h:#078930,#fcdd09,#da121a|o:,#0f47af',
+  lv: 'h:#9e3039,#9e3039,#ffffff,#9e3039,#9e3039',
+  mn: 'v:#c4272f,#015197,#c4272f',
+  sg: 'h:#ef3340,#ffffff',
+  la: 'h:#ce1126,#002868,#002868,#ce1126|o:,#ffffff',
+  do: 'h:#002d62,#ce1126|+:,#ffffff',
+  tt: 'D:#ce1126,#000000',
+  il: 'h:#ffffff,#0038b8,#ffffff,#ffffff,#0038b8,#ffffff|o:,#0038b8',
+  lk: 'v:#ffbe29,#8d153a,#8d153a,#8d153a',
+  za: 'h:#e03c31,#007749,#001489|t:#000000',
+  az: 'h:#0092bc,#e4002b,#00af66',
+  uz: 'h:#0099b5,#ffffff,#1eb53a',
+  si: 'h:#ffffff,#0000ff,#ff0000',
+  sk: 'h:#ffffff,#0b4ea2,#ee1c25',
+  kh: 'h:#032ea1,#e00025,#e00025,#032ea1|o:,#ffffff',
+  rs: 'h:#c6363c,#0c4076,#ffffff',
+  lt: 'h:#fdb913,#006a44,#c1272d',
+  co: 'h:#fcd116,#fcd116,#003893,#ce1126',
+  cl: 'h:#ffffff,#d52b1e|q:#0039a6',
+  mt: 'v:#ffffff,#cf142b',
+  ro: 'v:#002b7f,#fcd116,#ce1126',
+  fj: 'h:#68bfe5,#68bfe5|q:#012169',
+  ec: 'h:#ffdd00,#ffdd00,#034ea2,#ed1c24',
+  jm: 'X:#009b3a,#fed100',
+  me: 'h:#c40308,#c40308|o:,#d4af3a',
+  mv: 'o:#d21034,#007e3a',
+  al: 'o:#e41e20,#000000',
+  tn: 'o:#e70013,#ffffff',
+  jo: 'h:#000000,#ffffff,#007a3d|t:#ce1126',
+  lb: 'h:#ed1c24,#ffffff,#ffffff,#ed1c24|o:,#00a651',
+  cy: 'o:#ffffff,#d57800',
+  tz: 'D:#1eb53a,#00a3dd',
+  sn: 'v:#00853f,#fdef42,#e31b23',
+  gh: 'h:#ce1126,#fcd116,#006b3f|o:,#000000',
+  ng: 'v:#008751,#ffffff,#008751',
+  mg: 'h:#fc3d32,#007e3a|t:#ffffff',
+  bt: 'S:#ffd520,#ff4e12',
+  kg: 'o:#e8112d,#ffef00',
+  my: 'h:#cc0001,#ffffff,#cc0001,#ffffff,#cc0001,#ffffff|q:#010066',
+  pk: 'v:#ffffff,#01411c,#01411c,#01411c|o:,#ffffff,62,50',
+  gt: 'v:#4997d0,#ffffff,#4997d0',
+  cr: 'h:#002b7f,#ffffff,#ce1126,#ce1126,#ffffff,#002b7f',
+  bo: 'h:#d52b1e,#f9e300,#007934',
+  mu: 'h:#ea2839,#1a206d,#ffd500,#00a551',
+  uy: 'h:#ffffff,#0038a8,#ffffff,#0038a8,#ffffff|q:#fcd116',
+  ve: 'h:#ffcc00,#00247d,#cf142b',
+  om: 'h:#ffffff,#db161b,#008000|t:#db161b',
+  ae: 'h:#00732f,#ffffff,#000000|t:#ff0000',
+  md: 'v:#0046ae,#ffd200,#cc092f',
+  ad: 'v:#10069f,#fedf00,#d50032',
+  bs: 'h:#00abc9,#fae042,#00abc9|t:#000000',
+  world: 'h:#0ea5e9,#22c55e,#a855f7'
+}
+
+const S = 7 // softness of every edge, % of the flag
+function stripes(cols: string[], dir: string, a: number) {
+  const n = cols.length
+  const stops = cols.map((c, i) => {
+    const from = (i / n) * 100 + (i ? S : 0), to = ((i + 1) / n) * 100 - (i < n - 1 ? S : 0)
+    return `${rgba(c, a)} ${from.toFixed(1)}% ${to.toFixed(1)}%`
+  })
+  return `linear-gradient(${dir}, ${stops.join(', ')})`
+}
+const solid = (c: string, a: number) => `linear-gradient(${rgba(c, a)}, ${rgba(c, a)})`
+/** The flag's CSS layers (top first), each colour at opacity a. */
+export function flagLayers(spec: string, a: number): string[] {
+  const layers: string[] = []
+  for (const seg of spec.split('|').reverse()) {
+    const [kind, rest] = seg.split(':')
+    const p = rest.split(',')
+    const C = (i: number) => p[i] && p[i].startsWith('#') ? p[i] : undefined
+    const band = (deg: number, from: number, to: number, c: string) => `linear-gradient(${deg}deg, transparent ${from - S}%, ${rgba(c, a)} ${from}% ${to}%, transparent ${to + S}%)`
+    switch (kind) {
+      case 'h': layers.push(stripes(p, '180deg', a)); break
+      case 'v': layers.push(stripes(p, '90deg', a)); break
+      case 'x': if (C(2)) layers.push(band(90, 30, 36, C(2)!), band(180, 45, 55, C(2)!))
+        layers.push(band(90, 26, 40, C(1)!), band(180, 40, 60, C(1)!)); if (C(0)) layers.push(solid(C(0)!, a)); break
+      case 'X': layers.push(band(33, 44, 56, C(1)!), band(-33, 44, 56, C(1)!)); if (C(0)) layers.push(solid(C(0)!, a)); break
+      case '+': layers.push(band(90, 42, 58, C(1)!), band(180, 40, 60, C(1)!)); if (C(0)) layers.push(solid(C(0)!, a)); break
+      case 'o': layers.push(`radial-gradient(circle at ${p[2] ?? 50}% ${p[3] ?? 50}%, ${rgba(C(1)!, a)} 0 12%, transparent 26%)`); if (C(0)) layers.push(solid(C(0)!, a)); break
+      case 't': layers.push(`linear-gradient(90deg, ${rgba(C(0)!, a)} 0 12%, transparent 32%)`); break
+      case 'q': layers.push(`radial-gradient(ellipse 46% 42% at 18% 20%, ${rgba(C(0)!, a)} 0 45%, transparent 80%)`); break
+      case 'D': layers.push(`linear-gradient(135deg, ${rgba(C(0)!, a)} 0 34%, ${rgba(C(1)!, a)} 44% 56%, ${rgba(C(0)!, a)} 66%)`); break
+      case 'S': layers.push(`linear-gradient(135deg, ${rgba(C(0)!, a)} 0 40%, ${rgba(C(1)!, a)} 60%)`); break
+    }
+  }
+  return layers.reverse()
+}
+/** The flag's colours, most telling first: no white or black, no repeats. */
+export function flagColors(code: string): string[] {
+  const all = (FLAGS[code] ?? '').match(/#[0-9a-f]{6}/gi) ?? []
+  const lum = (c: string) => { const [r, g, b] = hex(c); return 0.299 * r + 0.587 * g + 0.114 * b }
+  return [...new Set(all.map((c) => c.toLowerCase()))].filter((c) => lum(c) > 40 && lum(c) < 235)
+}
+/* The theme's two colours come from the flag (БЧБ for Belarus: red and white). */
+for (const c of [...SEASON_A, ...SEASON_B, WORLD]) {
+  const cols = flagColors(c.code)
+  if (cols[0]) { c.a1 = cols[0]; c.a2 = cols[1] ?? mix(cols[0], '#ffffff', 0.5) }
+}
+
 export const CULTURES: Culture[] = [...SEASON_A, ...SEASON_B, WORLD]
 
 /** The culture of an ISO week. */
 export const cultureOf = (year: number, week: number): Culture => (week >= 53 ? WORLD : (year % 2 === 0 ? SEASON_A : SEASON_B)[week - 1])
 
-/* ---------- colours: a palette from the culture's two colours ---------- */
-const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
-const toHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('')
-/** Mix colour a with b: t = share of b. */
-export const mix = (a: string, b: string, t: number) => { const x = hex(a), y = hex(b); return toHex(x.map((v, i) => v + (y[i] - v) * t)) }
 
 /** [background, card, pressed card, tint] for light and dark: a clearly tinted ground and cards warmed by the second colour. */
 export function culturePalette(c: Culture): { light: [string, string, string, string]; dark: [string, string, string, string] } {
@@ -173,7 +337,6 @@ export const PATTERN: Record<string, Pattern> = {
   ae: 'stars', md: 'folk', ad: 'snow', bs: 'waves', world: 'stars',
 }
 
-const rgba = (c: string, a: number) => { const [r, g, b] = hex(c); return `rgba(${r}, ${g}, ${b}, ${a})` }
 
 /**
  * A wallpaper: CSS layers over a base colour. `k` scales the pattern and `turn` tilts the striped ones, so two cultures
@@ -210,9 +373,18 @@ export function cultureWall(c: Culture): [string, string] {
   const k = 0.8 + (h % 7) / 10, turn = (h % 5) * 9
   const p = PATTERN[c.code] ?? 'dots'
   const pal = culturePalette(c)
+  const flag = FLAGS[c.code]
+  const wall = (base: string, pat: string, a: number) => {
+    if (!flag) return pat
+    // The flag fills the top of the screen and melts into the page about two thirds down.
+    const fade = `linear-gradient(180deg, transparent 0%, transparent 34%, ${base} 62%)`
+    const [patternOnly] = pat.split(`, ${base}`)
+    // The flag takes the top half of the screen, whole, so every stripe reads.
+    return [patternOnly, fade, ...flagLayers(flag, a).map((l) => `${l} 0 0 / 100% 56% no-repeat`), base].join(', ')
+  }
   return [
-    patternWall(p, c.a1, c.a2, pal.light[0], 0.12, k, turn),
-    patternWall(p, mix(c.a1, '#ffffff', 0.25), mix(c.a2, '#ffffff', 0.2), pal.dark[0], 0.1, k, turn),
+    wall(pal.light[0], patternWall(p, c.a1, c.a2, pal.light[0], 0.07, k, turn), 0.5),
+    wall(pal.dark[0], patternWall(p, mix(c.a1, '#ffffff', 0.25), mix(c.a2, '#ffffff', 0.2), pal.dark[0], 0.06, k, turn), 0.42),
   ]
 }
 

@@ -404,12 +404,15 @@ LOOKS.berry.wall = [patternWall('dots', '#be185d', '#a855f7', LOOKS.berry.light[
 LOOKS.forest.wall = [patternWall('stripes', '#2f6b3a', '#65a30d', LOOKS.forest.light[0], 0.1), patternWall('stripes', mix('#2f6b3a', '#ffffff', 0.3), mix('#65a30d', '#ffffff', 0.3), LOOKS.forest.dark[0], 0.14)]
 LOOKS.noir.wall = [patternWall('stripes', '#a16207', '#d4af37', LOOKS.noir.light[0], 0.08), patternWall('stripes', mix('#a16207', '#ffffff', 0.3), mix('#d4af37', '#ffffff', 0.3), LOOKS.noir.dark[0], 0.12)]
 
+/** A colour too light for white text on it (white, cream, pale yellow). */
+const light = (c: string) => { const n = parseInt(c.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 200 }
+
 /* Each culture's atmosphere: palette from its colours, things in the air, a scene with its landmarks. */
 for (const c of CULTURES) {
   const p = culturePalette(c)
   const dot = ['●', '✦', '✨'].includes(c.glyphs[0])
   LOOKS[`c-${c.code}`] = {
-    light: p.light, dark: p.dark, headers: [c.a1, c.a2], wall: cultureWall(c), scene: `c-${c.code}`, decor: c.deco[0], ...cultureCharacter(c.code),
+    light: p.light, dark: p.dark, headers: [c.a1, light(c.a2) ? mix(c.a1, '#000000', 0.3) : c.a2], wall: cultureWall(c), scene: `c-${c.code}`, decor: c.deco[0], ...cultureCharacter(c.code),
     ambient: { glyphs: c.glyphs, motion: c.motion, count: c.glyphs[0] === '●' ? 16 : 10, ...(dot ? { color: mix(c.a2, '#ffffff', 0.35), glow: c.glyphs[0] === '●' ? mix(c.a2, '#ffffff', 0.6) : undefined } : {}) },
   }
   SCENES[`c-${c.code}`] = { bg: `linear-gradient(180deg, ${mix(c.a2, '#ffffff', 0.25)}, ${c.a1})`, deco: [[c.deco[0], 4, 58, 36], [c.deco[1] ?? c.deco[0], 76, 54, 34], [c.deco[2] ?? c.deco[0], 40, 6, 20]] }

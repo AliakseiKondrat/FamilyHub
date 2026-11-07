@@ -87,6 +87,8 @@ export function applyLook(s: State, theme: 'light' | 'dark') {
   if (look.font) { loadFont(look.font); el.style.setProperty('--display', FONTS[look.font].stack) } else el.style.removeProperty('--display')
   if (look.radius != null) el.style.setProperty('--radius', `${look.radius}px`); else el.style.removeProperty('--radius')
   el.dataset.lookcards = look.cards ?? 'none'
+  // A culture's flag glows at the top of the screen: the soft header steps aside for it.
+  el.dataset.flag = id.startsWith('atmo:c-') && wall ? 'on' : 'off'
 }
 
 /** Title fonts with Cyrillic and Latin (Polish, Spanish, Italian), loaded only when a look uses them. */
