@@ -315,17 +315,20 @@ export const QUESTS: Quest[] = [
 const hash = (s: string) => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0 }
 
 /** Today's three quests: the same on both phones, a fresh set every day, shuffled again on request. */
+/** The day's quests: the mode decides the mix — together: 2 «near» + 1 «any»; apart: 2 «far» + 1 «any»;
+ *  both: one of each. The same for both phones (a hash of the date and the shuffle count). */
 export function questsFor(date: string, mode: 'near' | 'far' | 'all', shuffle = 0, count = 3): Quest[] {
-  const pool = QUESTS.filter((q) => mode === 'all' || q.mode === mode || q.mode === 'any')
+  const plan: Quest['mode'][] = mode === 'near' ? ['near', 'near', 'any'] : mode === 'far' ? ['far', 'far', 'any'] : ['near', 'far', 'any']
   const picked: Quest[] = []
   let h = hash(`${date}#${shuffle}`)
-  while (picked.length < Math.min(count, pool.length)) {
-    const q = pool[h % pool.length]
-    if (!picked.includes(q)) picked.push(q)
+  for (const m of plan.slice(0, count)) {
+    const pool = QUESTS.filter((q) => q.mode === m && !picked.includes(q))
+    picked.push(pool[h % pool.length])
     h = hash(String(h))
   }
   return picked
 }
+export const QUEST_ICON: Record<Quest['mode'], string> = { near: '🤝', far: '📱', any: '💞' }
 export const questText = (q: Quest, lang: Lang) =>
   lang === 'ru' ? q.ru : lang === 'en' ? q.en : QUEST_TX[lang][Number(q.id.slice(1)) - 1] ?? q.en
 

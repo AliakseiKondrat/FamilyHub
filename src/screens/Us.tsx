@@ -6,7 +6,7 @@ import { useNav } from '../nav'
 import { Check, Row, Screen, Section, Segmented, Sheet, haptic, toast } from '../ui'
 import { addDays, fmtDate, today } from '../lib/date'
 import {
-  award, FLAME_MILESTONES, FREEZES_PER_MONTH, pausesOf, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
+  award, FLAME_MILESTONES, FREEZES_PER_MONTH, pausesOf, QUEST_ICON, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
   TAP_GOAL, tapsOn, TREE_STAGES, treeStage, unaward,
 } from '../lib/game'
 import type { State } from '../types'
@@ -239,7 +239,7 @@ export default function Us({ back }: { back?: boolean }) {
           {quests.map((q) => {
             const m = marks.get(q.id)
             return <Row key={q.id} left={<Check on={!!m} onChange={() => toggleQuest(q.id)} color="var(--orange)" />}
-              title={questText(q, s.lang)} dim={!!m} sub={m ? `${s.users[m.createdBy].emoji} ${s.users[m.createdBy].name} · +5 XP` : undefined}
+              title={<><span className="quest-kind">{QUEST_ICON[q.mode]}</span>{questText(q, s.lang)}</>} dim={!!m} sub={m ? `${s.users[m.createdBy].emoji} ${s.users[m.createdBy].name} · +5 XP` : undefined}
               onClick={() => toggleQuest(q.id)} />
           })}
         </Section>
