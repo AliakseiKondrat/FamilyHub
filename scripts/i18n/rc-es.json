@@ -1,0 +1,5 @@
+{ "rc.roulette": "¿Qué cocinamos?", "rc.fav": "Favoritas", "rc.meal": "Comida", "rc.meal.breakfast": "Desayuno", "rc.meal.lunch": "Almuerzo", "rc.meal.dinner": "Cena", "rc.meal.dessert": "Postre", "rc.meal.snack": "Picoteo",
+ "rc.diff": "Dificultad", "rc.diff1": "Fácil", "rc.diff2": "Media", "rc.diff3": "Difícil",
+ "rc.cooked": "¡Lo hemos cocinado!", "rc.cookedTitle": "¿Qué tal salió?", "rc.nextTime": "Qué cambiar la próxima vez", "rc.nextTimePlaceholder": "Más ajo, menos sal…", "rc.again": "¿Repetimos?", "rc.againYes": "Sí", "rc.againNo": "No",
+ "rc.lastTime": "La última vez decidimos", "rc.history": "Cuándo lo cocinamos", "rc.saved": "Apuntado ✓",
+ "rc.any": "cualquiera", "rc.onlyFav": "Solo favoritas", "rc.spin": "Elegir", "rc.spinAgain": "Otra receta", "rc.open": "Abrir la receta", "rc.poolN": "Recetas que encajan: {n}", "rc.rouletteHint": "Elijamos qué cocinar hoy" }

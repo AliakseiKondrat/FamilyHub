@@ -1,0 +1,5 @@
+{ "rc.roulette": "Что приготовить?", "rc.fav": "Избранное", "rc.meal": "Приём пищи", "rc.meal.breakfast": "Завтрак", "rc.meal.lunch": "Обед", "rc.meal.dinner": "Ужин", "rc.meal.dessert": "Десерт", "rc.meal.snack": "Перекус",
+ "rc.diff": "Сложность", "rc.diff1": "Легко", "rc.diff2": "Средне", "rc.diff3": "Сложно",
+ "rc.cooked": "Приготовили!", "rc.cookedTitle": "Как получилось?", "rc.nextTime": "Что поменять в следующий раз", "rc.nextTimePlaceholder": "Больше чеснока, меньше соли…", "rc.again": "Повторим?", "rc.againYes": "Да", "rc.againNo": "Нет",
+ "rc.lastTime": "В прошлый раз решили", "rc.history": "Когда готовили", "rc.saved": "Записали ✓",
+ "rc.any": "любое", "rc.onlyFav": "Только избранное", "rc.spin": "Подобрать", "rc.spinAgain": "Другой рецепт", "rc.open": "Открыть рецепт", "rc.poolN": "Подходит рецептов: {n}", "rc.rouletteHint": "Подберём, что приготовить сегодня" }

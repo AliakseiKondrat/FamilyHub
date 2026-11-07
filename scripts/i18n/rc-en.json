@@ -1,0 +1,5 @@
+{ "rc.roulette": "What shall we cook?", "rc.fav": "Favourites", "rc.meal": "Meal", "rc.meal.breakfast": "Breakfast", "rc.meal.lunch": "Lunch", "rc.meal.dinner": "Dinner", "rc.meal.dessert": "Dessert", "rc.meal.snack": "Snack",
+ "rc.diff": "Difficulty", "rc.diff1": "Easy", "rc.diff2": "Medium", "rc.diff3": "Hard",
+ "rc.cooked": "We cooked it!", "rc.cookedTitle": "How did it turn out?", "rc.nextTime": "What to change next time", "rc.nextTimePlaceholder": "More garlic, less salt…", "rc.again": "Cook it again?", "rc.againYes": "Yes", "rc.againNo": "No",
+ "rc.lastTime": "Last time we decided", "rc.history": "When we cooked it", "rc.saved": "Noted ✓",
+ "rc.any": "any", "rc.onlyFav": "Favourites only", "rc.spin": "Pick one", "rc.spinAgain": "Another recipe", "rc.open": "Open the recipe", "rc.poolN": "Recipes that fit: {n}", "rc.rouletteHint": "Let's pick what to cook today" }

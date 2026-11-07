@@ -180,12 +180,12 @@ function VisitSheet({ placeId, visit, onClose }: { placeId: string; visit: Visit
   }
   return (
     <Sheet title={isNew ? t('pl.markVisit') : t('pl.visit')} onClose={onClose} onDone={() => { save(); toast(t('pl.saved')) }}>
-      <Section><DateRow label={`📅 ${t('date')}`} value={v.date} onChange={(date) => setV({ ...v, date: date ?? today() })} clearable={false} /></Section>
+      <Section><DateRow label={`📅 ${t('date')}`} value={v.date} onChange={(date) => setV((x) => ({ ...x, date: date ?? today() }))} clearable={false} /></Section>
       <Section header={t('pl.howWasIt')}>
-        <div className="row" style={{ justifyContent: 'center' }}><Stars value={v.rating} onChange={(rating) => setV({ ...v, rating: rating || undefined })} /></div>
-        <TextRow value={v.review ?? ''} onChange={(review) => setV({ ...v, review: review || undefined })} placeholder={t('pl.review')} multiline />
+        <div className="row" style={{ justifyContent: 'center' }}><Stars value={v.rating} onChange={(rating) => setV((x) => ({ ...x, rating: rating || undefined }))} /></div>
+        <TextRow value={v.review ?? ''} onChange={(review) => setV((x) => ({ ...x, review: review || undefined }))} placeholder={t('pl.review')} multiline />
       </Section>
-      <Section><ToggleRow icon="🔁" label={t('pl.again')} on={!!v.again} onChange={(again) => setV({ ...v, again })} /></Section>
+      <Section><ToggleRow icon="🔁" label={t('pl.again')} on={!!v.again} onChange={(again) => setV((x) => ({ ...x, again }))} /></Section>
       {!isNew && <Section><button className="row tap destructive" onClick={remove}>{t('delete')}</button></Section>}
     </Sheet>
   )

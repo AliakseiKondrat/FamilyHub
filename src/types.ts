@@ -88,7 +88,13 @@ export interface Recipe extends Base {
   title: string; url?: string; tags: string[]; ingredients: string[]; someday: boolean
   cooked: number; notes?: string
   image?: string; steps?: string[]; minutes?: number; servings?: string
+  favorite?: boolean
+  meal?: 'breakfast' | 'lunch' | 'dinner' | 'dessert' | 'snack'
+  difficulty?: 1 | 2 | 3
+  /** Each time we cooked it: stars, what to change next time, cook it again? */
+  cooks?: Cook[]
 }
+export interface Cook { id: string; date: string; by: UserId; rating?: number; note?: string; again?: boolean }
 
 export type PetKind = 'vaccine' | 'parasite' | 'vet' | 'groom' | 'other'
 export interface PetRecord extends Base { kind: PetKind; title: string; date: string; nextDue?: string; notes?: string }
