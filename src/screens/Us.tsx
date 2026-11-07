@@ -5,10 +5,13 @@ import { useNav } from '../nav'
 import { Check, Row, Screen, Section, Segmented, Sheet, haptic, toast } from '../ui'
 import { addDays, fmtDate, today } from '../lib/date'
 import {
-  award, FREEZES_PER_MONTH, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotEmoji, mascotMood, mascotStage, progress, questsFor, questText,
+  award, FREEZES_PER_MONTH, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
   TAP_GOAL, tapsOn, TREE_STAGES, treeStage, unaward,
 } from '../lib/game'
 import type { State } from '../types'
+import { ITEMS } from '../lib/catalog'
+import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
+import { SceneView, openCollection } from './Collection'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -61,7 +64,7 @@ function MascotView({ big, onTap }: { big?: boolean; onTap?: () => void }) {
   return (
     <button className={`mascot-view mascot-${mood}`} style={{ '--mascot': `${size}px` } as CSSProperties}
       onClick={() => { onTap?.(); setHearts((n) => n + 1); haptic() }} aria-label="mascot">
-      <span className="mascot-emoji">{mascotEmoji(s.game.mascotKind)}</span>
+      <span className="mascot-emoji">{ITEMS[activeMascot(s)].emoji}</span>
       <span className="mascot-badge">{mood === 'sleeping' ? '💤' : mood === 'vacation' ? '🏖️' : st.badge}</span>
       {hearts > 0 && <span key={hearts} className="mascot-hearts">💗💕💗</span>}
     </button>
@@ -134,6 +137,7 @@ export function RitualCard() {
   return (
     <div className="section">
       <div className="list ritual-card" role="button" onClick={() => nav.open('us')}>
+        {lookOf(activeLook(s)).decor && <span className="rc-decor">{lookOf(activeLook(s)).decor}</span>}
         <div className="rc-visual">{g.mascot ? <MascotView onTap={() => nav.open('us')} /> : <TreeView />}</div>
         <div className="rc-info">
           <div className="rc-line"><b>{g.mascot ? mascotName(s, t) : t('us.tree')}</b><Flame /></div>
@@ -178,10 +182,12 @@ export default function Us({ back }: { back?: boolean }) {
     <Screen title={t('mod.us')} accent="us" back={back} searchable={false}
       hero={<div className="us-hero">
         {both && <Segmented value={view} onChange={setView}
-          options={[{ value: 'mascot', label: `${mascotEmoji(g.mascotKind)} ${t('us.mascot')}` }, { value: 'tree', label: `🌳 ${t('us.tree')}` }]} />}
+          options={[{ value: 'mascot', label: `${ITEMS[activeMascot(s)].emoji} ${t('us.mascot')}` }, { value: 'tree', label: `🌳 ${t('us.tree')}` }]} />}
         {showMascot ? (
           <>
-            <MascotView big onTap={g.taps ? tap : undefined} />
+            <SceneView id={activeScene(s)} className={activeScene(s) !== 'scene:none' ? 'mascot-scene' : undefined}>
+              <MascotView big onTap={g.taps ? tap : undefined} />
+            </SceneView>
             <div className="hero-num" style={{ fontSize: 26 }}>{mascotName(s, t)}</div>
             <div className="hero-sub">{t(`mstage.${stage}` as TKey)} · {t(`mascot.${mood}` as TKey)}</div>
           </>
@@ -240,6 +246,7 @@ export default function Us({ back }: { back?: boolean }) {
 
       <Section>
         <Row icon="❓" title={t('us.how')} chevron onClick={() => setHow(true)} />
+        <Row icon="✨" title={t('col.title')} chevron onClick={() => openCollection(nav, 'mascot')} />
         <Row icon="⚙️" title={t('set.game')} chevron onClick={() => nav.settings('game')} />
       </Section>
 
@@ -270,7 +277,7 @@ export function useLevelUp() {
     try { seen = Number(localStorage.getItem(key) ?? 0) } catch { /* ignore */ }
     if (seen && p.level > seen) {
       const stageUp = mascotStage(p.level) > mascotStage(seen) && g.mascot
-      toast(stageUp ? `${mascotEmoji(s.game.mascotKind)} ${t('us.stageUp', { stage: t(`mstage.${mascotStage(p.level)}` as TKey) })}` : `🎉 ${t('us.levelUp', { n: p.level })}`)
+      toast(stageUp ? `${ITEMS[activeMascot(s)].emoji} ${t('us.stageUp', { stage: t(`mstage.${mascotStage(p.level)}` as TKey) })}` : `🎉 ${t('us.levelUp', { n: p.level })}`)
       haptic()
     }
     try { localStorage.setItem(key, String(p.level)) } catch { /* ignore */ }

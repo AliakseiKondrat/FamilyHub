@@ -12,7 +12,10 @@ import { SUPABASE_URL, SYNC_ENABLED } from '../config'
 import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign } from '../defaults'
-import { MASCOT_KINDS, MASCOT_STAGES, progress } from '../lib/game'
+import { MASCOT_STAGES, progress } from '../lib/game'
+import Collection, { DevPage, openCollection } from './Collection'
+import { itemsOf, realTier, statusOf } from '../lib/unlocks'
+import { itemName } from '../lib/catalog'
 import { openTour } from './Tour'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
@@ -67,6 +70,8 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'statuses': return <StatusesPage />
     case 'shortcuts': return <ShortcutsPage />
     case 'game': return <GamePage />
+    case 'collection': return <Collection />
+    case 'dev': return <DevPage />
     default: return <RootPage />
   }
 }
@@ -110,6 +115,8 @@ function RootPage() {
         {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
         {link('💬', 'color-mix(in srgb, var(--green) 20%, transparent)', t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'))}
         {link('🔥', 'linear-gradient(135deg,#f97316,#ec4899)', t('set.game'), 'game', s.game.enabled ? t('on') : t('off'))}
+        {link('✨', 'linear-gradient(135deg,#a855f7,#f59e0b)', t('col.title'), 'collection')}
+        {realTier() === 'dev' && link('🛠', 'var(--fill)', t('dev.title'), 'dev', s.prefs.devAs ? t(`dev.as.${s.prefs.devAs}`) : undefined)}
       </Section>
 
       <Section header={t('lists')}>
@@ -886,6 +893,7 @@ const setGame = (patch: Partial<State['game']>) => update((st) => { st.game = { 
 function GamePage() {
   const s = useApp()
   const t = useT()
+  const nav = useNav()
   const g = s.game
   const d = today()
   const { level } = progress(s.acts, g.pauses, d)
@@ -913,12 +921,12 @@ function GamePage() {
           </Section>
           <div className="section-header" style={{ padding: '0 30px 8px' }}>{t('game.kind')}</div>
           <div className="cat-grid">
-            {MASCOT_KINDS.map((k) => {
-              const locked = level < k.level
+            {itemsOf('mascot').map((k) => {
+              const locked = !statusOf(k.id, s).open
               return (
-                <button key={k.id} className={'cat-btn' + (g.mascotKind === k.id ? ' on' : '')} disabled={locked}
-                  style={locked ? { opacity: 0.45 } : undefined} onClick={() => setGame({ mascotKind: k.id })}>
-                  <span className="ce">{k.emoji}</span>{locked ? `🔒 ${t('game.unlock', { n: k.level })}` : ''}
+                <button key={k.id} className={'cat-btn' + (g.mascotKind === k.key ? ' on' : '')}
+                  style={locked ? { opacity: 0.45 } : undefined} onClick={() => (locked ? openCollection(nav, 'mascot') : setGame({ mascotKind: k.key }))}>
+                  <span className="ce">{k.emoji}</span>{locked ? `🔒 ${itemName(k, s.lang)}` : itemName(k, s.lang)}
                 </button>
               )
             })}

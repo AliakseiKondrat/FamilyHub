@@ -152,6 +152,10 @@ export interface GameSettings {
   questMode: 'near' | 'far' | 'all'
   /** Vacation: these days neither count nor break the flame. */
   pauses: { from: string; to: string }[]
+  /** Collection picks shared by the couple: the mascot's scene, the default postcard and the savings goal design. */
+  scene?: string
+  card?: string
+  piggy?: string
   /** "Another quest" presses for a given day, so both phones reshuffle alike. */
   shuffle?: { date: string; n: number }
 }
@@ -202,6 +206,10 @@ export interface Prefs {
   presetsAdded?: string[]
   /** Today blocks already offered, so a newer block added later doesn't come back after being removed. */
   blocksAdded?: TodayBlock[]
+  /** My own look from the collection: a theme or an atmosphere id (e.g. 'theme:dusk'). */
+  look?: string
+  /** Developers only: preview the app as a close couple or an ordinary one. */
+  devAs?: 'close' | 'public'
   /** Fetch a picture and title for pasted links. */
   linkPreviews: boolean
   showStatuses: boolean

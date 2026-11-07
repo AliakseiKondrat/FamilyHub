@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { ModuleId, State } from './types'
 import { getState } from './store'
+import { activeLook, lookOf } from './lib/unlocks'
 
 export type Accent = ModuleId | 'more' | 'settings'
 
@@ -34,8 +35,12 @@ export const DEFAULT_ACCENT: Record<Accent, string> = {
   photos: 'orchid', cycle: 'bloom', wishlist: 'peach', us: 'peach', music: 'music', more: 'graphite', settings: 'graphite',
 }
 
-export const accentColors = (a: Accent, s: State = getState()) =>
-  PRESETS[s.design?.accents?.[a] ?? DEFAULT_ACCENT[a]] ?? PRESETS[DEFAULT_ACCENT[a]]
+/** A section's header colours: the person's own pick for that section, else the theme's single gradient, else the default. */
+export function accentColors(a: Accent, s: State = getState()): [string, string] {
+  const own = s.design?.accents?.[a]
+  if (own && PRESETS[own]) return PRESETS[own]
+  return lookOf(activeLook(s)).headers ?? PRESETS[DEFAULT_ACCENT[a]]
+}
 
 export const accentStyle = (a: Accent) => {
   const [a1, a2] = accentColors(a)
@@ -56,4 +61,25 @@ export function applyDesign(s: State, theme: 'light' | 'dark') {
   el.dataset.motion = d.reduceMotion ? 'reduce' : 'full'
   el.dataset.tabtint = d.tabTint
   el.lang = s.lang
+  applyLook(s, theme)
+}
+
+const LOOK_VARS = ['--bg', '--cell', '--cell-hi', '--blue', '--wall'] as const
+/** Paint my theme or atmosphere: palette variables on <html>, an optional wallpaper, and data-look for the ambient layer. */
+export function applyLook(s: State, theme: 'light' | 'dark') {
+  const el = document.documentElement
+  const id = activeLook(s)
+  const look = lookOf(id)
+  const pal = theme === 'dark' ? look.dark : look.light
+  for (const v of LOOK_VARS) el.style.removeProperty(v)
+  if (pal[0]) {
+    el.style.setProperty('--bg', pal[0])
+    el.style.setProperty('--cell', pal[1])
+    el.style.setProperty('--cell-hi', pal[2])
+    el.style.setProperty('--blue', pal[3])
+  }
+  const wall = look.wall?.[theme === 'dark' ? 1 : 0]
+  if (wall) el.style.setProperty('--wall', wall)
+  el.dataset.wall = wall ? 'on' : 'off'
+  el.dataset.look = id
 }

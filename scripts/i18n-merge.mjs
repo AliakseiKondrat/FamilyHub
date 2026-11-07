@@ -14,11 +14,14 @@ const ru = all.ru
 const have = all[lang] ?? {}
 const add = JSON.parse(readFileSync(file, 'utf8'))
 
-const unknown = Object.keys(add).filter((k) => !(k in ru))
+// Russian is the reference: new keys start there. Every other language may only fill keys Russian has.
+const isRu = lang === 'ru'
+const unknown = isRu ? [] : Object.keys(add).filter((k) => !(k in ru))
 if (unknown.length) throw new Error('keys not in ru: ' + unknown.join(', '))
 // A placeholder must be one the code passes: Russian or English uses it. Ones both use are required.
 const ph = (s) => new Set([...(s ?? '').matchAll(/\{(\w+)\}/g)].map((m) => m[1]))
 for (const [k, v] of Object.entries(add)) {
+  if (isRu) break
   const r = ph(ru[k]), e = ph(all.en?.[k] ?? ru[k]), got = ph(v)
   const extra = [...got].filter((p) => !r.has(p) && !e.has(p))
   const lost = [...r].filter((p) => e.has(p) && !got.has(p))
@@ -28,7 +31,7 @@ for (const [k, v] of Object.entries(add)) {
 const esc = (s) => "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"
 const keyOf = (k) => (/^[A-Za-z_]\w*$/.test(k) ? k : esc(k))
 // Keep the Russian order so every dictionary reads the same way.
-const lines = Object.keys(ru).filter((k) => k in add && !(k in have)).map((k) => `  ${keyOf(k)}: ${esc(add[k])},`)
+const lines = (isRu ? Object.keys(add) : Object.keys(ru)).filter((k) => k in add && !(k in have)).map((k) => `  ${keyOf(k)}: ${esc(add[k])},`)
 
 const head = new RegExp(`const ${lang}(?:: [^=]+)? = \\{`)
 if (head.test(src)) {

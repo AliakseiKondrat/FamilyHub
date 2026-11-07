@@ -5,6 +5,8 @@ import { DateRow, GlassButton, Icon, Marks, Row, Screen, Section, Segmented, She
 import { diffDays, fmtDate, fmtMoney, fromISO, LOCALES, toISO, today } from '../lib/date'
 import { budgetColor, catEmoji, catTitle } from '../lib/cats'
 import type { Expense, Goal, Recurring, State, UserId, Who } from '../types'
+import { PiggyBar } from './Collection'
+import { activePiggy } from '../lib/unlocks'
 
 export const currencyOf = (s: State) => (s.country === 'ES' ? 'EUR' : 'PLN')
 const payer = (s: State, w: Who) => (w === 'both' ? '💞' : s.users[w].emoji)
@@ -211,7 +213,7 @@ export default function Budget({ back }: { back?: boolean }) {
               <button key={g.id} className="goal" onClick={() => setGoal(g)}>
                 <div className="g-emoji">{g.emoji}</div>
                 <div className="g-title">{g.title}</div>
-                <div className="progress"><i style={{ width: Math.min(100, (g.saved / g.target) * 100) + '%', '--c': 'var(--green)' } as CSSProperties} /></div>
+                <PiggyBar id={activePiggy(s)} pct={(g.saved / g.target) * 100} />
                 <div className="g-sum">{money(g.saved)} / {money(g.target)}</div>
               </button>
             ))}

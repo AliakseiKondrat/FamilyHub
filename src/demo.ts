@@ -132,14 +132,9 @@ export function demoState(): State {
       { ...b('j'), id: 'w5', title: 'Свой дом с садом', owner: 'both', kind: 'dream' },
     ],
     wishClaims: [{ ...b('a'), wishId: 'w3', privateTo: 'a' }],
-    // Three weeks of things done together, with two gaps the freezes cover.
-    acts: Array.from({ length: 21 }, (_, i) => i).filter((i) => i !== 6 && i !== 13).flatMap((i) => {
-      const day = d(-i - 1), kinds = (['task', 'recipe', 'grocery', 'watch', 'quest', 'task'] as const)
-      return [kinds[i % kinds.length], 'task' as const].map((kind, k) => ({
-        id: `act:${kind}:demo-${i}-${k}`, kind, ref: `demo-${i}-${k}`, date: day, createdBy: (k ? 'j' : 'a') as UserId, createdAt: new Date().toISOString(),
-      }))
-    }),
-    moods: [{ ...b('j'), date: t, value: 4 }],
+    // The couple ritual starts from zero: no invented history for the mascot.
+    acts: [],
+    moods: [],
     game: defaultGame(),
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },

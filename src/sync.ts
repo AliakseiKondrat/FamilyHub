@@ -7,6 +7,7 @@ import { periodDays } from './lib/cycle'
 import { flushPhotoUploads } from './lib/photos'
 import type { State, UserId } from './types'
 import { defaultDesign, PERSONAL_KEYS, upgradeGame, SHARED_KEYS, upgradePrefs } from './defaults'
+import { clearUnlocks, loadUnlocks, setHouseholdGetter } from './lib/unlocks'
 
 /**
  * Local-first sync: the app keeps working on its local state; every local edit is diffed into
@@ -189,6 +190,7 @@ let household: string | null = (() => { try { return localStorage.getItem(HH_KEY
 function setHousehold(h: string) { household = h; try { localStorage.setItem(HH_KEY, h) } catch { /* ignore */ } }
 /** The signed-in couple's household id ('h1' for the first one), once known. */
 export const getHousehold = () => household
+setHouseholdGetter(getHousehold)
 
 let channel: RealtimeChannel | undefined
 function subscribe() {
@@ -237,6 +239,7 @@ async function onSession(session: Session | null) {
 
   setChangeHook(diff)
   setAuth({ status: 'ready' })
+  loadUnlocks().catch(() => {})
   try {
     const hasSettings = await pull()
     if (!hasSettings) enqueue([metaRow(SETTINGS_ID, shared(getState()), getState().me)])
@@ -258,6 +261,7 @@ export async function initSync() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || auth.status !== 'ready') return
     pull().then(() => flush()).catch(() => {})
+    loadUnlocks().catch(() => {})
     syncGoogleSoon(0)
   })
 }
@@ -299,5 +303,6 @@ export async function signOut() {
   localStorage.removeItem(USER_KEY)
   localStorage.removeItem(HH_KEY)
   household = null
+  clearUnlocks()
   replaceState({ ...blankState(), lang: getState().lang, theme: getState().theme })
 }

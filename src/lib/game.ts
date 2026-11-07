@@ -1,6 +1,7 @@
 import type { Act, Lang, Mood, State, UserId } from '../types'
 import { addDays, today } from './date'
 import { QUEST_TX } from './quests-i18n'
+import { ITEMS } from './catalog'
 
 /*
  * The couple's daily ritual: a shared mascot (not the real pet!) and a relationship tree that grow from things done together.
@@ -39,14 +40,8 @@ export const MASCOT_STAGES = [
 ] as const
 export const mascotStage = (level: number) => MASCOT_STAGES.reduce((s, x, i) => (level >= x.from ? i : s), 0)
 
-/** Free animals; a few unlock as the couple grows instead of being sold. */
-export const MASCOT_KINDS: { id: string; emoji: string; level: number }[] = [
-  { id: 'fox', emoji: '🦊', level: 1 }, { id: 'cat', emoji: '🐱', level: 1 }, { id: 'dog', emoji: '🐶', level: 1 }, { id: 'rabbit', emoji: '🐰', level: 1 }, { id: 'bear', emoji: '🐻', level: 1 },
-  { id: 'panda', emoji: '🐼', level: 1 }, { id: 'penguin', emoji: '🐧', level: 1 }, { id: 'hedgehog', emoji: '🦔', level: 3 },
-  { id: 'owl', emoji: '🦉', level: 8 }, { id: 'turtle', emoji: '🐢', level: 12 }, { id: 'unicorn', emoji: '🦄', level: 18 },
-  { id: 'dragon', emoji: '🐉', level: 25 },
-]
-export const mascotEmoji = (kind: string) => MASCOT_KINDS.find((k) => k.id === kind)?.emoji ?? '🦊'
+/** Mascot kinds live in the collection (catalog.ts); which ones a couple may use is decided in unlocks.ts. */
+export const mascotEmoji = (kind: string) => ITEMS[`mascot:${kind}`]?.emoji ?? '🦊'
 
 /** The tree: twelve stages, the last ones take a year or more of life together. */
 export const TREE_STAGES = [

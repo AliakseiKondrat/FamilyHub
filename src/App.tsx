@@ -29,6 +29,8 @@ import { ShareSheet, takeLaunchParams, type Shared } from './screens/Share'
 import { getHousehold, useSync } from './sync'
 import Tour, { tourBus } from './screens/Tour'
 import { SYNC_ENABLED } from './config'
+import { Ambient, GiftNotice, TryOnBar } from './screens/Collection'
+import { useServerUnlocks, useTryOn } from './lib/unlocks'
 
 const TAB_ICONS: Partial<Record<ModuleId, string>> = { today: 'today', calendar: 'calendar', tasks: 'tasks', groceries: 'cart' }
 
@@ -161,7 +163,10 @@ export default function App() {
   useEffect(() => { document.documentElement.dataset.layout = wide ? 'wide' : 'phone' }, [wide])
   // Leaving the wide layout while on a section that isn't in the tab bar: fall back to "More".
   useEffect(() => { if (!wide && nav.tab !== 'more' && !s.prefs.tabs.includes(nav.tab)) nav.setTab('more') }, [wide]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { applyDesign(s, theme) }, [s, theme])
+  // The look also changes when the server's unlocks arrive or a theme is being tried on.
+  const unlocks = useServerUnlocks()
+  const trying = useTryOn()
+  useEffect(() => { applyDesign(s, theme) }, [s, theme, unlocks, trying])
   // Book this month's recurring payments once the data is ready.
   useEffect(() => { if (sync.status === 'ready') bookRecurring() }, [sync.status])
   // Back from Google sign-in (?google=ok|error): say how it went and tidy the address.
@@ -236,6 +241,9 @@ export default function App() {
         <div key={i} className={out ? 'leaving-wrap' : i < nav.stack.length - 1 ? 'covered-wrap' : undefined}>{routeScreen(r)}</div>
       ))}
       <MiniPlayer />
+      <Ambient />
+      <TryOnBar />
+      <GiftNotice />
       {tour && <Tour onClose={() => setTour(false)} />}
       {shared && <ShareSheet shared={shared} onClose={() => setShared(null)} />}
     </>
