@@ -176,7 +176,17 @@ export default function App() {
   // The look also changes when the server's unlocks arrive or a theme is being tried on.
   const unlocks = useServerUnlocks()
   const trying = useTryOn()
-  useEffect(() => { applyDesign(s, theme); paintTelegram(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()) }, [s, theme, unlocks, trying])
+  useEffect(() => {
+    applyDesign(s, theme)
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+    paintTelegram(bg)
+    // Android paints its status and navigation bars in theme-color: keep them the colour of the app, not the manifest's purple.
+    if (bg) {
+      let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta) }
+      meta.content = bg
+    }
+  }, [s, theme, unlocks, trying])
   // Inside Telegram: its back button mirrors our screen stack, and the bot learns who's signed in.
   useEffect(() => { telegramBack(nav.stack.length > 0) }, [nav.stack.length])
   useEffect(() => { if (inTelegram()) loadTelegram() }, [])

@@ -57,13 +57,16 @@ export type AchId = 'firstQuest' | 'fullDay' | 'questWeek' | 'firstNote' | 'firs
   | 'marathon' | 'stamp1' | 'stamp13' | 'stamp52' | 'monthDone' | 'joker' | 'comeback' | 'anniversary'
 export interface Ach { id: AchId; emoji: string; test: (c: Ctx) => boolean }
 
-interface Ctx { s: State; p: Progress; m: Marathon; count: (k: Act['kind']) => number; acts: Act[] }
-const hourOf = (a: Act) => new Date(a.createdAt).getHours()
+interface Ctx { s: State; p: Progress; m: Marathon; count: (k: Act['kind']) => number; acts: Act[]; quests: () => Map<string, number>; hours: () => Set<number> }
+/** Local hour of an ISO time without building a Date for each act (thousands of them). */
+const TZ = new Date().getTimezoneOffset()
+const hourOf = (iso: string) => { const m = Number(iso.slice(11, 13)) * 60 + Number(iso.slice(14, 16)) - TZ; return Math.floor((((m % 1440) + 1440) % 1440) / 60) }
+const lazy = <T,>(f: () => T) => { let v: T | undefined; return () => (v ??= f()) }
 
 export const ACHIEVEMENTS: Ach[] = [
   { id: 'firstQuest', emoji: '🎯', test: (c) => c.count('quest') > 0 },
-  { id: 'fullDay', emoji: '✅', test: (c) => [...questDays(c.acts).values()].some((n) => n >= 3) },
-  { id: 'questWeek', emoji: '🗓️', test: (c) => longestQuestRun(c.acts) >= 7 },
+  { id: 'fullDay', emoji: '✅', test: (c) => [...c.quests().values()].some((n) => n >= 3) },
+  { id: 'questWeek', emoji: '🗓️', test: (c) => longestQuestRun(c.quests()) >= 7 },
   { id: 'firstNote', emoji: '💌', test: (c) => c.count('note') > 0 },
   { id: 'firstBlind', emoji: '🎭', test: (c) => c.count('blind') > 0 },
   { id: 'firstTrip', emoji: '✈️', test: (c) => c.count('trip') > 0 },
@@ -73,8 +76,8 @@ export const ACHIEVEMENTS: Ach[] = [
   { id: 'firstFilm', emoji: '🍿', test: (c) => c.count('watch') > 0 },
   { id: 'firstGift', emoji: '🎁', test: (c) => c.count('wish') > 0 },
   { id: 'tapsGoal', emoji: '💞', test: (c) => tapDays(c.acts) > 0 },
-  { id: 'nightOwls', emoji: '🦉', test: (c) => c.acts.some((a) => a.kind !== 'taps' && hourOf(a) < 4) },
-  { id: 'earlyBirds', emoji: '🐦', test: (c) => c.acts.some((a) => a.kind !== 'taps' && hourOf(a) >= 5 && hourOf(a) < 7) },
+  { id: 'nightOwls', emoji: '🦉', test: (c) => [0, 1, 2, 3].some((h) => c.hours().has(h)) },
+  { id: 'earlyBirds', emoji: '🐦', test: (c) => c.hours().has(5) || c.hours().has(6) },
   { id: 'flame7', emoji: '🔥', test: (c) => c.p.best >= 7 },
   { id: 'flame30', emoji: '🔥', test: (c) => c.p.best >= 30 },
   { id: 'flame100', emoji: '💯', test: (c) => c.p.best >= 100 },
@@ -111,8 +114,8 @@ function questDays(acts: Act[]) {
   return m
 }
 /** Longest run of days with all three quests. */
-function longestQuestRun(acts: Act[]) {
-  const full = [...questDays(acts)].filter(([, n]) => n >= 3).map(([d]) => d).sort()
+function longestQuestRun(days: Map<string, number>) {
+  const full = [...days].filter(([, n]) => n >= 3).map(([d]) => d).sort()
   let best = 0, run = 0, prev = ''
   for (const d of full) { run = prev && addDays(prev, 1) === d ? run + 1 : 1; best = Math.max(best, run); prev = d }
   return best
@@ -164,7 +167,11 @@ export function progressionOf(s: State, now = today()): Progression {
     trips: count('trip'), gifts: count('wish'), notes: count('note'), checkins: checkinWeeks(s.acts), blind: count('blind'),
     goals: count('goal'), taps: tapDays(s.acts), moods: bothMoodDays(s), photos: count('photo'), music: count('music'), events: count('event'),
   }
-  const ctx: Ctx = { s, p, m, count, acts: s.acts }
+  const ctx: Ctx = {
+    s, p, m, count, acts: s.acts,
+    quests: lazy(() => questDays(s.acts)),
+    hours: lazy(() => new Set(s.acts.filter((a) => a.kind !== 'taps').map((a) => hourOf(a.createdAt)))),
+  }
   const achieved = new Set(ACHIEVEMENTS.filter((a) => a.test(ctx)).map((a) => a.id))
   const medals = CHAINS.reduce((n, c) => n + chainStep(c, chains[c.id]).reached, 0)
   const r: Progression = { p, m, chains, achieved, medals, medalsAll: CHAINS.reduce((n, c) => n + c.steps.length, 0) }
