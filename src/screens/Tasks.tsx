@@ -1,17 +1,17 @@
 import { useState, type CSSProperties } from 'react'
 import { base, update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { moduleLabel, useT, type TKey } from '../i18n'
 import {
-  Avatar, Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, WhoPicker, Em, EmojiField,
+  Avatar, Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, SelectRow, Sheet, Swipe, TextRow, VisibilityFields, WhoPicker, Em, EmojiField,
 } from '../ui'
-import { addDays, fmtDate, nextRepeat, parseQuick, today } from '../lib/date'
+import { addDays, fmtDate, fromISO, nextDue, parseQuick, today, weekdayNames } from '../lib/date'
 import type { Task } from '../types'
 
 /** Completing a repeating task moves it to the next date instead of closing it. */
 export function toggleTask(id: string) {
   update((st) => {
     const x = st.tasks.find((k) => k.id === id)!
-    if (!x.done && x.repeat !== 'none' && x.due) { x.due = nextRepeat(x.due, x.repeat); return }
+    if (!x.done && x.repeat !== 'none' && x.due) { x.due = nextDue(x.due, x.repeat, x); return }
     x.done = !x.done
     x.doneAt = x.done ? new Date().toISOString() : undefined
   })
@@ -36,7 +36,9 @@ export function TaskRow({ task, onOpen }: { task: Task; onOpen: (t: Task) => voi
         sub={(dueLabel || task.repeat !== 'none' || task.notes) && (
           <>
             {dueLabel && <span className={!task.done && due! < d ? 'red' : ''}>{dueLabel}{task.time ? `, ${task.time}` : ''}</span>}
-            {task.repeat !== 'none' && <span>🔁</span>}
+            {task.repeat !== 'none' && <span>🔁{(task.every ?? 1) > 1 ? ` ×${task.every}` : ''}</span>}
+            {task.room && <span className="tag">{task.room}</span>}
+            {!!task.remindBefore && <span>⏰ −{task.remindBefore}</span>}
             {task.notes && <span>📝</span>}
           </>
         )}
@@ -108,6 +110,7 @@ export default function Tasks({ back }: { back?: boolean }) {
 
 export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void }) {
   const t = useT()
+  const s = useApp()
   const [v, setV] = useState(task)
   const isNew = !useApp().tasks.some((k) => k.id === task.id)
   const save = () => update((st) => {
@@ -123,7 +126,44 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
       <Section>
         <DateRow label={`📅 ${t('date')}`} value={v.due} onChange={(due) => setV({ ...v, due, time: due ? v.time : undefined })} />
         {v.due && <DateRow label={`⏰ ${t('time')}`} type="time" value={v.time} onChange={(time) => setV({ ...v, time })} />}
-        <RepeatRow value={v.repeat} onChange={(repeat) => setV({ ...v, repeat })} />
+        <RepeatRow value={v.repeat} onChange={(repeat) => setV((x) => ({ ...x, repeat, monthDay: repeat === 'monthly' && x.due ? fromISO(x.due).getDate() : undefined }))} />
+        {v.repeat !== 'none' && (
+          <div className="row">
+            <span className="label" style={{ flex: 1 }}>{t('tk.every')}</span>
+            <div className="tk-step">
+              <button onClick={() => setV((x) => ({ ...x, every: Math.max(1, (x.every ?? 1) - 1) }))}>−</button>
+              <b>{v.every ?? 1}</b>
+              <button onClick={() => setV((x) => ({ ...x, every: Math.min(99, (x.every ?? 1) + 1) }))}>+</button>
+            </div>
+            <span style={{ color: 'var(--label2)', marginLeft: 8, minWidth: 44 }}>{t(`tk.unit.${v.repeat}` as TKey)}</span>
+          </div>
+        )}
+        {v.repeat === 'weekly' && (
+          <div className="tk-days">
+            {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+              <button key={d} className={'chip' + (v.weekdays?.includes(d) ? ' on' : '')}
+                onClick={() => setV((x) => { const w = new Set(x.weekdays ?? []); if (w.has(d)) w.delete(d); else w.add(d); return { ...x, weekdays: w.size ? [...w].sort() : undefined } })}>
+                {weekdayNames(s.lang)[(d + 6) % 7]}
+              </button>
+            ))}
+          </div>
+        )}
+      </Section>
+      {v.repeat === 'monthly' && v.due && <div className="col-hint" style={{ margin: '-8px 30px 14px' }}>{t('tk.monthHint', { d: v.monthDay ?? fromISO(v.due).getDate() })}</div>}
+      {v.due && (
+        <Section>
+          <SelectRow label={`🔔 ${t('tk.remind')}`} value={String(v.remindBefore ?? 0)} onChange={(x) => setV((y) => ({ ...y, remindBefore: Number(x) || undefined }))}
+            options={[0, 1, 2, 3, 7].map((n) => ({ value: String(n), label: n ? t('tk.daysBefore', { n }) : t('tk.onTheDay') }))} />
+        </Section>
+      )}
+      <Section header={t('tk.room')}>
+        <TextRow value={v.room ?? ''} onChange={(room) => setV((x) => ({ ...x, room: room || undefined }))} placeholder={t('tk.roomPlaceholder')} />
+        <div className="tk-rooms">
+          {(['kitchen', 'bath', 'bedroom', 'living', 'hall', 'balcony'] as const).map((r) => {
+            const name = t(`tk.room.${r}` as TKey)
+            return <button key={r} className={'chip' + (v.room === name ? ' on' : '')} onClick={() => setV((x) => ({ ...x, room: x.room === name ? undefined : name }))}>{name}</button>
+          })}
+        </div>
       </Section>
       <div className="section-header" style={{ padding: '0 32px 7px' }}>{t('assignee')}</div>
       <div style={{ margin: '0 16px 10px' }}><WhoPicker value={v.assignee} onChange={(assignee) => setV({ ...v, assignee })} /></div>

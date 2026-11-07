@@ -32,6 +32,12 @@ export type Repeat = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 export interface Task extends Base {
   title: string; notes?: string; due?: string; time?: string
   assignee: Who; done: boolean; doneAt?: string; repeat: Repeat
+  /** Every N days / weeks / months / years (default 1); weekly on chosen weekdays (0 = Sunday); monthly on this day (no such day → the month's last). */
+  every?: number; weekdays?: number[]; monthDay?: number
+  /** Also remind this many days before the date (at 9:00). */
+  remindBefore?: number
+  /** Where at home: kitchen, bathroom… */
+  room?: string
 }
 
 export interface CalEvent extends Base {

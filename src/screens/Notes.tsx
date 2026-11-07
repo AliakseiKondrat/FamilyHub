@@ -5,7 +5,7 @@ import {
   Check, DateRow, Empty, GlassButton, Marks, QuickAdd, RepeatRow, Row, Screen, Section, Segmented, Sheet, Swipe, TextRow, VisibilityFields, toast, Em, EmojiField,
 } from '../ui'
 import { recordEmoji } from '../lib/emoji'
-import { fmtDate, nextRepeat, today } from '../lib/date'
+import { fmtDate, nextDue, today } from '../lib/date'
 import { guessCategory } from '../lib/categories'
 import type { ModuleId, Note, NoteModule, State } from '../types'
 import { newTask } from './Tasks'
@@ -28,7 +28,7 @@ export default function Notes({ module, back }: { module: NoteModule; back?: boo
 
   const toggle = (n: Note) => update((st) => {
     const x = st.notes.find((k) => k.id === n.id)!
-    if (!x.done && x.due && x.repeat && x.repeat !== 'none') { x.due = nextRepeat(x.due, x.repeat); return }
+    if (!x.done && x.due && x.repeat && x.repeat !== 'none') { x.due = nextDue(x.due, x.repeat); return }
     x.done = !x.done
   })
   const random = () => {

@@ -42,6 +42,28 @@ export function nextRepeat(iso: string, r: Repeat) {
   }
 }
 
+/** The next date of a repeating task: every N days/weeks/months/years, weekly on chosen weekdays,
+ *  monthly on a fixed day (a month without that day uses its last day, and the day comes back after). */
+export function nextDue(iso: string, r: Repeat, rule: { every?: number; weekdays?: number[]; monthDay?: number } = {}) {
+  const n = Math.max(1, Math.round(rule.every ?? 1))
+  switch (r) {
+    case 'daily': return addDays(iso, n)
+    case 'weekly': {
+      if (rule.weekdays?.length) {
+        for (let i = 1; i <= 7; i++) { const d = addDays(iso, i); if (rule.weekdays.includes(fromISO(d).getDay())) return i === 7 && n > 1 ? addDays(d, 7 * (n - 1)) : d }
+      }
+      return addDays(iso, 7 * n)
+    }
+    case 'monthly': {
+      const d = fromISO(addMonths(iso, n))
+      if (rule.monthDay) d.setDate(Math.min(rule.monthDay, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+      return toISO(d)
+    }
+    case 'yearly': return addMonths(iso, 12 * n)
+    default: return iso
+  }
+}
+
 export const LOCALES: Record<Lang, string> = { ru: 'ru-RU', en: 'en-GB', pl: 'pl-PL', es: 'es-ES', it: 'it-IT' }
 
 export function fmtDate(iso: string, lang: Lang, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }) {

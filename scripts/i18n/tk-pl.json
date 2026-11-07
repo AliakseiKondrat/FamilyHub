@@ -1,0 +1,3 @@
+{ "tk.every": "Co", "tk.unit.daily": "dni", "tk.unit.weekly": "tyg.", "tk.unit.monthly": "mies.", "tk.unit.yearly": "lat", "tk.monthHint": "Zawsze {d}. dnia miesiąca. Jeśli miesiąc nie ma takiego dnia — w ostatni dzień miesiąca.",
+ "tk.remind": "Przypomnij", "tk.onTheDay": "w tym dniu", "tk.daysBefore": "{n} dni wcześniej", "tk.room": "Gdzie", "tk.roomPlaceholder": "Pokój lub miejsce",
+ "tk.room.kitchen": "Kuchnia", "tk.room.bath": "Łazienka", "tk.room.bedroom": "Sypialnia", "tk.room.living": "Salon", "tk.room.hall": "Przedpokój", "tk.room.balcony": "Balkon" }

@@ -1,0 +1,3 @@
+{ "tk.every": "Every", "tk.unit.daily": "days", "tk.unit.weekly": "weeks", "tk.unit.monthly": "months", "tk.unit.yearly": "years", "tk.monthHint": "On the {d} of each month. A month without that day uses its last day.",
+ "tk.remind": "Remind", "tk.onTheDay": "on the day", "tk.daysBefore": "{n} days before", "tk.room": "Where", "tk.roomPlaceholder": "Room or place",
+ "tk.room.kitchen": "Kitchen", "tk.room.bath": "Bathroom", "tk.room.bedroom": "Bedroom", "tk.room.living": "Living room", "tk.room.hall": "Hallway", "tk.room.balcony": "Balcony" }

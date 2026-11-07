@@ -26,27 +26,27 @@ const TX = {
   ru: { groceries: '🛒 {n}: в продукты', tasks: '✅ Новая задача от {n}', events: '📅 {n}: новое событие', music: '🎧 {n} делится треком',
     watch: '🍿 {n}: что посмотреть', notes: '📥 {n}: новая запись', expenses: '💸 {n}: новая трата', settle: '🤝 {n}: расчёт', photos: '📸 {n} добавил(а) фото',
     recipes: '🍳 {n}: новый рецепт', trips: '✈️ {n}: новая поездка', goals: '🐷 {n}: новая копилка', petRecords: '🐶 {n}: запись о питомце',
-    remind: '⏰ Напоминание', soon: '📅 Через {m} мин', morning: '☀️ Доброе утро!', tasksN: 'задач', eventsN: 'событий', buyN: 'купить',
+    remind: '⏰ Напоминание', before: '🔔 Через {d} дн.', soon: '📅 Через {m} мин', morning: '☀️ Доброе утро!', tasksN: 'задач', eventsN: 'событий', buyN: 'купить',
     pay: 'платёж', pet: 'питомец', mood2: '💙 {n} сейчас грустно', mood1: '💙 {n} сейчас тяжело', moodBody: 'Может, написать или обнять?', note: '💌 {n} пишет тебе', noteBody: 'Открой, чтобы прочитать', ci: '📝 Как прошла ваша неделя?', ciBody: 'Чек-ин недели: 6 вопросов, меньше минуты', ciPartner: '📝 {n} ждёт твоих ответов', bdNew: '🎭 {n} готовит тебе сюрприз', bdNewBody: 'Свидание вслепую — загляни в «Мы»', bdHint: '💡 Подсказка к свиданию', bdOpen: '✉️ Пора вскрыть конверт!', bdOpenBody: 'Свидание начинается — открой «Мы»', test: '🔔 Уведомления работают!', testBody: 'Так будут выглядеть напоминания Family Hub' },
   en: { groceries: '🛒 {n}: groceries', tasks: '✅ New task from {n}', events: '📅 {n}: new event', music: '🎧 {n} shared a song',
     watch: '🍿 {n}: something to watch', notes: '📥 {n}: new note', expenses: '💸 {n}: new expense', settle: '🤝 {n}: settled up', photos: '📸 {n} added photos',
     recipes: '🍳 {n}: new recipe', trips: '✈️ {n}: new trip', goals: '🐷 {n}: new savings goal', petRecords: '🐶 {n}: pet record',
-    remind: '⏰ Reminder', soon: '📅 In {m} min', morning: '☀️ Good morning!', tasksN: 'tasks', eventsN: 'events', buyN: 'to buy',
+    remind: '⏰ Reminder', before: '🔔 In {d} days', soon: '📅 In {m} min', morning: '☀️ Good morning!', tasksN: 'tasks', eventsN: 'events', buyN: 'to buy',
     pay: 'payment', pet: 'pet', mood2: '💙 {n} feels sad right now', mood1: '💙 {n} is having a hard time', moodBody: 'Maybe send a message or a hug?', note: '💌 A note from {n}', noteBody: 'Open it to read', ci: '📝 How was your week?', ciBody: 'Weekly check-in: 6 questions, under a minute', ciPartner: '📝 {n} is waiting for your answers', bdNew: '🎭 {n} is planning a surprise for you', bdNewBody: 'A blind date — have a look in «Us»', bdHint: '💡 A hint for your date', bdOpen: '✉️ Time to open the envelope!', bdOpenBody: 'Your date is starting — open «Us»', test: '🔔 Notifications work!', testBody: 'This is how Family Hub reminders will look' },
   pl: { groceries: '🛒 {n}: zakupy', tasks: '✅ Nowe zadanie od {n}', events: '📅 {n}: nowe wydarzenie', music: '🎧 {n} poleca utwór',
     watch: '🍿 {n}: do obejrzenia', notes: '📥 {n}: nowa notatka', expenses: '💸 {n}: nowy wydatek', settle: '🤝 {n}: rozliczenie', photos: '📸 {n} dodał(a) zdjęcia',
     recipes: '🍳 {n}: nowy przepis', trips: '✈️ {n}: nowa podróż', goals: '🐷 {n}: nowa skarbonka', petRecords: '🐶 {n}: wpis o pupilu',
-    remind: '⏰ Przypomnienie', soon: '📅 Za {m} min', morning: '☀️ Dzień dobry!', tasksN: 'zadań', eventsN: 'wydarzeń', buyN: 'do kupienia',
+    remind: '⏰ Przypomnienie', before: '🔔 Za {d} dni', soon: '📅 Za {m} min', morning: '☀️ Dzień dobry!', tasksN: 'zadań', eventsN: 'wydarzeń', buyN: 'do kupienia',
     pay: 'płatność', pet: 'pupil', mood2: '💙 {n} jest teraz smutno', mood1: '💙 {n} ma teraz ciężko', moodBody: 'Może napisz albo przytul?', note: '💌 Liścik od: {n}', noteBody: 'Otwórz, aby przeczytać', ci: '📝 Jak minął wam tydzień?', ciBody: 'Podsumowanie tygodnia: 6 pytań, mniej niż minuta', ciPartner: '📝 {n} czeka na twoje odpowiedzi', bdNew: '🎭 {n} szykuje dla ciebie niespodziankę', bdNewBody: 'Randka w ciemno — zajrzyj do „My”', bdHint: '💡 Podpowiedź do randki', bdOpen: '✉️ Czas otworzyć kopertę!', bdOpenBody: 'Randka się zaczyna — otwórz „My”', test: '🔔 Powiadomienia działają!', testBody: 'Tak będą wyglądać przypomnienia Family Hub' },
   es: { groceries: '🛒 {n}: compra', tasks: '✅ Nueva tarea de {n}', events: '📅 {n}: nuevo evento', music: '🎧 {n} comparte una canción',
     watch: '🍿 {n}: algo para ver', notes: '📥 {n}: nueva nota', expenses: '💸 {n}: nuevo gasto', settle: '🤝 {n}: cuentas saldadas', photos: '📸 {n} añadió fotos',
     recipes: '🍳 {n}: nueva receta', trips: '✈️ {n}: nuevo viaje', goals: '🐷 {n}: nueva hucha', petRecords: '🐶 {n}: registro de mascota',
-    remind: '⏰ Recordatorio', soon: '📅 En {m} min', morning: '☀️ ¡Buenos días!', tasksN: 'tareas', eventsN: 'eventos', buyN: 'por comprar',
+    remind: '⏰ Recordatorio', before: '🔔 En {d} días', soon: '📅 En {m} min', morning: '☀️ ¡Buenos días!', tasksN: 'tareas', eventsN: 'eventos', buyN: 'por comprar',
     pay: 'pago', pet: 'mascota', mood2: '💙 {n} está triste ahora', mood1: '💙 {n} lo está pasando mal', moodBody: '¿Le escribes o le das un abrazo?', note: '💌 Una nota de {n}', noteBody: 'Ábrela para leerla', ci: '📝 ¿Qué tal vuestra semana?', ciBody: 'Repaso de la semana: 6 preguntas, menos de un minuto', ciPartner: '📝 {n} espera tus respuestas', bdNew: '🎭 {n} te prepara una sorpresa', bdNewBody: 'Una cita a ciegas: echa un vistazo en «Nosotros»', bdHint: '💡 Una pista para tu cita', bdOpen: '✉️ ¡Hora de abrir el sobre!', bdOpenBody: 'Empieza la cita: abre «Nosotros»', test: '🔔 ¡Las notificaciones funcionan!', testBody: 'Así se verán los recordatorios de Family Hub' },
   it: { groceries: '🛒 {n}: spesa', tasks: '✅ Nuova attività da {n}', events: '📅 {n}: nuovo evento', music: '🎧 {n} condivide una canzone',
     watch: '🍿 {n}: qualcosa da vedere', notes: '📥 {n}: nuova nota', expenses: '💸 {n}: nuova spesa', settle: '🤝 {n}: conti saldati', photos: '📸 {n} ha aggiunto foto',
     recipes: '🍳 {n}: nuova ricetta', trips: '✈️ {n}: nuovo viaggio', goals: '🐷 {n}: nuovo salvadanaio', petRecords: '🐶 {n}: nota sull\'animale',
-    remind: '⏰ Promemoria', soon: '📅 Tra {m} min', morning: '☀️ Buongiorno!', tasksN: 'attività', eventsN: 'eventi', buyN: 'da comprare',
+    remind: '⏰ Promemoria', before: '🔔 Tra {d} giorni', soon: '📅 Tra {m} min', morning: '☀️ Buongiorno!', tasksN: 'attività', eventsN: 'eventi', buyN: 'da comprare',
     pay: 'pagamento', pet: 'animale', mood2: '💙 {n} è triste in questo momento', mood1: '💙 {n} sta passando un momento difficile', moodBody: 'Magari un messaggio o un abbraccio?', note: '💌 Un biglietto da {n}', noteBody: 'Aprilo per leggerlo', ci: '📝 Com\'è andata la vostra settimana?', ciBody: 'Check-in della settimana: 6 domande, meno di un minuto', ciPartner: '📝 {n} aspetta le tue risposte', bdNew: '🎭 {n} ti prepara una sorpresa', bdNewBody: 'Un appuntamento al buio: guarda in «Noi»', bdHint: '💡 Un indizio per l\'appuntamento', bdOpen: '✉️ È ora di aprire la busta!', bdOpenBody: 'L\'appuntamento sta per iniziare: apri «Noi»', test: '🔔 Le notifiche funzionano!', testBody: 'Così appariranno i promemoria di Family Hub' },
 }
 type Lang = keyof typeof TX
@@ -189,6 +189,11 @@ async function tickHousehold(hh: string) {
     if (np.reminders) {
       for (const r of mine) {
         const d = r.data
+        // «Remind N days before»: at 9:00 that many days ahead of the date.
+        if (r.collection === 'tasks' && !d.done && d.due && d.remindBefore > 0 && (d.assignee === role || d.assignee === 'both') && due(toMin('09:00'))
+          && new Date(Date.parse(d.due + 'T00:00:00Z') - d.remindBefore * 86400000).toISOString().slice(0, 10) === date) {
+          if (await once(`${hh}:before:${r.id}:${d.due}:${role}`)) await sendTo(hh, role, { title: fill(tx.before, { d: d.remindBefore }), body: d.title, tag: `${r.id}-before` })
+        }
         if (r.collection === 'tasks' && !d.done && d.due === date && d.time && (d.assignee === role || d.assignee === 'both') && due(toMin(d.time))) {
           if (await once(`${hh}:task:${r.id}:${date}:${d.time}:${role}`)) await sendTo(hh, role, { title: tx.remind, body: `${d.title} · ${d.time}`, tag: r.id })
         }

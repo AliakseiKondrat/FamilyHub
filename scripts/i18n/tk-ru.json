@@ -1,0 +1,3 @@
+{ "tk.every": "Каждые", "tk.unit.daily": "дн.", "tk.unit.weekly": "нед.", "tk.unit.monthly": "мес.", "tk.unit.yearly": "г.", "tk.monthHint": "Каждый раз {d}-го числа. Если в месяце нет такого дня — в последний день месяца.",
+ "tk.remind": "Напомнить", "tk.onTheDay": "в сам день", "tk.daysBefore": "за {n} дн.", "tk.room": "Где", "tk.roomPlaceholder": "Комната или место",
+ "tk.room.kitchen": "Кухня", "tk.room.bath": "Ванная", "tk.room.bedroom": "Спальня", "tk.room.living": "Гостиная", "tk.room.hall": "Прихожая", "tk.room.balcony": "Балкон" }
