@@ -1,7 +1,8 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { base, getState, other, update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
-import { DateRow, GlassButton, Icon, Marks, Row, Screen, Section, Segmented, Sheet, Swipe, Switch, TextRow, VisibilityFields, emojiList } from '../ui'
+import { DateRow, GlassButton, Icon, Marks, Row, Screen, Section, Segmented, Sheet, Swipe, Switch, TextRow, VisibilityFields, emojiList, toast } from '../ui'
+import { award } from '../lib/game'
 import { diffDays, fmtDate, fmtMoney, fromISO, LOCALES, toISO, today } from '../lib/date'
 import { budgetColor, catEmoji, catTitle } from '../lib/cats'
 import type { Expense, Goal, Recurring, State, UserId, Who } from '../types'
@@ -338,24 +339,77 @@ function GoalSheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
   const [v, setV] = useState(goal)
   const [target, setTarget] = useState(String(goal.target))
   const [add, setAdd] = useState('')
+  const [mode, setMode] = useState<'in' | 'out'>('in')
+  const [note, setNote] = useState('')
   const isNew = !s.goals.some((g) => g.id === goal.id)
   const money = (n: number) => fmtMoney(n, currencyOf(s), s.lang)
   const left = v.deadline ? diffDays(v.deadline, today()) : null
+  const live = s.goals.find((g) => g.id === goal.id) ?? v
+  const entries = [...(live.entries ?? [])].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+  const byWho = (u: UserId) => (live.entries ?? []).filter((e) => e.by === u).reduce((a, e) => a + e.amount, 0)
+  const earlier = live.saved - (live.entries ?? []).reduce((a, e) => a + e.amount, 0)
+  // Quick amounts that scale with the goal: ~1%, 5%, 10%, 25%, rounded to a nice number.
+  const nice = (n: number) => { const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(n)) - 1)); return Math.max(1, Math.round(n / p) * p) }
+  const quick = [...new Set([0.01, 0.05, 0.1, 0.25].map((f) => nice((parseAmount(target) || v.target) * f)))]
+  const weeks = left != null && left > 0 ? Math.max(1, Math.ceil(left / 7)) : null
+  const perWeek = weeks && live.saved < live.target ? (live.target - live.saved) / weeks : null
+  const removeEntry = (id: string) => update((st) => {
+    const g = st.goals.find((x) => x.id === goal.id)
+    const e = g?.entries?.find((x) => x.id === id)
+    if (!g || !e) return
+    g.entries = g.entries!.filter((x) => x.id !== id)
+    g.saved = Math.max(0, g.saved - e.amount)
+  })
   return (
     <Sheet title={isNew ? t('newGoal') : `${v.emoji} ${v.title}`} onClose={onClose} doneDisabled={!v.title.trim() || !(parseAmount(target) > 0)}
-      onDone={() => update((st) => {
-        const x = { ...v, target: parseAmount(target), saved: v.saved + (parseAmount(add) || 0) }
-        if (isNew) st.goals.push(x); else st.goals = st.goals.map((g) => (g.id === x.id ? x : g))
-      })}>
+      onDone={() => {
+        let reached = false
+        update((st) => {
+          const prev = st.goals.find((g) => g.id === v.id)
+          const a = parseAmount(add) || 0
+          const amount = mode === 'out' ? -Math.min(a, prev?.saved ?? v.saved) : a
+          const base0 = prev ?? v
+          const x: Goal = { ...v, target: parseAmount(target), entries: base0.entries, saved: base0.saved }
+          if (amount) {
+            x.entries = [...(x.entries ?? []), { id: base(st.me).id, date: today(), by: st.me, amount, note: note.trim() || undefined }]
+            x.saved = Math.max(0, x.saved + amount)
+          }
+          reached = !!prev && prev.saved < prev.target && x.saved >= x.target
+          if (isNew) st.goals.push(x); else st.goals = st.goals.map((g) => (g.id === x.id ? x : g))
+          if (reached) { award(st, 'goal', `${x.id}:reached`); const act = st.acts.find((k) => k.ref === `${x.id}:reached`); if (act) act.label = `${x.emoji} ${x.title}` }
+        })
+        if (reached) toast(`🎉 ${t('gl.reached')}`, undefined, 3500)
+      }}>
       {!isNew && (
         <div style={{ textAlign: 'center', padding: '0 20px 8px' }}>
           <div style={{ fontSize: 54 }}>{v.emoji}</div>
           <div className="hero-big money" style={{ fontSize: 36 }}>{money(v.saved)}</div>
           <div style={{ color: 'var(--label2)' }}>{t('target')}: {money(v.target)}{left != null && left >= 0 ? ` · ${t('inDays', { n: left })}` : ''}</div>
           <div className="progress" style={{ margin: '12px 20px 4px' }}><i style={{ width: Math.min(100, (v.saved / v.target) * 100) + '%', '--c': 'var(--green)' } as CSSProperties} /></div>
-          <div className="section-header" style={{ justifyContent: 'center', marginTop: 12 }}>{t('addMoney')}</div>
-          <AmountInput value={add} onChange={setAdd} placeholder="+0" />
+          {perWeek != null && <div className="gl-pace">⏱️ {t('gl.pace', { sum: money(perWeek), date: fmtDate(v.deadline!, s.lang, { day: 'numeric', month: 'long' }) })}</div>}
+          <div style={{ margin: '14px 20px 6px' }}>
+            <Segmented inSheet value={mode} onChange={setMode} options={[{ value: 'in', label: `➕ ${t('gl.in')}` }, { value: 'out', label: `➖ ${t('gl.out')}` }]} />
+          </div>
+          <AmountInput value={add} onChange={setAdd} placeholder={mode === 'in' ? '+0' : '−0'} />
+          <div className="chips gl-quick">{quick.map((q) => <button key={q} className="chip" onClick={() => setAdd(String((parseAmount(add) || 0) + q))}>{mode === 'in' ? '+' : '−'}{money(q)}</button>)}</div>
+          <div style={{ margin: '0 4px' }}><TextRow value={note} onChange={setNote} placeholder={mode === 'in' ? t('gl.noteIn') : t('gl.noteOut')} /></div>
         </div>
+      )}
+      {!isNew && (byWho('a') || byWho('j') || earlier > 0) ? (
+        <Section header={t('gl.who')}>
+          {(['a', 'j'] as UserId[]).map((u) => <Row key={u} icon={s.users[u].emoji} title={s.users[u].name} detail={<span className="money">{money(byWho(u))}</span>} />)}
+          {earlier > 0 && <Row icon="🗓️" title={t('gl.earlier')} detail={<span className="money">{money(earlier)}</span>} />}
+        </Section>
+      ) : null}
+      {entries.length > 0 && (
+        <Section header={t('gl.history')}>
+          {entries.slice(0, 20).map((e) => (
+            <Swipe key={e.id} onDelete={() => removeEntry(e.id)}>
+              <Row icon={s.users[e.by].emoji} title={<span className="money" style={{ color: e.amount < 0 ? 'var(--red)' : 'var(--green)' }}>{e.amount > 0 ? '+' : '−'}{money(Math.abs(e.amount))}</span>}
+                sub={[fmtDate(e.date, s.lang), e.note].filter(Boolean).join(' · ')} />
+            </Swipe>
+          ))}
+        </Section>
       )}
       <Section>
         <TextRow value={v.title} onChange={(title) => setV({ ...v, title })} placeholder={t('title')} autoFocus={isNew} />

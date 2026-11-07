@@ -1,0 +1,11 @@
+{
+ "gl.reached": "Obiettivo raggiunto! Bravi",
+ "gl.pace": "Per farcela entro il {date}: {sum} a settimana",
+ "gl.in": "Aggiungi",
+ "gl.out": "Spendi",
+ "gl.noteIn": "Nota: stipendio, bonus…",
+ "gl.noteOut": "In cosa è andato",
+ "gl.who": "Chi ha messo quanto",
+ "gl.earlier": "Messo da parte prima",
+ "gl.history": "Storico"
+}

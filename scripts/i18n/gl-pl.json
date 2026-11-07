@@ -1,0 +1,11 @@
+{
+ "gl.reached": "Cel osiągnięty! Brawo",
+ "gl.pace": "Żeby zdążyć do {date} — {sum} tygodniowo",
+ "gl.in": "Wpłać",
+ "gl.out": "Wydaj",
+ "gl.noteIn": "Notatka: pensja, premia…",
+ "gl.noteOut": "Na co poszło",
+ "gl.who": "Kto ile wpłacił",
+ "gl.earlier": "Odłożone wcześniej",
+ "gl.history": "Historia"
+}

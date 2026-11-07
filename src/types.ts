@@ -73,7 +73,12 @@ export interface Recurring extends Base {
 }
 
 /** Savings goal ("piggy bank"). */
-export interface Goal extends Base { title: string; emoji: string; target: number; saved: number; deadline?: string }
+export interface Goal extends Base {
+  title: string; emoji: string; target: number; saved: number; deadline?: string
+  /** Every top-up (+) and spend (−) with who and a note; `saved` stays their running total. */
+  entries?: GoalEntry[]
+}
+export interface GoalEntry { id: string; date: string; by: UserId; amount: number; note?: string }
 
 export type WatchStatus = 'want' | 'watching' | 'done'
 export interface WatchLink { service: string; url: string; label?: string }
@@ -190,6 +195,8 @@ export interface Act {
   ref: string; date: string; createdBy: UserId; createdAt: string
   /** Love taps: this person's count for the day. */
   count?: number
+  /** A human label for the partner's push (e.g. the savings goal that was reached). */
+  label?: string
 }
 /** How someone feels today (1 hard … 5 great); a new entry replaces the earlier one of the day. */
 export interface Mood extends Base { date: string; value: number; note?: string }

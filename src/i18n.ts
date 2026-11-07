@@ -721,6 +721,15 @@ const ru = {
   'tr.route': 'Маршрут',
   'tr.who': 'Кто берёт',
   'tr.whoHint': 'Нажми на кружок справа, чтобы выбрать, кто это берёт.',
+  'gl.reached': 'Цель собрана! Вы молодцы',
+  'gl.pace': 'Чтобы успеть к {date} — {sum} в неделю',
+  'gl.in': 'Пополнить',
+  'gl.out': 'Потратить',
+  'gl.noteIn': 'Заметка: зарплата, премия…',
+  'gl.noteOut': 'На что потратили',
+  'gl.who': 'Кто сколько вложил',
+  'gl.earlier': 'Отложено раньше',
+  'gl.history': 'История',
 }
 
 type Dict = typeof ru
@@ -1445,6 +1454,15 @@ const en: Partial<Dict> = {
   'tr.route': 'Route',
   'tr.who': 'Who packs it',
   'tr.whoHint': 'Tap the circle on the right to choose who packs it.',
+  'gl.reached': 'Goal reached! Well done, you two',
+  'gl.pace': 'To make it by {date} — {sum} a week',
+  'gl.in': 'Add',
+  'gl.out': 'Spend',
+  'gl.noteIn': 'Note: salary, bonus…',
+  'gl.noteOut': 'What it went on',
+  'gl.who': 'Who put in what',
+  'gl.earlier': 'Saved earlier',
+  'gl.history': 'History',
 }
 
 const pl: Partial<Dict> = {
@@ -2169,6 +2187,15 @@ const pl: Partial<Dict> = {
   'tr.route': 'Trasa',
   'tr.who': 'Kto bierze',
   'tr.whoHint': 'Dotknij kółka po prawej, aby wybrać, kto to bierze.',
+  'gl.reached': 'Cel osiągnięty! Brawo',
+  'gl.pace': 'Żeby zdążyć do {date} — {sum} tygodniowo',
+  'gl.in': 'Wpłać',
+  'gl.out': 'Wydaj',
+  'gl.noteIn': 'Notatka: pensja, premia…',
+  'gl.noteOut': 'Na co poszło',
+  'gl.who': 'Kto ile wpłacił',
+  'gl.earlier': 'Odłożone wcześniej',
+  'gl.history': 'Historia',
 }
 
 const es: Partial<Dict> = {
@@ -2893,6 +2920,15 @@ const es: Partial<Dict> = {
   'tr.route': 'Ruta',
   'tr.who': 'Quién lo lleva',
   'tr.whoHint': 'Toca el círculo de la derecha para elegir quién lo lleva.',
+  'gl.reached': '¡Meta conseguida! Bien hecho',
+  'gl.pace': 'Para llegar al {date}: {sum} a la semana',
+  'gl.in': 'Añadir',
+  'gl.out': 'Gastar',
+  'gl.noteIn': 'Nota: sueldo, extra…',
+  'gl.noteOut': 'En qué se gastó',
+  'gl.who': 'Quién ha puesto cuánto',
+  'gl.earlier': 'Ahorrado antes',
+  'gl.history': 'Historial',
 }
 
 const it: Partial<Dict> = {
@@ -3950,6 +3986,15 @@ const it: Partial<Dict> = {
   'tr.route': 'Percorso',
   'tr.who': 'Chi lo porta',
   'tr.whoHint': 'Tocca il cerchio a destra per scegliere chi lo porta.',
+  'gl.reached': 'Obiettivo raggiunto! Bravi',
+  'gl.pace': 'Per farcela entro il {date}: {sum} a settimana',
+  'gl.in': 'Aggiungi',
+  'gl.out': 'Spendi',
+  'gl.noteIn': 'Nota: stipendio, bonus…',
+  'gl.noteOut': 'In cosa è andato',
+  'gl.who': 'Chi ha messo quanto',
+  'gl.earlier': 'Messo da parte prima',
+  'gl.history': 'Storico',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */
