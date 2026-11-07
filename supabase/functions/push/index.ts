@@ -1,6 +1,6 @@
 // Family Hub push notifications.
 //  - { type: 'record', record }  from the records insert trigger: tell the partner about something new
-//  - { type: 'tick' }            from pg_cron every 5 minutes: task/event reminders and the morning summary
+//  - { type: 'tick' }            from pg_cron every 5 minutes: task/event reminders, the morning summary, love notes coming due
 //  - { type: 'test' }            from the app (user JWT): send a test notification to the caller's devices
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
@@ -26,27 +26,27 @@ const TX = {
     watch: '🍿 {n}: что посмотреть', notes: '📥 {n}: новая запись', expenses: '💸 {n}: новая трата', settle: '🤝 {n}: расчёт', photos: '📸 {n} добавил(а) фото',
     recipes: '🍳 {n}: новый рецепт', trips: '✈️ {n}: новая поездка', goals: '🐷 {n}: новая копилка', petRecords: '🐶 {n}: запись о питомце',
     remind: '⏰ Напоминание', soon: '📅 Через {m} мин', morning: '☀️ Доброе утро!', tasksN: 'задач', eventsN: 'событий', buyN: 'купить',
-    pay: 'платёж', pet: 'питомец', mood2: '💙 {n} сейчас грустно', mood1: '💙 {n} сейчас тяжело', moodBody: 'Может, написать или обнять?', test: '🔔 Уведомления работают!', testBody: 'Так будут выглядеть напоминания Family Hub' },
+    pay: 'платёж', pet: 'питомец', mood2: '💙 {n} сейчас грустно', mood1: '💙 {n} сейчас тяжело', moodBody: 'Может, написать или обнять?', note: '💌 {n} пишет тебе', noteBody: 'Открой, чтобы прочитать', test: '🔔 Уведомления работают!', testBody: 'Так будут выглядеть напоминания Family Hub' },
   en: { groceries: '🛒 {n}: groceries', tasks: '✅ New task from {n}', events: '📅 {n}: new event', music: '🎧 {n} shared a song',
     watch: '🍿 {n}: something to watch', notes: '📥 {n}: new note', expenses: '💸 {n}: new expense', settle: '🤝 {n}: settled up', photos: '📸 {n} added photos',
     recipes: '🍳 {n}: new recipe', trips: '✈️ {n}: new trip', goals: '🐷 {n}: new savings goal', petRecords: '🐶 {n}: pet record',
     remind: '⏰ Reminder', soon: '📅 In {m} min', morning: '☀️ Good morning!', tasksN: 'tasks', eventsN: 'events', buyN: 'to buy',
-    pay: 'payment', pet: 'pet', mood2: '💙 {n} feels sad right now', mood1: '💙 {n} is having a hard time', moodBody: 'Maybe send a message or a hug?', test: '🔔 Notifications work!', testBody: 'This is how Family Hub reminders will look' },
+    pay: 'payment', pet: 'pet', mood2: '💙 {n} feels sad right now', mood1: '💙 {n} is having a hard time', moodBody: 'Maybe send a message or a hug?', note: '💌 A note from {n}', noteBody: 'Open it to read', test: '🔔 Notifications work!', testBody: 'This is how Family Hub reminders will look' },
   pl: { groceries: '🛒 {n}: zakupy', tasks: '✅ Nowe zadanie od {n}', events: '📅 {n}: nowe wydarzenie', music: '🎧 {n} poleca utwór',
     watch: '🍿 {n}: do obejrzenia', notes: '📥 {n}: nowa notatka', expenses: '💸 {n}: nowy wydatek', settle: '🤝 {n}: rozliczenie', photos: '📸 {n} dodał(a) zdjęcia',
     recipes: '🍳 {n}: nowy przepis', trips: '✈️ {n}: nowa podróż', goals: '🐷 {n}: nowa skarbonka', petRecords: '🐶 {n}: wpis o pupilu',
     remind: '⏰ Przypomnienie', soon: '📅 Za {m} min', morning: '☀️ Dzień dobry!', tasksN: 'zadań', eventsN: 'wydarzeń', buyN: 'do kupienia',
-    pay: 'płatność', pet: 'pupil', mood2: '💙 {n} jest teraz smutno', mood1: '💙 {n} ma teraz ciężko', moodBody: 'Może napisz albo przytul?', test: '🔔 Powiadomienia działają!', testBody: 'Tak będą wyglądać przypomnienia Family Hub' },
+    pay: 'płatność', pet: 'pupil', mood2: '💙 {n} jest teraz smutno', mood1: '💙 {n} ma teraz ciężko', moodBody: 'Może napisz albo przytul?', note: '💌 Liścik od: {n}', noteBody: 'Otwórz, aby przeczytać', test: '🔔 Powiadomienia działają!', testBody: 'Tak będą wyglądać przypomnienia Family Hub' },
   es: { groceries: '🛒 {n}: compra', tasks: '✅ Nueva tarea de {n}', events: '📅 {n}: nuevo evento', music: '🎧 {n} comparte una canción',
     watch: '🍿 {n}: algo para ver', notes: '📥 {n}: nueva nota', expenses: '💸 {n}: nuevo gasto', settle: '🤝 {n}: cuentas saldadas', photos: '📸 {n} añadió fotos',
     recipes: '🍳 {n}: nueva receta', trips: '✈️ {n}: nuevo viaje', goals: '🐷 {n}: nueva hucha', petRecords: '🐶 {n}: registro de mascota',
     remind: '⏰ Recordatorio', soon: '📅 En {m} min', morning: '☀️ ¡Buenos días!', tasksN: 'tareas', eventsN: 'eventos', buyN: 'por comprar',
-    pay: 'pago', pet: 'mascota', mood2: '💙 {n} está triste ahora', mood1: '💙 {n} lo está pasando mal', moodBody: '¿Le escribes o le das un abrazo?', test: '🔔 ¡Las notificaciones funcionan!', testBody: 'Así se verán los recordatorios de Family Hub' },
+    pay: 'pago', pet: 'mascota', mood2: '💙 {n} está triste ahora', mood1: '💙 {n} lo está pasando mal', moodBody: '¿Le escribes o le das un abrazo?', note: '💌 Una nota de {n}', noteBody: 'Ábrela para leerla', test: '🔔 ¡Las notificaciones funcionan!', testBody: 'Así se verán los recordatorios de Family Hub' },
   it: { groceries: '🛒 {n}: spesa', tasks: '✅ Nuova attività da {n}', events: '📅 {n}: nuovo evento', music: '🎧 {n} condivide una canzone',
     watch: '🍿 {n}: qualcosa da vedere', notes: '📥 {n}: nuova nota', expenses: '💸 {n}: nuova spesa', settle: '🤝 {n}: conti saldati', photos: '📸 {n} ha aggiunto foto',
     recipes: '🍳 {n}: nuova ricetta', trips: '✈️ {n}: nuovo viaggio', goals: '🐷 {n}: nuovo salvadanaio', petRecords: '🐶 {n}: nota sull\'animale',
     remind: '⏰ Promemoria', soon: '📅 Tra {m} min', morning: '☀️ Buongiorno!', tasksN: 'attività', eventsN: 'eventi', buyN: 'da comprare',
-    pay: 'pagamento', pet: 'animale', mood2: '💙 {n} è triste in questo momento', mood1: '💙 {n} sta passando un momento difficile', moodBody: 'Magari un messaggio o un abbraccio?', test: '🔔 Le notifiche funzionano!', testBody: 'Così appariranno i promemoria di Family Hub' },
+    pay: 'pagamento', pet: 'animale', mood2: '💙 {n} è triste in questo momento', mood1: '💙 {n} sta passando un momento difficile', moodBody: 'Magari un messaggio o un abbraccio?', note: '💌 Un biglietto da {n}', noteBody: 'Aprilo per leggerlo', test: '🔔 Le notifiche funzionano!', testBody: 'Così appariranno i promemoria di Family Hub' },
 }
 type Lang = keyof typeof TX
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((a, [k, x]) => a.split(`{${k}}`).join(String(x)), s)
@@ -157,8 +157,18 @@ async function tickHousehold(hh: string) {
   // Anything whose moment fell within the last 15 minutes (cron runs every 5; `once` stops repeats).
   const due = (m: number) => m <= minutes && m > minutes - 15
   const { data } = await sb.from('records').select('id,collection,data,created_by,private_to,surprise_for,reveal_at')
-    .eq('household', hh).eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries'])
+    .eq('household', hh).eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries', 'loveNotes'])
   const rows = (data ?? []) as Row[]
+  // Love notes whose moment has come (within the last two days): one push to the person they're for.
+  const nowIso = new Date().toISOString(), recent = new Date(Date.now() - 2 * 86400000).toISOString()
+  for (const r of rows) {
+    const d = r.data
+    if (r.collection !== 'loveNotes' || !d?.to || !d.deliverAt || d.deliverAt > nowIso || d.deliverAt < recent) continue
+    if (await once(`${hh}:note:${r.id}`)) {
+      const tx = TX[langOf(c, d.to)]
+      await sendTo(hh, d.to, { title: fill(tx.note, { n: nameOf(c, r.created_by) }), body: tx.noteBody, tag: r.id })
+    }
+  }
   for (const role of ['a', 'j'] as Role[]) {
     const np = notifyPrefs(c, role)
     const tx = TX[langOf(c, role)]

@@ -123,6 +123,15 @@ export interface WishClaim extends Base { wishId: string; bought?: boolean }
 
 export interface Photo extends Base { album: string; caption?: string; width: number; height: number }
 
+/** A surprise love note on a postcard: hidden from the partner (surpriseFor + revealAt) until deliverAt, then pushed. */
+export interface LoveNote extends Base {
+  text: string; card: string; to: UserId
+  /** When it reaches the partner (ISO date-time); 'random' picks a moment in the next day or two. */
+  deliverAt: string; mode: 'now' | 'random' | 'time'
+  /** The partner opened it / answered it. */
+  seenAt?: string; reply?: string
+}
+
 /** Something done together that feeds the couple's mascot and grows their tree (id = act:<kind>:<ref>, so it counts once). */
 export interface Act {
   id: string; kind: 'quest' | 'task' | 'grocery' | 'recipe' | 'watch' | 'wish' | 'date' | 'trip' | 'photo' | 'music'
@@ -273,6 +282,7 @@ export interface State {
   wishes: Wish[]
   wishClaims: WishClaim[]
   acts: Act[]
+  loveNotes: LoveNote[]
   moods: Mood[]
   game: GameSettings
   /** Period days published by Julia's device — the only cycle data her partner receives. */

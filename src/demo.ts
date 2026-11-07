@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -135,6 +135,8 @@ export function demoState(): State {
     // The couple ritual starts from zero: no invented history for the mascot.
     acts: [],
     moods: [],
+    // One note from the partner waiting to be opened, so the demo shows how notes arrive.
+    loveNotes: [{ ...b('j'), id: 'ln1', text: 'Спасибо, что ты у меня есть. Сегодня вечером — только мы вдвоём 💛', card: 'card:hearts', to: 'a', mode: 'random', deliverAt: new Date(Date.now() - 3600000).toISOString(), surpriseFor: 'a', revealAt: t }],
     game: defaultGame(),
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },

@@ -14,6 +14,7 @@ import { ITEMS } from '../lib/catalog'
 import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
 import { SceneView, openCollection } from './Collection'
 import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles } from './UsHub'
+import { LoveNotesSection, notesOf } from './LoveNotes'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -147,6 +148,7 @@ export function RitualCard() {
           <span className="rc-sub">{p.todayFed ? t('us.fedToday') : t('us.notYet')}</span>
           <XpBar />
           {g.quests && <span className="rc-sub">✔︎ {t('us.quests')}: {done}/{quests.length}</span>}
+          {notesOf(s).unread.length > 0 && <span className="rc-sub rc-note">💌 {t('note.newFrom', { name: s.users[notesOf(s).unread[0].createdBy].name })}</span>}
         </div>
       </div>
     </div>
@@ -172,6 +174,7 @@ export default function Us({ back }: { back?: boolean }) {
         <Thought />
         <Coming />
         <Tiles />
+        <LoveNotesSection />
         <ImportantDates />
         <Savings />
         <Flashback />
@@ -220,6 +223,7 @@ export default function Us({ back }: { back?: boolean }) {
       <Thought />
       <Coming />
       <Tiles />
+      <LoveNotesSection />
 
       {g.quests && (
         <Section header={t('us.quests')} footer={t('us.questsHint')}
