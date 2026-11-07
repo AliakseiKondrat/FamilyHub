@@ -378,6 +378,9 @@ export function haptic() {
 }
 
 /* ---------- Sheet (modal card from the bottom, drag down to dismiss) ---------- */
+/** Each open sheet gets its own history entry, so the system back gesture closes the sheet first, like a native app. */
+let sheetSeq = 0
+
 export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   title?: ReactNode; onClose: () => void; onDone?: () => void; doneDisabled?: boolean; children: ReactNode
 }) {
@@ -386,10 +389,34 @@ export function Sheet({ title, onClose, onDone, doneDisabled, children }: {
   const start = useRef<number | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   useDelayedFocus(sheetRef)
-  const close = (after?: () => void) => {
+  const myId = useRef(0)
+  const leaving = useRef(false)
+  const close = (after?: () => void, fromBack = false) => {
+    if (leaving.current && !fromBack) return
+    // Closed by a button or a swipe: take our history entry back out (the back gesture already did that itself).
+    if (!fromBack && history.state?.sheet === myId.current) history.back()
+    leaving.current = true
     setClosing(true)
     setTimeout(() => { after?.(); onClose() }, 240)
   }
+  const closeRef = useRef(close)
+  closeRef.current = close
+  useEffect(() => {
+    const id = ++sheetSeq
+    myId.current = id
+    leaving.current = false
+    let pushed = false
+    // Deferred, so React's development double-mount doesn't leave a stray entry behind.
+    const t = setTimeout(() => { history.pushState({ ...(history.state ?? {}), sheet: id }, ''); pushed = true }, 0)
+    const onPop = () => { if (pushed && !leaving.current && (history.state?.sheet ?? 0) < id) closeRef.current(undefined, true) }
+    window.addEventListener('popstate', onPop)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('popstate', onPop)
+      // Gone without closing (its screen went away): drop our entry too.
+      if (pushed && !leaving.current && history.state?.sheet === id) { leaving.current = true; history.back() }
+    }
+  }, [])
   const style = { '--from': `translateY(${dy}px)`, transform: dy && !closing ? `translateY(${dy}px)` : undefined } as CSSProperties
   // Portal to <body> so the sheet sits above the tab bar regardless of which screen opened it.
   return createPortal(
