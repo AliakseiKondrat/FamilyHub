@@ -1,6 +1,6 @@
 import { useRef, useState, type CSSProperties } from 'react'
 import { update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { moduleLabel, useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import { GlassButton, Icon, Screen, haptic, toast } from '../ui'
 import { LOCALES, today } from '../lib/date'
@@ -65,6 +65,36 @@ function useTilePress(id: ModuleId, editing: boolean, open: () => void, onStar: 
   }
 }
 
+/** «More» by meaning: what each section is for, not one wall of tiles. Sections outside these groups go to «Other». */
+const GROUPS: { id: string; emoji: string; mods: ModuleId[] }[] = [
+  { id: 'together', emoji: '💞', mods: ['us', 'dates', 'wishlist', 'photos'] },
+  { id: 'home', emoji: '🏠', mods: ['tasks', 'groceries', 'calendar', 'home', 'lists', 'inbox', 'archive'] },
+  { id: 'money', emoji: '💰', mods: ['budget', 'travel'] },
+  { id: 'fun', emoji: '🍿', mods: ['watch', 'music', 'recipes'] },
+  { id: 'care', emoji: '🐶', mods: ['pet', 'cycle', 'today'] },
+]
+
+/** A small tile inside a group: icon, name and what the number means («3 · in the queue»). */
+function MiniTile({ id, editing }: { id: ModuleId; editing: boolean }) {
+  const s = useApp()
+  const t = useT()
+  const nav = useNav()
+  const l = moduleLabel(s, id)
+  const [c1, c2] = accentColors(id, s)
+  const fav = s.prefs.favorites?.includes(id)
+  const press = useTilePress(id, editing, () => nav.push({ mod: id }), (added) => toast(added ? t('favAdded') : t('favRemoved')))
+  const n = count(s, id)
+  const unit = t(`more.u.${id}` as TKey)
+  const caption = n === '' ? unit : typeof n === 'string' && !/\d/.test(n) ? `${n} ${unit}` : `${n} · ${unit}`
+  return (
+    <button className={'more-item' + (editing ? ' editing' : '')} {...press}>
+      <span className="more-icon" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>{l.emoji}</span>
+      <span className="more-text"><b>{l.title}</b><small>{caption}</small></span>
+      {editing && <span className={'fav-star' + (fav ? ' on' : '')}><Icon name="star" /></span>}
+    </button>
+  )
+}
+
 function Tile({ id, big, editing }: { id: ModuleId; big?: boolean; editing: boolean }) {
   const s = useApp()
   const t = useT()
@@ -110,10 +140,20 @@ export default function More() {
       </button>}>
       {favs.length > 0 && <>
         <div className="section-header" style={{ padding: '2px 30px 8px' }}><span>⭐️ {t('favSections')}</span></div>
-        <div className="cards fav-cards">{favs.map((id) => <Tile key={id} id={id} big editing={editing} />)}</div>
-        {rest.length > 0 && <div className="section-header" style={{ padding: '6px 30px 8px' }}><span>{t('allSections')}</span></div>}
-      </>}
-      <div className="cards">{rest.map((id) => <Tile key={id} id={id} editing={editing} />)}</div>
+        <div className="cards fav-cards">{favs.map((id) => <Tile key={id} id={id} big editing={editing} />)}</div>      </>}
+      {[...GROUPS, { id: 'other', emoji: '✨', mods: rest.filter((m) => !GROUPS.some((g) => g.mods.includes(m))) }].map((g) => {
+        const items = rest.filter((m) => g.mods.includes(m))
+        if (!items.length) return null
+        return (
+          <div key={g.id} className="more-group">
+            <div className="more-head">
+              <span className="more-head-emoji">{g.emoji}</span>
+              <div><b>{t(`more.g.${g.id}` as TKey)}</b><small>{t(`more.g.${g.id}Sub` as TKey)}</small></div>
+            </div>
+            <div className="more-grid">{items.map((id) => <MiniTile key={id} id={id} editing={editing} />)}</div>
+          </div>
+        )
+      })}
       {(editing || favs.length === 0) && <div className="section-footer" style={{ margin: '-6px 14px 16px' }}>{t('favHint')}</div>}
       <div className="section">
         <div className="list">

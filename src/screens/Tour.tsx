@@ -98,7 +98,7 @@ const GUIDES: Record<string, G[]> = {
   inbox: [['intro', '📥'], ['quick', '✍️', '.quick'], ['swipe', '👉', '.swipe']],
   archive: [['intro', '🗄️']],
   cycle: [['intro', '🌸'], ['add', '➕', ADD]],
-  more: [['intro', '⋯'], ['search', '🔎', '.quick'], ['tiles', '🗂️', '.mod-tile']],
+  more: [['intro', '⋯'], ['search', '🔎', '.quick'], ['tiles', '🗂️', '.more-group']],
   settings: [['intro', '⚙️'], ['search', '🔎', '.quick'], ['groups', '🗂️', '.set-groups']],
 }
 const guideSteps = (g: string): Step[] => (GUIDES[g] ?? []).map(([key, emoji, sel]) => ({ key, emoji, target: sel ? inTop(sel) : undefined, text: () => `${g}.${key}` }))
