@@ -7,6 +7,7 @@ import { addDays, diffDays, fmtDate, occursOn, today } from '../lib/date'
 import { thoughtFor } from '../lib/thoughts'
 import { activeLook, activePiggy, lookOf } from '../lib/unlocks'
 import { PiggyBar, openCollection } from './Collection'
+import { MarathonSheet } from './Progress'
 import { PhotoThumb, useBlobUrl } from './Photos'
 import { NoteComposer } from './LoveNotes'
 import { BlindWizard } from './BlindDate'
@@ -176,6 +177,7 @@ export function Tiles() {
   const [evening, setEvening] = useState(false)
   const [note, setNote] = useState(false)
   const [blind, setBlind] = useState(false)
+  const [world, setWorld] = useState(false)
   return (
     <div className="hub-tiles">
       <button className="hub-tile note" onClick={() => setNote(true)}>
@@ -187,12 +189,19 @@ export function Tiles() {
       <button className="hub-tile" onClick={() => setEvening(true)}>
         <span className="ht-emoji">🍿🍳</span><b>{t('hub.evening')}</b><span>{t('hub.eveningSub')}</span>
       </button>
-      <button className="hub-tile" onClick={() => openCollection(nav, 'theme')}>
+      <button className="hub-tile" onClick={() => openCollection(nav, 'look')}>
         <span className="ht-emoji">✨</span><b>{t('col.title')}</b><span>{t('hub.collectionSub')}</span>
+      </button>
+      <button className="hub-tile prog" onClick={() => nav.settings('progress')}>
+        <span className="ht-emoji">🏆</span><b>{t('pg.tile')}</b><span>{t('pg.tileSub')}</span>
+      </button>
+      <button className="hub-tile world" onClick={() => setWorld(true)}>
+        <span className="ht-emoji">🌍</span><b>{t('mr.title')}</b><span>{t('mr.tileSub')}</span>
       </button>
       {evening && <EveningSheet onClose={() => setEvening(false)} />}
       {note && <NoteComposer onClose={() => setNote(false)} />}
       {blind && <BlindWizard onClose={() => setBlind(false)} />}
+      {world && <MarathonSheet onClose={() => setWorld(false)} />}
     </div>
   )
 }

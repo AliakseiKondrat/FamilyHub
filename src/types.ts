@@ -225,6 +225,8 @@ export interface GameSettings {
   scene?: string
   card?: string
   piggy?: string
+  /** The «Around the world» marathon: runs (joined → left) and cultures claimed with jokers (marathon.ts). */
+  marathon?: { runs: { from: string; to?: string }[]; claims?: string[] }
   /** "Another quest" presses for a given day, so both phones reshuffle alike. */
   shuffle?: { date: string; n: number }
 }

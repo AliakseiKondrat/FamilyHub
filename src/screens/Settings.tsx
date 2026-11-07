@@ -19,6 +19,8 @@ import { itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
 import { DeleteDataSection, FaqPage, FeedbackSheet, InviteSection } from './Pairing'
 import { openTour } from './Tour'
+import ProgressPage from './Progress'
+import LeadersPage from './Leaders'
 import { inTelegram, telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
@@ -74,6 +76,8 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'shortcuts': return <ShortcutsPage />
     case 'game': return <GamePage />
     case 'collection': return <Collection />
+    case 'progress': return <ProgressPage />
+    case 'leaders': return <LeadersPage />
     case 'dev': return <DevPage />
     case 'faq': return <FaqPage />
     default: return <RootPage />
@@ -120,6 +124,7 @@ function RootPage() {
         {link('☀️', 'color-mix(in srgb, var(--orange) 20%, transparent)', t('todayScreen'), 'today')}
         {link('💬', 'color-mix(in srgb, var(--green) 20%, transparent)', t('statuses'), 'statuses', s.prefs.showStatuses ? t('on') : t('off'))}
         {link('🔥', 'linear-gradient(135deg,#f97316,#ec4899)', t('set.game'), 'game', s.game.enabled ? t('on') : t('off'))}
+        {link('🏆', 'linear-gradient(135deg,#f59e0b,#ef4444)', t('pg.title'), 'progress')}
         {link('✨', 'linear-gradient(135deg,#a855f7,#f59e0b)', t('col.title'), 'collection')}
         {realTier() === 'dev' && link('🛠', 'var(--fill)', t('dev.title'), 'dev', s.prefs.devAs ? t(`dev.as.${s.prefs.devAs}`) : undefined)}
       </Section>

@@ -7,7 +7,7 @@ import { Check, Row, Screen, Section, Segmented, Sheet, haptic, toast } from '..
 import { addDays, fmtDate, today } from '../lib/date'
 import {
   award, FLAME_MILESTONES, FREEZES_PER_MONTH, pausesOf, QUEST_ICON, MOODS, moodEmoji, moodOf, MASCOT_STAGES, mascotMood, mascotStage, progress, questsFor, questText,
-  TAP_GOAL, tapsOn, TREE_STAGES, treeStage, unaward,
+  TAP_GOAL, tapsOn, TREE_STAGES, treeStage, unaward, DAY_CAP,
 } from '../lib/game'
 import type { State } from '../types'
 import { ITEMS } from '../lib/catalog'
@@ -17,6 +17,8 @@ import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Tho
 import { LoveNotesSection, notesOf } from './LoveNotes'
 import { CheckinSection } from './Checkin'
 import { BlindSection } from './BlindDate'
+import { MarathonCard, RewardTrack } from './Progress'
+import { titleOf } from '../lib/progression'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -99,15 +101,17 @@ function Flame() {
   )
 }
 
-function XpBar() {
+function XpBar({ compact }: { compact?: boolean }) {
   const t = useT()
+  const nav = useNav()
   const { p } = useGame()
-  const pct = ((p.xp - p.from) / Math.max(1, p.to - p.from)) * 100
+  const pct = p.max ? 100 : ((p.xp - p.from) / Math.max(1, p.to - p.from)) * 100
   return (
-    <div className="xp">
-      <div className="xp-top"><b>{t('us.level', { n: p.level })}</b><span>{t('us.toNext', { n: p.level + 1, x: p.to - p.xp })}</span></div>
+    <button className="xp" onClick={() => nav.settings('progress')}>
+      <div className="xp-top"><b>{t('us.level', { n: p.level })}{!compact && <> · «{t(`title.${titleOf(p.level)}` as TKey)}»</>}</b><span>{p.max ? '♾️' : t('us.toNext', { n: p.level + 1, x: p.to - p.xp })}</span></div>
       <div className="progress"><i style={{ width: `${pct}%`, '--c': 'var(--orange)' } as CSSProperties} /></div>
-    </div>
+      {!compact && <div className="xp-day">{p.dayRaw >= DAY_CAP ? t('pg.capped') : t('pg.today', { x: p.dayXp, cap: DAY_CAP })}</div>}
+    </button>
   )
 }
 
@@ -148,7 +152,7 @@ export function RitualCard() {
         <div className="rc-info">
           <div className="rc-line"><b>{g.mascot ? mascotName(s, t) : t('us.tree')}</b><Flame /></div>
           <span className="rc-sub">{p.todayFed ? t('us.fedToday') : t('us.notYet')}</span>
-          <XpBar />
+          <XpBar compact />
           {g.quests && <span className="rc-sub">✔︎ {t('us.quests')}: {done}/{quests.length}</span>}
           {notesOf(s).unread.length > 0 && <span className="rc-sub rc-note">💌 {t('note.newFrom', { name: s.users[notesOf(s).unread[0].createdBy].name })}</span>}
         </div>
@@ -225,6 +229,7 @@ export default function Us({ back }: { back?: boolean }) {
 
       <YearRow banner />
       <FirstSteps />
+      <RewardTrack />
       <Section header={t('us.mood')}><MoodRow /></Section>
       <Thought />
       <Coming />
@@ -244,6 +249,7 @@ export default function Us({ back }: { back?: boolean }) {
           })}
         </Section>
       )}
+      {g.quests && <MarathonCard />}
 
       {g.taps && g.mascot && (
         <Section header={t('us.taps')} footer={t('us.tapsHint', { n: TAP_GOAL })}>

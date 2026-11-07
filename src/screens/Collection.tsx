@@ -5,7 +5,8 @@ import { useNav } from '../nav'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, ToggleRow, haptic, toast } from '../ui'
 import { SYNC_ENABLED } from '../config'
 import { fmtDate } from '../lib/date'
-import { CARDS, CATALOG, DEFAULTS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
+import { CARDS, CATALOG, DEFAULTS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
+import { marathonOf, nextWeekOf } from '../lib/marathon'
 import {
   activeCard, activeLook, activeMascot, activePiggy, devGrant, devGrants, devHouseholds, devRevoke, devSetFreeForAll, devSetRule,
   devUpdateHousehold, isOpen, itemsOf, lookOf, ruleOf, startTryOn, stopTryOn, thankForGift, unseenGifts, useTryOn, useUnlocks,
@@ -104,8 +105,10 @@ function useStatusLines() {
       const key = { free: 'col.free', dev: 'col.devOpen', test: 'col.testOpen', owned: 'col.owned', earned: 'col.earned' } as const
       return { text: t(key[st.why]), ok: st.why !== 'free' }
     }
-    if (st.tier === 'public') return { text: t('col.price', { n: st.rule.price }) }
-    const bars = [{ text: t(`col.m.${st.rule.m}`, { have: Math.min(st.have, st.rule.n), n: st.rule.n }), pct: (st.have / st.rule.n) * 100 }]
+    if (st.rule.m === 'event') return { text: st.tier === 'public' ? `${eventHow(st.id, s, t)} · ${t('col.price', { n: st.rule.price })}` : eventHow(st.id, s, t) }
+    // Everyone can get there by keeping at it; couples who aren't close need twice as far (or buy it sooner).
+    const n = st.need
+    const bars = [{ text: t(`col.m.${st.rule.m}`, { have: Math.min(st.have, n), n }), pct: (st.have / n) * 100 }]
     if (st.rule.refs) bars.push({ text: t('col.orRefs', { have: Math.min(st.refs, st.rule.refs), n: st.rule.refs }), pct: (st.refs / st.rule.refs) * 100 })
     return { text: bars[0].text, bars }
   }
@@ -137,16 +140,25 @@ function choose(item: Item) {
 }
 
 /* ---------- the collection screen ---------- */
-let startKind: Kind = 'theme'
+/** Shelves: themes and atmospheres share one (atmospheres are themes that come alive), the world's cultures have their own. */
+export type Shelf = 'look' | 'world' | 'mascot' | 'scene' | 'card' | 'piggy'
+const SHELVES: Shelf[] = ['look', 'world', 'mascot', 'scene', 'card', 'piggy']
+const shelfItems = (sh: Shelf): Item[] => sh === 'look' ? CATALOG.filter((i) => (i.kind === 'theme' || i.kind === 'atmo') && !isCulture(i))
+  : sh === 'world' ? worldOrder() : itemsOf(sh)
+/** Countries already ours first, then by when their week comes round. */
+const worldOrder = () => CATALOG.filter(isCulture).map((i) => ({ i, own: isOpen(i.id), at: nextWeekOf(i.key.slice(2)) ?? '9999' }))
+  .sort((a, b) => Number(b.own) - Number(a.own) || a.at.localeCompare(b.at)).map((x) => x.i)
+const toShelf = (k: Kind | Shelf): Shelf => (k === 'theme' || k === 'atmo' ? 'look' : k)
+let startKind: Shelf = 'look'
 /** Open the collection on a given shelf. */
-export function openCollection(nav: ReturnType<typeof useNav>, kind: Kind = 'theme') { startKind = kind; nav.settings('collection') }
+export function openCollection(nav: ReturnType<typeof useNav>, kind: Kind | Shelf = 'look') { startKind = toShelf(kind); nav.settings('collection') }
 
 export default function Collection() {
   const t = useT()
   const nav = useNav()
   const { s, tier, real, stats, status } = useUnlocks()
   const lines = useStatusLines()
-  const [kind, setKind] = useState<Kind>(startKind)
+  const [kind, setKind] = useState<Shelf>(startKind)
   const [open, setOpen] = useState<Item | null>(null)
   const sub = tier === 'dev' ? t('col.subDev') : tier === 'close' ? t('col.subClose') : t('col.subPublic')
   return (
@@ -161,13 +173,14 @@ export default function Collection() {
         </div>
       )}
       <div className="col-tabs">
-        {KINDS.map((k) => (
-          <button key={k} className={'chip' + (k === kind ? ' on' : '')} onClick={() => { setKind(k); startKind = k }}>{t(`col.kind.${k}`)}</button>
+        {SHELVES.map((k) => (
+          <button key={k} className={'chip' + (k === kind ? ' on' : '')} onClick={() => { setKind(k); startKind = k }}>{t(`col.shelf.${k}`)}</button>
         ))}
       </div>
-      <div className="col-hint">{t(`col.hint.${kind}`)}</div>
+      <div className="col-hint">{t(`col.shelfHint.${kind}`)}</div>
+      {kind === 'world' && <WorldHeader />}
       <div className="col-grid">
-        {itemsOf(kind).map((item) => {
+        {shelfItems(kind).map((item) => {
           const st = status(item.id)
           const l = lines(st)
           const on = chosen(item, s)
@@ -176,6 +189,7 @@ export default function Collection() {
               <div style={{ position: 'relative' }}>
                 <ItemPreview item={item} />
                 {!st.open && <span className="col-lock">🔒</span>}
+                {item.kind === 'atmo' && kind === 'look' && <span className="col-live">✨</span>}
               </div>
               <div className="col-name">{itemName(item, s.lang)}</div>
               <div className={'col-st' + (on ? ' ok' : '')}>{on ? t('col.active') : l.text}</div>
@@ -192,7 +206,7 @@ export default function Collection() {
   )
 }
 
-function ItemSheet({ item, onClose }: { item: Item; onClose: () => void }) {
+export function ItemSheet({ item, onClose }: { item: Item; onClose: () => void }) {
   const t = useT()
   const { s, status } = useUnlocks()
   const lines = useStatusLines()
@@ -215,7 +229,7 @@ function ItemSheet({ item, onClose }: { item: Item; onClose: () => void }) {
                   <div className="col-bar" style={{ margin: 0 }}><i style={{ width: `${Math.min(100, b.pct)}%` }} /></div>
                 </div>
               ))
-            : <Row icon="🔒" title={t('col.locked')} detail={l.text} />}
+            : <Row icon="🔒" title={l.text} />}
         {st.open && !on && <button className="row tap accent" onClick={() => { choose(item); onClose() }}>{t('col.choose')}</button>}
         {look && !on && <button className="row tap accent" onClick={() => { startTryOn(item.id); onClose() }}>👀 {t('col.tryOn')}</button>}
         {!st.open && st.tier === 'public' && <>
@@ -465,5 +479,33 @@ function BotHealth() {
       <button className="row tap accent" disabled={busy} onClick={setup}>✈️ {busy ? '…' : t('tg.setup')}</button>
       {d?.bot && <a className="row tap accent" href={`https://t.me/${d.bot}`} target="_blank" rel="noreferrer">💬 {t('tgd.open')}</a>}
     </Section>
+  )
+}
+
+/** How a marathon reward is earned, for its locked card in the collection. */
+export function eventHow(id: string, s: State, t: ReturnType<typeof useT>): string {
+  const item = ITEMS[id]
+  if (!item) return ''
+  if (item.kind === 'atmo' && item.key.startsWith('c-')) {
+    const when = nextWeekOf(item.key.slice(2))
+    const m = marathonOf(s)
+    if (when && when === m.current.monday) return t('mr.now')
+    return when ? t('mr.nextTime', { date: fmtDate(when, s.lang, { day: 'numeric', month: 'long', year: 'numeric' }) }) : t('col.event')
+  }
+  if (item.kind === 'card' && /^m\d\d$/.test(item.key)) return t('mr.howMonth')
+  return t('mr.howStreak', { n: ({ parrot: 2, globe: 4, camel: 8, suitcase: 13, kangaroo: 26, passport: 39 } as Record<string, number>)[item.key] ?? 52 })
+}
+
+
+/** The world shelf: the passport so far and this week's country. */
+function WorldHeader() {
+  const s = useApp()
+  const t = useT()
+  const m = marathonOf(s)
+  return (
+    <div className="col-world">
+      <span>{m.current.culture.flag} <b>{t('mr.week', { name: m.current.culture.name[s.lang] })}</b></span>
+      <span>🛂 {t('mr.stamps', { n: m.stamps.length })} · {t('mr.ofAll', { n: CATALOG.filter(isCulture).length })}</span>
+    </div>
   )
 }

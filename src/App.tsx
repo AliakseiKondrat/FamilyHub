@@ -36,6 +36,7 @@ import { inTelegram, loadTelegram, paintTelegram, telegramBack, telegramLink } f
 // ?join=CODE and ?ref=hN must survive the sign-up round trip.
 takeInviteParams()
 import { Ambient, GiftNotice, TryOnBar } from './screens/Collection'
+import { UnlockBanner } from './screens/Progress'
 import { useServerUnlocks, useTryOn } from './lib/unlocks'
 
 const TAB_ICONS: Partial<Record<ModuleId, string>> = { today: 'today', calendar: 'calendar', tasks: 'tasks', groceries: 'cart' }
@@ -256,6 +257,7 @@ export default function App() {
       {celebration.milestone > 0 && <Celebration n={celebration.milestone} onClose={celebration.dismiss} />}
       <TryOnBar />
       <GiftNotice />
+      <UnlockBanner />
       {tour && <Tour onClose={() => setTour(false)} />}
       {shared && <ShareSheet shared={shared} onClose={() => setShared(null)} />}
     </>

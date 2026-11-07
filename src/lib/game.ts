@@ -23,20 +23,34 @@ export const FED_DAY_XP = 10
 export const TAPS_DAY_XP = 5
 export const TAP_GOAL = 30
 export const FREEZES_PER_MONTH = 3
+/** At most this much XP a day counts, however much is done: protects against farming and keeps levels fair. */
+export const DAY_CAP = 150
+export const LEVEL_MAX = 500
 
 /* ---------- levels ---------- */
-/** Total XP needed to reach a level: grows steeply, so level 10 takes weeks and level 30 most of a year. */
-export const levelXp = (n: number) => (n <= 1 ? 0 : Math.round(40 * Math.pow(n - 1, 1.6)))
+/**
+ * Couple levels 1–500. Going from level n to n+1 costs 25 + 5n XP, never more than 300: the first levels come in days,
+ * level 100 takes about a year of everyday use, and level 500 is for couples who stay with it for years
+ * (at the daily cap it still takes over two). Levels never go down.
+ */
+export const levelCost = (n: number) => Math.min(25 + 5 * n, 300)
+const LEVELS: number[] = [0, 0]
+for (let n = 2; n <= LEVEL_MAX + 1; n++) LEVELS[n] = LEVELS[n - 1] + levelCost(n - 1)
+export const levelXp = (n: number) => LEVELS[Math.max(1, Math.min(LEVEL_MAX + 1, n))]
 export function levelOf(xp: number) {
-  let n = 1
-  while (levelXp(n + 1) <= xp) n++
-  return { level: n, from: levelXp(n), to: levelXp(n + 1) }
+  let lo = 1, hi = LEVEL_MAX
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (LEVELS[mid] <= xp) lo = mid; else hi = mid - 1 }
+  const max = lo >= LEVEL_MAX
+  return { level: lo, from: levelXp(lo), to: max ? levelXp(lo) : levelXp(lo + 1), max }
 }
 
 /** Mascot growth: a new stage every five levels. */
 export const MASCOT_STAGES = [
   { from: 1, badge: '🍼', size: 64 }, { from: 5, badge: '🎒', size: 76 }, { from: 10, badge: '⭐', size: 88 },
   { from: 15, badge: '🏅', size: 98 }, { from: 20, badge: '🎓', size: 106 }, { from: 25, badge: '👑', size: 116 },
+  { from: 40, badge: '💎', size: 120 }, { from: 60, badge: '🌟', size: 124 }, { from: 80, badge: '🏆', size: 128 },
+  { from: 100, badge: '🔮', size: 132 }, { from: 150, badge: '🪐', size: 134 }, { from: 200, badge: '☄️', size: 136 },
+  { from: 300, badge: '🌌', size: 138 }, { from: 400, badge: '☀️', size: 140 }, { from: 500, badge: '♾️', size: 144 },
 ] as const
 export const mascotStage = (level: number) => MASCOT_STAGES.reduce((s, x, i) => (level >= x.from ? i : s), 0)
 
@@ -127,12 +141,16 @@ export interface Progress {
   streak: number; best: number; todayFed: boolean; freezesLeft: number
   xp: number; level: number; from: number; to: number
   treePoints: number; actions: number
+  /** XP counted today (capped) and how much the day would have brought without the cap. */
+  dayXp: number; dayRaw: number; max: boolean
 }
 
 export function progress(acts: Act[], pauses: Pause[], now = today()): Progress {
   const fed = new Set<string>()
   const tapDays = new Map<string, { a: number; j: number }>()
-  let xp = 0, treePoints = 0, actions = 0
+  const perDay = new Map<string, number>()
+  const add = (d: string, n: number) => perDay.set(d, (perDay.get(d) ?? 0) + n)
+  let treePoints = 0, actions = 0
   for (const a of acts) {
     if (a.kind === 'taps') {
       const t = tapDays.get(a.date) ?? { a: 0, j: 0 }
@@ -141,12 +159,15 @@ export function progress(acts: Act[], pauses: Pause[], now = today()): Progress 
       continue
     }
     fed.add(a.date)
-    xp += XP[a.kind]
+    add(a.date, XP[a.kind])
     treePoints += TREE[a.kind]
     actions++
   }
-  for (const [d, t] of tapDays) if (t.a >= TAP_GOAL && t.j >= TAP_GOAL) { fed.add(d); xp += TAPS_DAY_XP }
-  xp += fed.size * FED_DAY_XP
+  for (const [d, t] of tapDays) if (t.a >= TAP_GOAL && t.j >= TAP_GOAL) { fed.add(d); add(d, TAPS_DAY_XP) }
+  for (const d of fed) add(d, FED_DAY_XP)
+  let xp = 0
+  for (const v of perDay.values()) xp += Math.min(DAY_CAP, v)
+  const dayRaw = perDay.get(now) ?? 0
 
   // Walk the days from the first one with anything in it.
   const first = [...fed].sort()[0]
@@ -167,11 +188,11 @@ export function progress(acts: Act[], pauses: Pause[], now = today()): Progress 
       best = Math.max(best, streak)
     }
   }
-  const { level, from, to } = levelOf(xp)
+  const { level, from, to, max } = levelOf(xp)
   return {
     fed, frozen, paused: pausedDays, streak, best, todayFed: fed.has(now),
     freezesLeft: FREEZES_PER_MONTH - (used.get(now.slice(0, 7)) ?? 0),
-    xp, level, from, to, treePoints, actions,
+    xp, level, from, to, treePoints, actions, dayXp: Math.min(DAY_CAP, dayRaw), dayRaw, max,
   }
 }
 

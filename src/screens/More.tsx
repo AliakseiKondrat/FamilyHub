@@ -103,7 +103,7 @@ export default function More() {
         <GlassButton icon={editing ? 'check' : 'pencil'} label={editing ? t('done') : t('edit')} tint={editing} onClick={() => { haptic(); setEditing(!editing) }} />
         <GlassButton icon="gear" label={t('settings')} onClick={() => nav.settings()} />
       </>}
-      head={<button className="quick lg" style={{ border: 0, width: 'calc(100% - 28px)', textAlign: 'left', color: 'rgba(255,255,255,.75)' }} onClick={nav.search}>
+      head={<button className="quick lg" style={{ border: 0, width: 'calc(100% - 28px)', textAlign: 'left', color: 'var(--quick-ink, rgba(255,255,255,.75))' }} onClick={nav.search}>
         <span style={{ position: 'relative', zIndex: 2 }}><Icon name="search" style={{ width: 18, height: 18 }} /></span>
         <span style={{ position: 'relative', zIndex: 2, fontWeight: 500 }}>{t('searchAll')}</span>
       </button>}>

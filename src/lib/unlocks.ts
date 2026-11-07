@@ -3,6 +3,7 @@ import { DEMO, SYNC_ENABLED } from '../config'
 import { supabase } from './supabase'
 import { getState, useApp } from '../store'
 import { pausesOf, progress } from './game'
+import { marathonOf } from './marathon'
 import { CATALOG, DEFAULTS, ITEMS, LOOKS, type Item, type Kind, type Metric, type Rule, type Tier } from './catalog'
 import type { State, UserId } from '../types'
 
@@ -19,6 +20,7 @@ interface Server {
   overrides: Record<string, Partial<Rule> | null>
   freeForAll: boolean
   grants: Grant[]
+  publicFactor?: number
 }
 
 const CACHE = 'familyhub:unlocks'
@@ -48,6 +50,7 @@ export async function loadUnlocks() {
     refs: (refs.data as number) ?? server.refs,
     overrides: (cfg.catalog as Server['overrides']) ?? (config.error ? server.overrides : {}),
     freeForAll: !!(cfg.test as { freeForAll?: boolean } | undefined)?.freeForAll,
+    publicFactor: (cfg.progression as { publicFactor?: number } | undefined)?.publicFactor,
     grants: grants.error ? server.grants : (grants.data as Grant[]),
   })
 }
@@ -62,12 +65,13 @@ export function realTier(): Tier {
 export const effectiveTier = (s: State): Tier => (realTier() === 'dev' && s.prefs.devAs ? s.prefs.devAs : realTier())
 
 /* ---------- usage numbers ---------- */
-export interface Stats { level: number; flame: number; acts: number; days: number; refs: number }
+export interface Stats { level: number; flame: number; acts: number; days: number; quests: number; stamps: number; event: number; refs: number }
 let memo: { acts: unknown; game: unknown; trips: unknown; refs: number; stats: Stats } | undefined
 export function statsOf(s: State): Stats {
   if (memo && memo.acts === s.acts && memo.game === s.game && memo.trips === s.trips && memo.refs === server.refs) return memo.stats
   const p = progress(s.acts, pausesOf(s))
-  const stats = { level: p.level, flame: p.best, acts: p.actions, days: p.fed.size, refs: server.refs }
+  const quests = s.acts.filter((a) => a.kind === 'quest').length
+  const stats = { level: p.level, flame: p.best, acts: p.actions, days: p.fed.size, quests, stamps: marathonOf(s).stamps.length, event: 0, refs: server.refs }
   memo = { acts: s.acts, game: s.game, trips: s.trips, refs: server.refs, stats }
   return stats
 }
@@ -83,7 +87,10 @@ export function ruleOf(id: string): Rule | undefined {
 
 export type Status =
   | { open: true; why: 'free' | 'dev' | 'test' | 'owned' | 'earned'; grant?: Grant }
-  | { open: false; tier: 'close' | 'public'; rule: Rule; have: number; refs: number }
+  | { open: false; id: string; tier: 'close' | 'public'; rule: Rule; have: number; need: number; refs: number }
+
+/** Couples who aren't close can earn everything too, just twice as far (the developers can change it). */
+export const publicFactor = () => server.publicFactor ?? 2
 
 export function statusOf(id: string, s: State = getState()): Status {
   const rule = ruleOf(id)
@@ -93,10 +100,14 @@ export function statusOf(id: string, s: State = getState()): Status {
   const tier = effectiveTier(s)
   if (tier === 'dev') return { open: true, why: 'dev' }
   if (server.freeForAll) return { open: true, why: 'test' }
+  // Marathon rewards: earned in «Around the world» only (everyone else may also buy them).
+  if (rule.m === 'event' && marathonOf(s).earned.has(id)) return { open: true, why: 'earned' }
   const st = statsOf(s)
-  const have = st[rule.m as Metric]
-  if (tier === 'close' && (have >= rule.n || (!!rule.refs && st.refs >= rule.refs))) return { open: true, why: 'earned' }
-  return { open: false, tier, rule, have, refs: st.refs }
+  if (rule.m === 'event') return { open: false, id, tier, rule, have: 0, need: 0, refs: st.refs }
+  const have = st[rule.m as Exclude<Metric, 'event'>]
+  const need = tier === 'close' ? rule.n : Math.ceil(rule.n * publicFactor())
+  if (have >= need || (tier === 'close' && !!rule.refs && st.refs >= rule.refs)) return { open: true, why: 'earned' }
+  return { open: false, id, tier, rule, have, need, refs: st.refs }
 }
 export const isOpen = (id: string, s: State = getState()) => statusOf(id, s).open
 
