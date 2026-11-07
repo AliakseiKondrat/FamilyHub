@@ -141,11 +141,11 @@ export default function App() {
   const sync = useSync()
   useLevelUp()
   const [tour, setTour] = useState(false)
-  // Newcomers get the walkthrough once after their first sign-in; our own couple (h1) doesn't need it.
+  // Everyone (our own couple too) gets the walkthrough once after signing in; Settings can replay it.
   useEffect(() => {
     if (sync.status !== 'ready') return
     const hh = getHousehold()
-    if (new URLSearchParams(location.search).has('tour') || (SYNC_ENABLED && hh && hh !== 'h1' && !s.prefs.tourDone)) setTour(true)
+    if (new URLSearchParams(location.search).has('tour') || (SYNC_ENABLED && hh && !s.prefs.tourDone)) setTour(true)
   }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const on = () => setTour(true); tourBus.addEventListener('open', on); return () => tourBus.removeEventListener('open', on) }, [])
   const theme = useResolvedTheme(s.theme)

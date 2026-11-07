@@ -842,3 +842,30 @@ a { color: var(--blue); text-decoration: none; }
 .tryon-bar button { border: 0; border-radius: 16px; padding: 7px 12px; background: var(--label); color: var(--bg); font-weight: 700; font-size: 13px; }
 .gift-card { text-align: center; padding: 8px 4px 4px; }
 .gift-card .gift-emoji { font-size: 64px; animation: mascot-bounce 1.4s var(--ease) infinite; display: inline-block; }
+
+/* ---------- Walkthrough over the real screens ---------- */
+.coach { position: fixed; inset: 0; z-index: 95; }
+.coach-dim { position: absolute; inset: 0; background: rgba(8, 8, 18, 0.68); animation: fade 0.3s; }
+.coach-hole { position: absolute; border-radius: 20px; box-shadow: 0 0 0 200vmax rgba(8, 8, 18, 0.68); cursor: pointer;
+  transition: left 0.35s var(--ease), top 0.35s var(--ease), width 0.35s var(--ease), height 0.35s var(--ease); }
+.coach-hole::after { content: ''; position: absolute; inset: -5px; border-radius: 25px; border: 3px solid #fff; animation: coach-pulse 1.6s ease-out infinite; }
+@keyframes coach-pulse { 0% { opacity: 0.95; transform: scale(1); } 100% { opacity: 0; transform: scale(1.07); } }
+.coach-arrow { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.coach-arrow > path { fill: none; stroke: #fff; stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 9 8; animation: coach-dash 0.9s linear infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45)); }
+@keyframes coach-dash { to { stroke-dashoffset: -17; } }
+.coach-bubble { position: absolute; background: var(--cell); color: var(--label); border-radius: 26px; padding: 14px 18px 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  opacity: 0; transform: translateY(8px) scale(0.98); transition: opacity 0.3s, transform 0.35s var(--spring); max-height: calc(100% - 40px); overflow-y: auto; }
+.coach-bubble.in { opacity: 1; transform: none; }
+.coach-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--label2); margin-bottom: 6px; }
+.coach-skip { border: 0; background: none; color: var(--label2); font-size: 14px; padding: 4px 0 4px 8px; }
+.coach-title { font-size: 20px; font-weight: 800; line-height: 1.2; display: flex; gap: 8px; align-items: flex-start; letter-spacing: -0.3px; }
+.coach-emoji { font-size: 24px; line-height: 1; }
+.coach-body { margin: 8px 0 12px; font-size: 16px; line-height: 1.42; }
+.coach-langs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.coach-dots { display: flex; gap: 5px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.coach-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--fill2); transition: width 0.3s, background 0.3s; }
+.coach-dots i.on { width: 18px; background: var(--blue); }
+.coach-dots i.past { background: color-mix(in srgb, var(--blue) 45%, transparent); }
+.coach-nav { display: flex; gap: 10px; }
+.coach-nav .glass-btn { flex: 1; height: 46px; font-size: 16px; }
