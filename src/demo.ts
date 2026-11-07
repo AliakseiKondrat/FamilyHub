@@ -1,5 +1,5 @@
-import type { Base, State, UserId } from './types'
-import { addDays, today } from './lib/date'
+import type { Base, CheckIn, State, UserId } from './types'
+import { addDays, mondayOf, today } from './lib/date'
 import { defaultBudgetCats, defaultDesign, defaultGame, defaultGroceryCats, defaultPrefs } from './defaults'
 
 let n = 0
@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [], checkins: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -137,6 +137,13 @@ export function demoState(): State {
     moods: [],
     // One note from the partner waiting to be opened, so the demo shows how notes arrive.
     loveNotes: [{ ...b('j'), id: 'ln1', text: 'Спасибо, что ты у меня есть. Сегодня вечером — только мы вдвоём 💛', card: 'card:hearts', to: 'a', mode: 'random', deliverAt: new Date(Date.now() - 3600000).toISOString(), surpriseFor: 'a', revealAt: t }],
+    // Three past weeks of check-ins from both, and Юля has already answered this week.
+    checkins: [[-21, [4, 4, 3, 2, 3, 5], [4, 3, 3, 2, 4, 4]], [-14, [4, 5, 4, 3, 3, 5], [5, 4, 4, 3, 2, 5]], [-7, [5, 4, 4, 4, 4, 5], [4, 4, 5, 3, 4, 5]]]
+      .flatMap(([n, a, j]): CheckIn[] => {
+        const week = mondayOf(addDays(t, n as number))
+        return [{ ...b('a'), id: `checkin:${week}:a`, week, answers: a as number[] }, { ...b('j'), id: `checkin:${week}:j`, week, answers: j as number[] }]
+      })
+      .concat([{ ...b('j'), id: `checkin:${mondayOf(t)}:j`, week: mondayOf(t), answers: [4, 4, 3, 3, 4, 5], note: 'Больше прогулок вдвоём 🌳' }]),
     game: defaultGame(),
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },

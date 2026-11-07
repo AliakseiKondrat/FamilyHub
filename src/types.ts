@@ -134,6 +134,9 @@ export interface LoveNote extends Base {
   seenAt?: string; reply?: string
 }
 
+/** One person's weekly check-in: six answers from 1 to 5 and a wish for next week (id checkin:<monday>:<role>). */
+export interface CheckIn extends Base { week: string; answers: number[]; note?: string }
+
 /** Something done together that feeds the couple's mascot and grows their tree (id = act:<kind>:<ref>, so it counts once). */
 export interface Act {
   id: string; kind: 'quest' | 'task' | 'grocery' | 'recipe' | 'watch' | 'wish' | 'date' | 'trip' | 'photo' | 'music'
@@ -285,6 +288,7 @@ export interface State {
   wishClaims: WishClaim[]
   acts: Act[]
   loveNotes: LoveNote[]
+  checkins: CheckIn[]
   moods: Mood[]
   game: GameSettings
   /** Period days published by Julia's device — the only cycle data her partner receives. */

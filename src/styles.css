@@ -928,3 +928,25 @@ a { color: var(--blue); text-decoration: none; }
 .note-open .postcard { font-size: 19px; aspect-ratio: auto; min-height: 220px; }
 .rc-note { color: var(--pink) !important; font-weight: 600; }
 .badge.example { --c: var(--orange); font-size: 11px; font-weight: 600; padding: 1px 6px; white-space: nowrap; }
+
+/* ---------- Weekly check-in ---------- */
+.ci-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 10px; }
+.ci-dot { border: 0; border-radius: 14px; padding: 8px 0 6px; background: var(--fill); display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--label);
+  transition: transform 0.2s var(--spring), background 0.2s; }
+.ci-dot span { font-size: 24px; line-height: 1; filter: grayscale(0.6); opacity: 0.7; }
+.ci-dot small { font-size: 12px; color: var(--label2); font-weight: 600; }
+.ci-dot.on { background: color-mix(in srgb, var(--pink) 22%, transparent); box-shadow: inset 0 0 0 2px var(--pink); transform: scale(1.05); }
+.ci-dot.on span { filter: none; opacity: 1; }
+.ci-dot:disabled { cursor: default; }
+.ci-legend { display: flex; gap: 16px; justify-content: center; margin: 0 16px 12px; font-size: 13px; color: var(--label2); }
+.ci-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.ci-legend i.me, .ci-bar.me i { background: var(--blue); }
+.ci-legend i.partner, .ci-bar.partner i { background: var(--pink); }
+.ci-bars { flex-direction: column; align-items: stretch; gap: 6px; }
+.ci-bar { position: relative; height: 26px; border-radius: 8px; background: var(--fill); overflow: hidden; }
+.ci-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 8px; opacity: 0.85; }
+.ci-bar b { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+.ci-trend { flex-direction: column; align-items: stretch; gap: 4px; }
+.ci-trend svg { width: 100%; height: 80px; }
+.ci-trend-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--label2); }
+.ci-trend-labels b { color: var(--pink); font-size: 14px; }

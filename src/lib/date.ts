@@ -27,6 +27,11 @@ export function addMonths(iso: string, n: number) {
 
 export const diffDays = (a: string, b: string) => Math.round((fromISO(a).getTime() - fromISO(b).getTime()) / 86400000)
 
+/** The Monday of the week a date falls in (weekly check-ins are keyed by it, the same on both phones). */
+export function mondayOf(iso: string) {
+  return addDays(iso, -((fromISO(iso).getDay() + 6) % 7))
+}
+
 export function nextRepeat(iso: string, r: Repeat) {
   switch (r) {
     case 'daily': return addDays(iso, 1)

@@ -15,6 +15,7 @@ import { activeLook, activeMascot, activeScene, lookOf } from '../lib/unlocks'
 import { SceneView, openCollection } from './Collection'
 import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles } from './UsHub'
 import { LoveNotesSection, notesOf } from './LoveNotes'
+import { CheckinSection } from './Checkin'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -175,6 +176,7 @@ export default function Us({ back }: { back?: boolean }) {
         <Coming />
         <Tiles />
         <LoveNotesSection />
+        <CheckinSection />
         <ImportantDates />
         <Savings />
         <Flashback />
@@ -224,6 +226,7 @@ export default function Us({ back }: { back?: boolean }) {
       <Coming />
       <Tiles />
       <LoveNotesSection />
+      <CheckinSection />
 
       {g.quests && (
         <Section header={t('us.quests')} footer={t('us.questsHint')}

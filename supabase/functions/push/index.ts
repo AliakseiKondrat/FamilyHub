@@ -1,6 +1,7 @@
 // Family Hub push notifications.
 //  - { type: 'record', record }  from the records insert trigger: tell the partner about something new
-//  - { type: 'tick' }            from pg_cron every 5 minutes: task/event reminders, the morning summary, love notes coming due
+//  - { type: 'tick' }            from pg_cron every 5 minutes: task/event reminders, the morning summary, love notes coming due,
+//                                 the Sunday-evening check-in reminder
 //  - { type: 'test' }            from the app (user JWT): send a test notification to the caller's devices
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
@@ -26,27 +27,27 @@ const TX = {
     watch: '🍿 {n}: что посмотреть', notes: '📥 {n}: новая запись', expenses: '💸 {n}: новая трата', settle: '🤝 {n}: расчёт', photos: '📸 {n} добавил(а) фото',
     recipes: '🍳 {n}: новый рецепт', trips: '✈️ {n}: новая поездка', goals: '🐷 {n}: новая копилка', petRecords: '🐶 {n}: запись о питомце',
     remind: '⏰ Напоминание', soon: '📅 Через {m} мин', morning: '☀️ Доброе утро!', tasksN: 'задач', eventsN: 'событий', buyN: 'купить',
-    pay: 'платёж', pet: 'питомец', mood2: '💙 {n} сейчас грустно', mood1: '💙 {n} сейчас тяжело', moodBody: 'Может, написать или обнять?', note: '💌 {n} пишет тебе', noteBody: 'Открой, чтобы прочитать', test: '🔔 Уведомления работают!', testBody: 'Так будут выглядеть напоминания Family Hub' },
+    pay: 'платёж', pet: 'питомец', mood2: '💙 {n} сейчас грустно', mood1: '💙 {n} сейчас тяжело', moodBody: 'Может, написать или обнять?', note: '💌 {n} пишет тебе', noteBody: 'Открой, чтобы прочитать', ci: '📝 Как прошла ваша неделя?', ciBody: 'Чек-ин недели: 6 вопросов, меньше минуты', ciPartner: '📝 {n} ждёт твоих ответов', test: '🔔 Уведомления работают!', testBody: 'Так будут выглядеть напоминания Family Hub' },
   en: { groceries: '🛒 {n}: groceries', tasks: '✅ New task from {n}', events: '📅 {n}: new event', music: '🎧 {n} shared a song',
     watch: '🍿 {n}: something to watch', notes: '📥 {n}: new note', expenses: '💸 {n}: new expense', settle: '🤝 {n}: settled up', photos: '📸 {n} added photos',
     recipes: '🍳 {n}: new recipe', trips: '✈️ {n}: new trip', goals: '🐷 {n}: new savings goal', petRecords: '🐶 {n}: pet record',
     remind: '⏰ Reminder', soon: '📅 In {m} min', morning: '☀️ Good morning!', tasksN: 'tasks', eventsN: 'events', buyN: 'to buy',
-    pay: 'payment', pet: 'pet', mood2: '💙 {n} feels sad right now', mood1: '💙 {n} is having a hard time', moodBody: 'Maybe send a message or a hug?', note: '💌 A note from {n}', noteBody: 'Open it to read', test: '🔔 Notifications work!', testBody: 'This is how Family Hub reminders will look' },
+    pay: 'payment', pet: 'pet', mood2: '💙 {n} feels sad right now', mood1: '💙 {n} is having a hard time', moodBody: 'Maybe send a message or a hug?', note: '💌 A note from {n}', noteBody: 'Open it to read', ci: '📝 How was your week?', ciBody: 'Weekly check-in: 6 questions, under a minute', ciPartner: '📝 {n} is waiting for your answers', test: '🔔 Notifications work!', testBody: 'This is how Family Hub reminders will look' },
   pl: { groceries: '🛒 {n}: zakupy', tasks: '✅ Nowe zadanie od {n}', events: '📅 {n}: nowe wydarzenie', music: '🎧 {n} poleca utwór',
     watch: '🍿 {n}: do obejrzenia', notes: '📥 {n}: nowa notatka', expenses: '💸 {n}: nowy wydatek', settle: '🤝 {n}: rozliczenie', photos: '📸 {n} dodał(a) zdjęcia',
     recipes: '🍳 {n}: nowy przepis', trips: '✈️ {n}: nowa podróż', goals: '🐷 {n}: nowa skarbonka', petRecords: '🐶 {n}: wpis o pupilu',
     remind: '⏰ Przypomnienie', soon: '📅 Za {m} min', morning: '☀️ Dzień dobry!', tasksN: 'zadań', eventsN: 'wydarzeń', buyN: 'do kupienia',
-    pay: 'płatność', pet: 'pupil', mood2: '💙 {n} jest teraz smutno', mood1: '💙 {n} ma teraz ciężko', moodBody: 'Może napisz albo przytul?', note: '💌 Liścik od: {n}', noteBody: 'Otwórz, aby przeczytać', test: '🔔 Powiadomienia działają!', testBody: 'Tak będą wyglądać przypomnienia Family Hub' },
+    pay: 'płatność', pet: 'pupil', mood2: '💙 {n} jest teraz smutno', mood1: '💙 {n} ma teraz ciężko', moodBody: 'Może napisz albo przytul?', note: '💌 Liścik od: {n}', noteBody: 'Otwórz, aby przeczytać', ci: '📝 Jak minął wam tydzień?', ciBody: 'Podsumowanie tygodnia: 6 pytań, mniej niż minuta', ciPartner: '📝 {n} czeka na twoje odpowiedzi', test: '🔔 Powiadomienia działają!', testBody: 'Tak będą wyglądać przypomnienia Family Hub' },
   es: { groceries: '🛒 {n}: compra', tasks: '✅ Nueva tarea de {n}', events: '📅 {n}: nuevo evento', music: '🎧 {n} comparte una canción',
     watch: '🍿 {n}: algo para ver', notes: '📥 {n}: nueva nota', expenses: '💸 {n}: nuevo gasto', settle: '🤝 {n}: cuentas saldadas', photos: '📸 {n} añadió fotos',
     recipes: '🍳 {n}: nueva receta', trips: '✈️ {n}: nuevo viaje', goals: '🐷 {n}: nueva hucha', petRecords: '🐶 {n}: registro de mascota',
     remind: '⏰ Recordatorio', soon: '📅 En {m} min', morning: '☀️ ¡Buenos días!', tasksN: 'tareas', eventsN: 'eventos', buyN: 'por comprar',
-    pay: 'pago', pet: 'mascota', mood2: '💙 {n} está triste ahora', mood1: '💙 {n} lo está pasando mal', moodBody: '¿Le escribes o le das un abrazo?', note: '💌 Una nota de {n}', noteBody: 'Ábrela para leerla', test: '🔔 ¡Las notificaciones funcionan!', testBody: 'Así se verán los recordatorios de Family Hub' },
+    pay: 'pago', pet: 'mascota', mood2: '💙 {n} está triste ahora', mood1: '💙 {n} lo está pasando mal', moodBody: '¿Le escribes o le das un abrazo?', note: '💌 Una nota de {n}', noteBody: 'Ábrela para leerla', ci: '📝 ¿Qué tal vuestra semana?', ciBody: 'Repaso de la semana: 6 preguntas, menos de un minuto', ciPartner: '📝 {n} espera tus respuestas', test: '🔔 ¡Las notificaciones funcionan!', testBody: 'Así se verán los recordatorios de Family Hub' },
   it: { groceries: '🛒 {n}: spesa', tasks: '✅ Nuova attività da {n}', events: '📅 {n}: nuovo evento', music: '🎧 {n} condivide una canzone',
     watch: '🍿 {n}: qualcosa da vedere', notes: '📥 {n}: nuova nota', expenses: '💸 {n}: nuova spesa', settle: '🤝 {n}: conti saldati', photos: '📸 {n} ha aggiunto foto',
     recipes: '🍳 {n}: nuova ricetta', trips: '✈️ {n}: nuovo viaggio', goals: '🐷 {n}: nuovo salvadanaio', petRecords: '🐶 {n}: nota sull\'animale',
     remind: '⏰ Promemoria', soon: '📅 Tra {m} min', morning: '☀️ Buongiorno!', tasksN: 'attività', eventsN: 'eventi', buyN: 'da comprare',
-    pay: 'pagamento', pet: 'animale', mood2: '💙 {n} è triste in questo momento', mood1: '💙 {n} sta passando un momento difficile', moodBody: 'Magari un messaggio o un abbraccio?', note: '💌 Un biglietto da {n}', noteBody: 'Aprilo per leggerlo', test: '🔔 Le notifiche funzionano!', testBody: 'Così appariranno i promemoria di Family Hub' },
+    pay: 'pagamento', pet: 'animale', mood2: '💙 {n} è triste in questo momento', mood1: '💙 {n} sta passando un momento difficile', moodBody: 'Magari un messaggio o un abbraccio?', note: '💌 Un biglietto da {n}', noteBody: 'Aprilo per leggerlo', ci: '📝 Com\'è andata la vostra settimana?', ciBody: 'Check-in della settimana: 6 domande, meno di un minuto', ciPartner: '📝 {n} aspetta le tue risposte', test: '🔔 Le notifiche funzionano!', testBody: 'Così appariranno i promemoria di Family Hub' },
 }
 type Lang = keyof typeof TX
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((a, [k, x]) => a.split(`{${k}}`).join(String(x)), s)
@@ -158,7 +159,7 @@ async function tickHousehold(hh: string) {
   // Anything whose moment fell within the last 15 minutes (cron runs every 5; `once` stops repeats).
   const due = (m: number) => m <= minutes && m > minutes - 15
   const { data } = await sb.from('records').select('id,collection,data,created_by,private_to,surprise_for,reveal_at')
-    .eq('household', hh).eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries', 'loveNotes'])
+    .eq('household', hh).eq('deleted', false).in('collection', ['tasks', 'events', 'petRecords', 'recurring', 'groceries', 'loveNotes', 'checkins'])
   const rows = (data ?? []) as Row[]
   // Love notes whose moment has come (within the last two days): one push to the person they're for.
   const nowIso = new Date().toISOString(), recent = new Date(Date.now() - 2 * 86400000).toISOString()
@@ -183,6 +184,17 @@ async function tickHousehold(hh: string) {
         if (r.collection === 'events' && d.time && (d.who === role || d.who === 'both') && occursOn(d.date, d.repeat ?? 'none', date) && due(toMin(d.time) - np.eventLead)) {
           if (await once(`${hh}:event:${r.id}:${date}:${role}`)) await sendTo(hh, role, { title: fill(tx.soon, { m: np.eventLead }), body: `${d.title} · ${d.time}`, tag: r.id })
         }
+      }
+    }
+    // Sunday 19:00: remind whoever hasn't done this week's check-in (gently, once).
+    const day = new Date(date + 'T00:00:00Z')
+    if (np.reminders && day.getUTCDay() === 0 && c.settings.game?.enabled !== false && due(toMin('19:00'))) {
+      const monday = new Date(day.getTime() - 6 * 86400000).toISOString().slice(0, 10)
+      const answered = (r: Role) => rows.some((x) => x.collection === 'checkins' && x.data?.week === monday && x.created_by === r)
+      if (!answered(role) && await once(`${hh}:checkin:${role}:${monday}`)) {
+        await sendTo(hh, role, answered(other(role))
+          ? { title: fill(tx.ciPartner, { n: nameOf(c, other(role)) }), body: tx.ciBody, tag: 'checkin' }
+          : { title: tx.ci, body: tx.ciBody, tag: 'checkin' })
       }
     }
     if (np.morning && due(toMin(np.morningTime)) && await once(`${hh}:morning:${role}:${date}`)) {
