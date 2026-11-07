@@ -30,6 +30,10 @@ import { ShareSheet, takeLaunchParams, type Shared } from './screens/Share'
 import { getHousehold, useSync } from './sync'
 import Tour, { tourBus } from './screens/Tour'
 import { SYNC_ENABLED } from './config'
+import { takeInviteParams } from './screens/Pairing'
+
+// ?join=CODE and ?ref=hN must survive the sign-up round trip.
+takeInviteParams()
 import { Ambient, GiftNotice, TryOnBar } from './screens/Collection'
 import { useServerUnlocks, useTryOn } from './lib/unlocks'
 

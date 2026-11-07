@@ -1,6 +1,7 @@
 ﻿import { useState, type CSSProperties } from 'react'
 import { useT } from '../i18n'
-import { signIn, signOut, signUp, useSync } from '../sync'
+import { signIn, signUp, useSync } from '../sync'
+import { PairingScreen } from './Pairing'
 
 /** Email + password: works inside the installed iPhone app, unlike magic links that open in Safari. */
 export default function Login() {
@@ -26,15 +27,8 @@ export default function Login() {
     setBusy(false)
   }
 
-  if (sync.status === 'noAccess') {
-    return (
-      <div className="login">
-        <div className="login-logo lg on-accent">🔒</div>
-        <p className="login-msg">{t('noAccess', { email: sync.email ?? '' })}</p>
-        <button className="glass-btn lg login-btn" onClick={() => signOut()}>{t('signOut')}</button>
-      </div>
-    )
-  }
+  // Signed in but not in a couple yet: create one or join the partner's with a code.
+  if (sync.status === 'noAccess') return <PairingScreen />
 
   const ready = email.includes('@') && password.length >= 6
   return (

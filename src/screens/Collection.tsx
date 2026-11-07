@@ -12,6 +12,7 @@ import {
   type Grant, type Household, type HouseholdGrant, type Status,
 } from '../lib/unlocks'
 import type { State, UserId } from '../types'
+import { FeedbackList } from './Pairing'
 
 /* ---------- previews ---------- */
 const isDark = () => document.documentElement.dataset.theme === 'dark'
@@ -336,6 +337,7 @@ export function DevPage() {
               h.referred_by ? `💌 ${h.referred_by}` : ''].filter(Boolean).join(' · ')} />
         ))}
       </Section>
+      <FeedbackList />
       <div className="col-hint" style={{ margin: '4px 30px 10px' }}>{t('dev.rulesHint')}</div>
       {KINDS.map((k) => (
         <Section key={k} header={`${t('dev.rules')} · ${t(`col.kind.${k}`)}`}>

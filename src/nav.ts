@@ -5,7 +5,7 @@ import { getState } from './store'
 /** A tab is any section the person put in the bottom bar, or "More". */
 export type Tab = ModuleId | 'more'
 export type SettingsPage = 'root' | 'design' | 'tabs' | 'today' | 'sections' | 'groceryCats' | 'budget' | 'people' | 'region' | 'data'
-  | 'notifications' | 'siri' | 'widget' | 'google' | 'statuses' | 'shortcuts' | 'game' | 'collection' | 'dev'
+  | 'notifications' | 'siri' | 'widget' | 'google' | 'statuses' | 'shortcuts' | 'game' | 'collection' | 'dev' | 'faq'
 /** A pushed screen: a section, a trip detail, or a settings page. */
 export type Route = { mod: ModuleId } | { trip: string } | { settings: SettingsPage } | { search: true }
 

@@ -17,6 +17,7 @@ import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
 import { itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
+import { DeleteDataSection, FaqPage, FeedbackSheet, InviteSection } from './Pairing'
 import { openTour } from './Tour'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
@@ -73,6 +74,7 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'game': return <GamePage />
     case 'collection': return <Collection />
     case 'dev': return <DevPage />
+    case 'faq': return <FaqPage />
     default: return <RootPage />
   }
 }
@@ -81,6 +83,7 @@ function RootPage() {
   const s = useApp()
   const t = useT()
   const nav = useNav()
+  const [feedback, setFeedback] = useState(false)
   const sync = useSync()
   const platform = usePlatform()
   const choice = usePlatformChoice()
@@ -158,10 +161,15 @@ function RootPage() {
         {link('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google')}
       </Section>
 
+      <InviteSection />
       <Section>
         {link('💾', 'var(--fill)', t('data'), 'data')}
         <Row icon="🎓" iconBg="var(--fill)" title={t('tour.again')} chevron onClick={openTour} />
+        {link('❓', 'var(--fill)', t('faq.title'), 'faq')}
+        <Row icon="💬" iconBg="var(--fill)" title={t('fb.title')} chevron onClick={() => setFeedback(true)} />
       </Section>
+      <DeleteDataSection />
+      {feedback && <FeedbackSheet onClose={() => setFeedback(false)} />}
       <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.4</div>
     </Screen>
   )

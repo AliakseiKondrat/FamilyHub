@@ -256,6 +256,14 @@ async function onSession(session: Session | null) {
   flush()
 }
 
+/** Re-run the session checks (after creating or joining a couple the role and household change). */
+export async function refreshSession() {
+  if (!supabase) return
+  currentUser = undefined
+  const { data } = await supabase.auth.getSession()
+  await onSession(data.session)
+}
+
 export async function initSync() {
   if (!supabase) return
   supabase.auth.onAuthStateChange((_e, session) => { setTimeout(() => onSession(session), 0) })
