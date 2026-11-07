@@ -63,7 +63,8 @@ const personal = (s: State) => Object.fromEntries(PERSONAL_KEYS.map((k) => [k, s
 function applyPersonal(next: State, data: unknown) {
   const d = data as Partial<State>
   Object.assign(next, d, {
-    design: { ...defaultDesign(), ...d.design },
+    // The v2 look is offered once, also to people whose settings come from the server.
+    design: { ...defaultDesign(), ...d.design, ...(d.design && !d.design.v2 ? { header: 'soft' as const, v2: true } : {}) },
     prefs: upgradePrefs(d.prefs),
   })
 }

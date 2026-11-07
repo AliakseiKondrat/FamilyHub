@@ -5,6 +5,7 @@ import { LANG_NAMES, useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import { usePlatform } from '../lib/platform'
 import { haptic } from '../ui'
+import { inTelegram } from '../lib/telegram'
 import type { Lang, ModuleId, State } from '../types'
 
 /*
@@ -53,7 +54,7 @@ const STEPS: Step[] = [
     target: () => (wideLayout() ? document.querySelector('.sidebar > .sb-item:last-child') : top()?.querySelector('.navbar-side:last-child .glass-btn:last-child') ?? null),
   },
   {
-    key: 'install', emoji: '📲', skip: () => standalone(),
+    key: 'install', emoji: '📲', skip: () => standalone() || inTelegram(),
     text: () => (getPlatform() === 'android' ? 'installAndroid' : 'installIos'),
     aim: () => (getPlatform() === 'android' ? { x: innerWidth - 18, y: -8 } : { x: innerWidth / 2, y: innerHeight + 8 }),
   },

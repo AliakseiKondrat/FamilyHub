@@ -19,7 +19,7 @@ import { itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
 import { DeleteDataSection, FaqPage, FeedbackSheet, InviteSection } from './Pairing'
 import { openTour } from './Tour'
-import { telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
+import { inTelegram, telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
@@ -101,7 +101,7 @@ function RootPage() {
         </div>
       </div>}>
       {SYNC_ENABLED ? (
-        <Section footer={t(platform === 'android' ? 'installHintAndroid' : 'installHint')}>
+        <Section footer={inTelegram() || matchMedia('(display-mode: standalone)').matches ? undefined : t(platform === 'android' ? 'installHintAndroid' : 'installHint')}>
           <Row icon={!sync.online ? '📴' : sync.pending ? '⏳' : '☁️'}
             title={!sync.online ? t('offline') : sync.pending ? t('pendingN', { n: sync.pending }) : t('synced')} />
           <button className="row tap destructive" onClick={() => signOut()}>{t('signOut')}</button>
