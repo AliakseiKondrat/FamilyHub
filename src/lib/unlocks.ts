@@ -2,8 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { DEMO, SYNC_ENABLED } from '../config'
 import { supabase } from './supabase'
 import { getState, useApp } from '../store'
-import { pausesOf, progress } from './game'
-import { marathonOf } from './marathon'
+import { progressionOf } from './progression'
 import { CATALOG, DEFAULTS, ITEMS, LOOKS, type Item, type Kind, type Metric, type Rule, type Tier } from './catalog'
 import type { State, UserId } from '../types'
 
@@ -65,14 +64,19 @@ export function realTier(): Tier {
 export const effectiveTier = (s: State): Tier => (realTier() === 'dev' && s.prefs.devAs ? s.prefs.devAs : realTier())
 
 /* ---------- usage numbers ---------- */
-export interface Stats { level: number; flame: number; acts: number; days: number; quests: number; stamps: number; event: number; refs: number }
-let memo: { acts: unknown; game: unknown; trips: unknown; refs: number; stats: Stats } | undefined
+export type Stats = Record<Exclude<Metric, 'event'>, number> & { event: number; refs: number }
+let memo: { acts: unknown; game: unknown; trips: unknown; moods: unknown; refs: number; stats: Stats } | undefined
 export function statsOf(s: State): Stats {
-  if (memo && memo.acts === s.acts && memo.game === s.game && memo.trips === s.trips && memo.refs === server.refs) return memo.stats
-  const p = progress(s.acts, pausesOf(s))
-  const quests = s.acts.filter((a) => a.kind === 'quest').length
-  const stats = { level: p.level, flame: p.best, acts: p.actions, days: p.fed.size, quests, stamps: marathonOf(s).stamps.length, event: 0, refs: server.refs }
-  memo = { acts: s.acts, game: s.game, trips: s.trips, refs: server.refs, stats }
+  if (memo && memo.acts === s.acts && memo.game === s.game && memo.trips === s.trips && memo.moods === s.moods && memo.refs === server.refs) return memo.stats
+  const r = progressionOf(s)
+  const c = r.chains
+  const stats: Stats = {
+    level: r.p.level, flame: r.p.best, acts: r.p.actions, days: r.p.fed.size, quests: c.quests, stamps: c.stamps,
+    cook: c.cook, watch: c.watch, notes: c.notes, dates: c.dates, trips: c.trips, gifts: c.gifts, checkins: c.checkins, blind: c.blind,
+    tasks: c.tasks, shop: c.shop, taps: c.taps, moods: c.moods, photos: c.photos, music: c.music, goals: c.goals, events: c.events,
+    event: 0, refs: server.refs,
+  }
+  memo = { acts: s.acts, game: s.game, trips: s.trips, moods: s.moods, refs: server.refs, stats }
   return stats
 }
 
@@ -101,7 +105,7 @@ export function statusOf(id: string, s: State = getState()): Status {
   if (tier === 'dev') return { open: true, why: 'dev' }
   if (server.freeForAll) return { open: true, why: 'test' }
   // Marathon rewards: earned in «Around the world» only (everyone else may also buy them).
-  if (rule.m === 'event' && marathonOf(s).earned.has(id)) return { open: true, why: 'earned' }
+  if (rule.m === 'event' && progressionOf(s).m.earned.has(id)) return { open: true, why: 'earned' }
   const st = statsOf(s)
   if (rule.m === 'event') return { open: false, id, tier, rule, have: 0, need: 0, refs: st.refs }
   const have = st[rule.m as Exclude<Metric, 'event'>]
