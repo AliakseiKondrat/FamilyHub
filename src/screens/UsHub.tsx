@@ -9,6 +9,7 @@ import { activeLook, activePiggy, lookOf } from '../lib/unlocks'
 import { PiggyBar, openCollection } from './Collection'
 import { PhotoThumb, useBlobUrl } from './Photos'
 import { NoteComposer } from './LoveNotes'
+import { BlindWizard } from './BlindDate'
 import { hasExamples, removeExamples } from '../lib/examples'
 import type { CalEvent, State } from '../types'
 
@@ -173,10 +174,14 @@ export function Tiles() {
   const nav = useNav()
   const [evening, setEvening] = useState(false)
   const [note, setNote] = useState(false)
+  const [blind, setBlind] = useState(false)
   return (
     <div className="hub-tiles">
       <button className="hub-tile note" onClick={() => setNote(true)}>
         <span className="ht-emoji">💌</span><b>{t('note.tile')}</b><span>{t('note.tileSub')}</span>
+      </button>
+      <button className="hub-tile blind" onClick={() => setBlind(true)}>
+        <span className="ht-emoji">🎭</span><b>{t('bd.tile')}</b><span>{t('bd.tileSub')}</span>
       </button>
       <button className="hub-tile" onClick={() => setEvening(true)}>
         <span className="ht-emoji">🍿🍳</span><b>{t('hub.evening')}</b><span>{t('hub.eveningSub')}</span>
@@ -186,6 +191,7 @@ export function Tiles() {
       </button>
       {evening && <EveningSheet onClose={() => setEvening(false)} />}
       {note && <NoteComposer onClose={() => setNote(false)} />}
+      {blind && <BlindWizard onClose={() => setBlind(false)} />}
     </div>
   )
 }

@@ -16,6 +16,7 @@ import { SceneView, openCollection } from './Collection'
 import { Coming, CoupleCard, FirstSteps, Flashback, ImportantDates, Savings, Thought, Tiles } from './UsHub'
 import { LoveNotesSection, notesOf } from './LoveNotes'
 import { CheckinSection } from './Checkin'
+import { BlindSection } from './BlindDate'
 
 /** Everything the ritual screens show, computed once per state change. */
 export function useGame() {
@@ -176,6 +177,7 @@ export default function Us({ back }: { back?: boolean }) {
         <Coming />
         <Tiles />
         <LoveNotesSection />
+        <BlindSection />
         <CheckinSection />
         <ImportantDates />
         <Savings />
@@ -226,6 +228,7 @@ export default function Us({ back }: { back?: boolean }) {
       <Coming />
       <Tiles />
       <LoveNotesSection />
+      <BlindSection />
       <CheckinSection />
 
       {g.quests && (

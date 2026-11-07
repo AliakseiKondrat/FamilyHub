@@ -1,0 +1,12 @@
+{ "bd.title": "Свидание вслепую", "bd.section": "Свидания вслепую", "bd.plan": "Устроить", "bd.event": "Свидание вслепую", "bd.tile": "Вслепую", "bd.tileSub": "свидание-сюрприз",
+ "bd.step.mood": "Какое настроение у свидания? {name} узнает только его.", "bd.step.place": "Куда вы пойдёте — секрет до самого свидания.", "bd.step.when": "Когда вскрыть конверт и начать свидание?", "bd.step.hints": "Подсказки откроются {name} по расписанию. Можно ничего не писать.",
+ "bd.mood.romantic": "Романтика", "bd.mood.active": "Активное", "bd.mood.cozy": "Уютное", "bd.mood.tasty": "Вкусное", "bd.mood.adventure": "Приключение", "bd.mood.culture": "Культурное",
+ "bd.placePlaceholder": "Ресторан, адрес или просто «сюрприз»", "bd.placeHint": "{name} не увидит место до назначенного дня — оно спрятано даже от приложения на телефоне.",
+ "bd.when.tonight": "Сегодня вечером", "bd.when.tomorrow": "Завтра вечером", "bd.when.weekend": "В выходные", "bd.when.custom": "Своё время",
+ "bd.hint": "Подсказка", "bd.hintPlaceholder": "Например: «возьми удобную обувь»", "bd.at.now": "сразу", "bd.at.day": "за день", "bd.at.2h": "за 2 часа", "bd.addHint": "Ещё подсказка",
+ "bd.seal": "Запечатать конверт", "bd.sealed": "✉️ Конверт запечатан",
+ "bd.fromName": "{name} готовит тебе сюрприз", "bd.forName": "Твой сюрприз · {name}", "bd.forMeRow": "{name} готовит тебе сюрприз", "bd.fromMeRow": "Твой сюрприз · {name}",
+ "bd.where": "Куда", "bd.noPlace": "Секрет до последнего — просто доверься 😉", "bd.secretHint": "{name} пока не видит место.", "bd.hints": "Подсказки", "bd.opensAt": "откроется {when}",
+ "bd.excited": "Жду!", "bd.excitedSent": "{name} увидит, что ты ждёшь", "bd.isExcited": "{name} ждёт не дождётся!",
+ "bd.rate": "Как прошло свидание?", "bd.reviewPlaceholder": "Пара слов на память…", "bd.saveRating": "Сохранить", "bd.thanks": "Сохранено в ваши воспоминания 💞", "bd.rated": "Оценка",
+ "bd.openNow": "Можно вскрывать конверт!", "bd.leftDays": "через {d} дн. {h} ч", "bd.leftHours": "через {h} ч {m} мин" }

@@ -1,0 +1,12 @@
+{ "bd.title": "Appuntamento al buio", "bd.section": "Appuntamenti al buio", "bd.plan": "Organizza", "bd.event": "Appuntamento al buio", "bd.tile": "Al buio", "bd.tileSub": "appuntamento a sorpresa",
+ "bd.step.mood": "Che atmosfera avrà l'appuntamento? È l'unica cosa che saprà {name}.", "bd.step.place": "Dove andrete resta un segreto fino all'appuntamento.", "bd.step.when": "Quando si apre la busta e inizia l'appuntamento?", "bd.step.hints": "Gli indizi si apriranno per {name} secondo il programma. Puoi anche non scriverne.",
+ "bd.mood.romantic": "Romantico", "bd.mood.active": "Attivo", "bd.mood.cozy": "Accogliente", "bd.mood.tasty": "Goloso", "bd.mood.adventure": "Avventura", "bd.mood.culture": "Culturale",
+ "bd.placePlaceholder": "Un ristorante, un indirizzo o solo «sorpresa»", "bd.placeHint": "{name} non vedrà il posto fino al giorno scelto: è nascosto persino all'app sul suo telefono.",
+ "bd.when.tonight": "Stasera", "bd.when.tomorrow": "Domani sera", "bd.when.weekend": "Nel fine settimana", "bd.when.custom": "Scegli l'ora",
+ "bd.hint": "Indizio", "bd.hintPlaceholder": "Per esempio: «mettiti scarpe comode»", "bd.at.now": "subito", "bd.at.day": "il giorno prima", "bd.at.2h": "2 ore prima", "bd.addHint": "Un altro indizio",
+ "bd.seal": "Sigilla la busta", "bd.sealed": "✉️ Busta sigillata",
+ "bd.fromName": "{name} ti prepara una sorpresa", "bd.forName": "La tua sorpresa · {name}", "bd.forMeRow": "{name} ti prepara una sorpresa", "bd.fromMeRow": "La tua sorpresa · {name}",
+ "bd.where": "Dove", "bd.noPlace": "Segreto fino alla fine: fidati e basta 😉", "bd.secretHint": "{name} non vede ancora il posto.", "bd.hints": "Indizi", "bd.opensAt": "si apre {when}",
+ "bd.excited": "Non vedo l'ora!", "bd.excitedSent": "{name} vedrà che non vedi l'ora", "bd.isExcited": "{name} non vede l'ora!",
+ "bd.rate": "Com'è andato l'appuntamento?", "bd.reviewPlaceholder": "Due parole per ricordarlo…", "bd.saveRating": "Salva", "bd.thanks": "Salvato nei vostri ricordi 💞", "bd.rated": "Voto",
+ "bd.openNow": "Si può aprire la busta!", "bd.leftDays": "tra {d} g {h} h", "bd.leftHours": "tra {h} h {m} min" }

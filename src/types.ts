@@ -39,6 +39,8 @@ export interface CalEvent extends Base {
   who: Who; notes?: string; repeat: Repeat
   /** Set on events mirrored from Google: which calendar, its color, and whether we may edit it. */
   source?: 'google'; calendar?: string; color?: string; readonly?: boolean; busy?: boolean
+  /** Made for a blind date (its own pushes tell the partner). */
+  blindId?: string
 }
 
 /** What someone is up to right now ("Working", "Driving"); `together` statuses apply to both. */
@@ -133,6 +135,20 @@ export interface LoveNote extends Base {
   /** The partner opened it / answered it. */
   seenAt?: string; reply?: string
 }
+
+/** A blind date: the envelope both of us see (mood, time, hints as they open, «can't wait», rating). */
+export interface BlindDate extends Base {
+  to: UserId
+  mood: 'romantic' | 'active' | 'cozy' | 'tasty' | 'adventure' | 'culture'
+  /** When the envelope opens and the date begins (ISO date-time). */
+  when: string
+  hints: { text: string; at: string }[]
+  excitedAt?: string; openedAt?: string; rating?: number; review?: string
+  /** The calendar event made for it. */
+  eventId?: string
+}
+/** The secret part — where — hidden from the partner by the database until the day (surprise + reveal date). */
+export interface BlindSecret extends Base { dateId: string; place: string }
 
 /** One person's weekly check-in: six answers from 1 to 5 and a wish for next week (id checkin:<monday>:<role>). */
 export interface CheckIn extends Base { week: string; answers: number[]; note?: string }
@@ -289,6 +305,8 @@ export interface State {
   acts: Act[]
   loveNotes: LoveNote[]
   checkins: CheckIn[]
+  blindDates: BlindDate[]
+  blindSecrets: BlindSecret[]
   moods: Mood[]
   game: GameSettings
   /** Period days published by Julia's device — the only cycle data her partner receives. */

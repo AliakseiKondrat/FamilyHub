@@ -13,7 +13,7 @@ export function blankState(): State {
     ...demoState(),
     pet: { name: 'Честер', emoji: '🐶' },
     budgets: {},
-    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [], checkins: [],
+    groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [], checkins: [], blindDates: [], blindSecrets: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],
   }
 }
@@ -144,6 +144,10 @@ export function demoState(): State {
         return [{ ...b('a'), id: `checkin:${week}:a`, week, answers: a as number[] }, { ...b('j'), id: `checkin:${week}:j`, week, answers: j as number[] }]
       })
       .concat([{ ...b('j'), id: `checkin:${mondayOf(t)}:j`, week: mondayOf(t), answers: [4, 4, 3, 3, 4, 5], note: 'Больше прогулок вдвоём 🌳' }]),
+    // Юля is planning a blind date for Лёша the day after tomorrow; one hint is already open.
+    blindDates: [{ ...b('j'), id: 'bd1', to: 'a', mood: 'tasty', when: `${addDays(t, 2)}T19:00:00`, eventId: 'bd1-ev',
+      hints: [{ text: 'Оденься удобно, будем много смеяться', at: new Date(Date.now() - 3600000).toISOString() }, { text: 'Возьми с собой аппетит 😋', at: `${addDays(t, 1)}T19:00:00` }] }],
+    blindSecrets: [],
     game: defaultGame(),
     periods: [
       { id: 'pr1', start: addDays(t, -60), end: addDays(t, -55) },

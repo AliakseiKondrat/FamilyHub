@@ -1,0 +1,12 @@
+{ "bd.title": "Randka w ciemno", "bd.section": "Randki w ciemno", "bd.plan": "Zaplanuj", "bd.event": "Randka w ciemno", "bd.tile": "W ciemno", "bd.tileSub": "randka-niespodzianka",
+ "bd.step.mood": "Jaki nastrój ma randka? Tylko to pozna {name}.", "bd.step.place": "Dokąd idziecie — to tajemnica do samej randki.", "bd.step.when": "Kiedy otworzyć kopertę i zacząć randkę?", "bd.step.hints": "Podpowiedzi otworzą się dla: {name} według planu. Można je pominąć.",
+ "bd.mood.romantic": "Romantyczna", "bd.mood.active": "Aktywna", "bd.mood.cozy": "Przytulna", "bd.mood.tasty": "Smaczna", "bd.mood.adventure": "Przygoda", "bd.mood.culture": "Kulturalna",
+ "bd.placePlaceholder": "Restauracja, adres albo po prostu „niespodzianka”", "bd.placeHint": "{name} nie zobaczy miejsca przed wyznaczonym dniem — jest ukryte nawet przed aplikacją w telefonie.",
+ "bd.when.tonight": "Dziś wieczorem", "bd.when.tomorrow": "Jutro wieczorem", "bd.when.weekend": "W weekend", "bd.when.custom": "Własny termin",
+ "bd.hint": "Podpowiedź", "bd.hintPlaceholder": "Na przykład: „załóż wygodne buty”", "bd.at.now": "od razu", "bd.at.day": "dzień wcześniej", "bd.at.2h": "2 godziny wcześniej", "bd.addHint": "Kolejna podpowiedź",
+ "bd.seal": "Zapieczętuj kopertę", "bd.sealed": "✉️ Koperta zapieczętowana",
+ "bd.fromName": "{name} szykuje dla ciebie niespodziankę", "bd.forName": "Twoja niespodzianka · {name}", "bd.forMeRow": "{name} szykuje dla ciebie niespodziankę", "bd.fromMeRow": "Twoja niespodzianka · {name}",
+ "bd.where": "Dokąd", "bd.noPlace": "Tajemnica do końca — po prostu zaufaj 😉", "bd.secretHint": "{name} jeszcze nie widzi miejsca.", "bd.hints": "Podpowiedzi", "bd.opensAt": "otworzy się {when}",
+ "bd.excited": "Czekam!", "bd.excitedSent": "{name} zobaczy, że czekasz", "bd.isExcited": "{name} nie może się doczekać!",
+ "bd.rate": "Jak minęła randka?", "bd.reviewPlaceholder": "Kilka słów na pamiątkę…", "bd.saveRating": "Zapisz", "bd.thanks": "Zapisano w waszych wspomnieniach 💞", "bd.rated": "Ocena",
+ "bd.openNow": "Można otworzyć kopertę!", "bd.leftDays": "za {d} d. {h} godz.", "bd.leftHours": "za {h} godz. {m} min" }

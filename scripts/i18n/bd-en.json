@@ -1,0 +1,12 @@
+{ "bd.title": "Blind date", "bd.section": "Blind dates", "bd.plan": "Plan one", "bd.event": "Blind date", "bd.tile": "Blind date", "bd.tileSub": "a surprise date",
+ "bd.step.mood": "What's the mood of the date? That's all {name} will know.", "bd.step.place": "Where you're going stays a secret until the date itself.", "bd.step.when": "When does the envelope open and the date begin?", "bd.step.hints": "Hints open for {name} on schedule. You can skip them.",
+ "bd.mood.romantic": "Romantic", "bd.mood.active": "Active", "bd.mood.cozy": "Cosy", "bd.mood.tasty": "Tasty", "bd.mood.adventure": "Adventure", "bd.mood.culture": "Culture",
+ "bd.placePlaceholder": "A restaurant, an address or just «surprise»", "bd.placeHint": "{name} won't see the place until the day — it's hidden even from the app on their phone.",
+ "bd.when.tonight": "Tonight", "bd.when.tomorrow": "Tomorrow evening", "bd.when.weekend": "At the weekend", "bd.when.custom": "Pick a time",
+ "bd.hint": "Hint", "bd.hintPlaceholder": "For example: «wear comfy shoes»", "bd.at.now": "right away", "bd.at.day": "a day before", "bd.at.2h": "2 hours before", "bd.addHint": "Another hint",
+ "bd.seal": "Seal the envelope", "bd.sealed": "✉️ Envelope sealed",
+ "bd.fromName": "{name} is planning a surprise for you", "bd.forName": "Your surprise · {name}", "bd.forMeRow": "{name} is planning a surprise for you", "bd.fromMeRow": "Your surprise · {name}",
+ "bd.where": "Where", "bd.noPlace": "A secret till the end — just trust me 😉", "bd.secretHint": "{name} can't see the place yet.", "bd.hints": "Hints", "bd.opensAt": "opens {when}",
+ "bd.excited": "Can't wait!", "bd.excitedSent": "{name} will see you can't wait", "bd.isExcited": "{name} can't wait!",
+ "bd.rate": "How was the date?", "bd.reviewPlaceholder": "A few words to remember it by…", "bd.saveRating": "Save", "bd.thanks": "Saved to your memories 💞", "bd.rated": "Rating",
+ "bd.openNow": "The envelope can be opened!", "bd.leftDays": "in {d} d {h} h", "bd.leftHours": "in {h} h {m} min" }

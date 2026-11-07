@@ -1,0 +1,12 @@
+{ "bd.title": "Cita a ciegas", "bd.section": "Citas a ciegas", "bd.plan": "Organizar", "bd.event": "Cita a ciegas", "bd.tile": "A ciegas", "bd.tileSub": "cita sorpresa",
+ "bd.step.mood": "¿Qué ambiente tendrá la cita? Es lo único que sabrá {name}.", "bd.step.place": "Adónde vais es un secreto hasta la propia cita.", "bd.step.when": "¿Cuándo se abre el sobre y empieza la cita?", "bd.step.hints": "Las pistas se le abrirán a {name} según el plan. Puedes no escribir ninguna.",
+ "bd.mood.romantic": "Romántica", "bd.mood.active": "Activa", "bd.mood.cozy": "Acogedora", "bd.mood.tasty": "Sabrosa", "bd.mood.adventure": "Aventura", "bd.mood.culture": "Cultural",
+ "bd.placePlaceholder": "Un restaurante, una dirección o simplemente «sorpresa»", "bd.placeHint": "{name} no verá el lugar hasta el día elegido: está oculto incluso para la app de su móvil.",
+ "bd.when.tonight": "Esta noche", "bd.when.tomorrow": "Mañana por la tarde", "bd.when.weekend": "El fin de semana", "bd.when.custom": "Elegir hora",
+ "bd.hint": "Pista", "bd.hintPlaceholder": "Por ejemplo: «ponte calzado cómodo»", "bd.at.now": "ya", "bd.at.day": "un día antes", "bd.at.2h": "2 horas antes", "bd.addHint": "Otra pista",
+ "bd.seal": "Sellar el sobre", "bd.sealed": "✉️ Sobre sellado",
+ "bd.fromName": "{name} te prepara una sorpresa", "bd.forName": "Tu sorpresa · {name}", "bd.forMeRow": "{name} te prepara una sorpresa", "bd.fromMeRow": "Tu sorpresa · {name}",
+ "bd.where": "Adónde", "bd.noPlace": "Secreto hasta el final: solo confía 😉", "bd.secretHint": "{name} aún no ve el lugar.", "bd.hints": "Pistas", "bd.opensAt": "se abre {when}",
+ "bd.excited": "¡Qué ganas!", "bd.excitedSent": "{name} verá que tienes ganas", "bd.isExcited": "¡{name} no puede esperar!",
+ "bd.rate": "¿Qué tal la cita?", "bd.reviewPlaceholder": "Unas palabras para el recuerdo…", "bd.saveRating": "Guardar", "bd.thanks": "Guardado en vuestros recuerdos 💞", "bd.rated": "Valoración",
+ "bd.openNow": "¡Ya se puede abrir el sobre!", "bd.leftDays": "en {d} d {h} h", "bd.leftHours": "en {h} h {m} min" }
