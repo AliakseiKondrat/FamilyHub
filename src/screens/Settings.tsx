@@ -13,6 +13,7 @@ import { signOut, useSync } from '../sync'
 import { useNav, type SettingsPage } from '../nav'
 import { ALL_MODULES, defaultDesign } from '../defaults'
 import { MASCOT_KINDS, MASCOT_STAGES, progress } from '../lib/game'
+import { openTour } from './Tour'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
@@ -151,6 +152,7 @@ function RootPage() {
 
       <Section>
         {link('💾', 'var(--fill)', t('data'), 'data')}
+        <Row icon="🎓" iconBg="var(--fill)" title={t('tour.again')} chevron onClick={openTour} />
       </Section>
       <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.4</div>
     </Screen>

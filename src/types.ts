@@ -216,6 +216,8 @@ export interface Prefs {
   /** Bought items stay struck through in their category unless hidden. */
   groceryHideBought: boolean
   groceryEmoji: boolean
+  /** The newcomer walkthrough was finished or skipped (synced, so it doesn't come back on another device). */
+  tourDone?: boolean
 }
 
 export interface State {

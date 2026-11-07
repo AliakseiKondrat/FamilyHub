@@ -26,7 +26,9 @@ import Settings from './screens/Settings'
 import Login from './screens/Login'
 import Search from './screens/Search'
 import { ShareSheet, takeLaunchParams, type Shared } from './screens/Share'
-import { useSync } from './sync'
+import { getHousehold, useSync } from './sync'
+import Tour, { tourBus } from './screens/Tour'
+import { SYNC_ENABLED } from './config'
 
 const TAB_ICONS: Partial<Record<ModuleId, string>> = { today: 'today', calendar: 'calendar', tasks: 'tasks', groceries: 'cart' }
 
@@ -136,6 +138,14 @@ export default function App() {
   const nav = useNav()
   const sync = useSync()
   useLevelUp()
+  const [tour, setTour] = useState(false)
+  // Newcomers get the walkthrough once after their first sign-in; our own couple (h1) doesn't need it.
+  useEffect(() => {
+    if (sync.status !== 'ready') return
+    const hh = getHousehold()
+    if (new URLSearchParams(location.search).has('tour') || (SYNC_ENABLED && hh && hh !== 'h1' && !s.prefs.tourDone)) setTour(true)
+  }, [sync.status]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const on = () => setTour(true); tourBus.addEventListener('open', on); return () => tourBus.removeEventListener('open', on) }, [])
   const theme = useResolvedTheme(s.theme)
   const leaving = useLeaving(nav.stack)
   const [squish, setSquish] = useState(0)
@@ -226,6 +236,7 @@ export default function App() {
         <div key={i} className={out ? 'leaving-wrap' : i < nav.stack.length - 1 ? 'covered-wrap' : undefined}>{routeScreen(r)}</div>
       ))}
       <MiniPlayer />
+      {tour && <Tour onClose={() => setTour(false)} />}
       {shared && <ShareSheet shared={shared} onClose={() => setShared(null)} />}
     </>
   )
