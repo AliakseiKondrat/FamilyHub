@@ -608,7 +608,7 @@ function NotificationsPage() {
   return (
     <Screen title={t('push')} back accent="calendar"
       hero={<div className="hero-sub" style={{ marginTop: 0, fontSize: 17 }}>
-        {support === 'needs-install' ? t('pushInstall') : support === 'unsupported' ? t('pushUnsupported')
+        {inTelegram() && support !== 'ok' ? t('tgc.inTg') : support === 'needs-install' ? t('pushInstall') : support === 'unsupported' ? t('pushUnsupported')
           : status === 'on' ? `✅ ${t('pushOn')}` : status === 'denied' ? `⛔️ ${t(platform === 'android' ? 'pushDeniedAndroid' : 'pushDenied')}` : `🔕 ${t('pushOff')}`}
       </div>}
       actions={support === 'ok' ? [

@@ -828,6 +828,7 @@ const ru = {
   'tgc.test': 'Проверить в Telegram',
   'tgc.testSent': 'Отправлено — загляни в чат с ботом ✓',
   'tgc.testFail': 'Не дошло: открой бота и нажми «Запустить», потом попробуй снова',
+  'tgc.inTg': 'В Telegram уведомления приходят сообщениями от бота — выберите «Telegram» ниже.',
 }
 
 type Dict = typeof ru
@@ -1659,6 +1660,7 @@ const en: Partial<Dict> = {
   'tgc.test': 'Test in Telegram',
   'tgc.testSent': 'Sent — have a look at the chat with the bot ✓',
   'tgc.testFail': 'Didn\'t arrive: open the bot, tap «Start», then try again',
+  'tgc.inTg': 'In Telegram, notifications come as messages from the bot — pick «Telegram» below.',
 }
 
 const pl: Partial<Dict> = {
@@ -2490,6 +2492,7 @@ const pl: Partial<Dict> = {
   'tgc.test': 'Sprawdź w Telegramie',
   'tgc.testSent': 'Wysłano — zajrzyj do czatu z botem ✓',
   'tgc.testFail': 'Nie dotarło: otwórz bota, naciśnij „Start” i spróbuj ponownie',
+  'tgc.inTg': 'W Telegramie powiadomienia przychodzą jako wiadomości od bota — wybierz „Telegram” poniżej.',
 }
 
 const es: Partial<Dict> = {
@@ -3321,6 +3324,7 @@ const es: Partial<Dict> = {
   'tgc.test': 'Probar en Telegram',
   'tgc.testSent': 'Enviado: mira el chat con el bot ✓',
   'tgc.testFail': 'No llegó: abre el bot, pulsa «Iniciar» y vuelve a probar',
+  'tgc.inTg': 'En Telegram, las notificaciones llegan como mensajes del bot: elige «Telegram» abajo.',
 }
 
 const it: Partial<Dict> = {
@@ -4485,6 +4489,7 @@ const it: Partial<Dict> = {
   'tgc.test': 'Prova su Telegram',
   'tgc.testSent': 'Inviato: guarda la chat con il bot ✓',
   'tgc.testFail': 'Non è arrivato: apri il bot, tocca «Avvia» e riprova',
+  'tgc.inTg': 'In Telegram le notifiche arrivano come messaggi del bot: scegli «Telegram» qui sotto.',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

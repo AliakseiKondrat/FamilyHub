@@ -1056,3 +1056,4 @@ a { color: var(--blue); text-decoration: none; }
 [data-header='soft'] .screen .quick .plus { background: var(--label); color: var(--bg); }
 [data-header='soft'] .screen .quick { color: var(--label); }
 .login-hint { font-size: 13px; color: var(--label2); text-align: center; margin: 6px 24px 0; line-height: 1.35; }
+.row > .seg { flex: 1; margin: 0; }
