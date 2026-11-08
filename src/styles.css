@@ -1303,3 +1303,5 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 [data-layout='wide'] .head:has(> .actions) > * { grid-column: 1; }
 [data-layout='wide'] .head:has(> .actions) > .actions { grid-column: 2; grid-row: 1 / span 3; align-self: end; display: grid; grid-template-columns: repeat(4, auto); gap: 14px 18px; padding: 0 28px 4px 0; }
 [data-layout='wide'] .head:has(> .actions) > :is(.seg, .quick, .chips, .head-extra) { grid-column: 1 / -1; }
+.cycle-line { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: inherit; font: inherit; padding: 2px 0; text-align: left; cursor: pointer; }
+.cycle-line svg { opacity: 0.75; flex: none; }

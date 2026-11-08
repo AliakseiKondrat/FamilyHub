@@ -1440,6 +1440,9 @@ const ru = {
   'tgp.how.boost2': 'За два буста нашего канала в Telegram',
   'platform.ipad': 'iPad',
   'platform.desktop': 'Компьютер',
+  'cycle.hidden': 'скрыто',
+  'cycle.show': 'Показать',
+  'cycle.hide': 'Скрыть',
 }
 
 type Dict = typeof ru
@@ -2883,6 +2886,9 @@ const en: Partial<Dict> = {
   'tgp.how.boost2': 'For two boosts of our Telegram channel',
   'platform.ipad': 'iPad',
   'platform.desktop': 'Computer',
+  'cycle.hidden': 'hidden',
+  'cycle.show': 'Show',
+  'cycle.hide': 'Hide',
 }
 
 const pl: Partial<Dict> = {
@@ -4326,6 +4332,9 @@ const pl: Partial<Dict> = {
   'tgp.how.boost2': 'Za dwa boosty naszego kanału w Telegramie',
   'platform.ipad': 'iPad',
   'platform.desktop': 'Komputer',
+  'cycle.hidden': 'ukryte',
+  'cycle.show': 'Pokaż',
+  'cycle.hide': 'Ukryj',
 }
 
 const es: Partial<Dict> = {
@@ -5769,6 +5778,9 @@ const es: Partial<Dict> = {
   'tgp.how.boost2': 'Por dos boosts a nuestro canal de Telegram',
   'platform.ipad': 'iPad',
   'platform.desktop': 'Ordenador',
+  'cycle.hidden': 'oculto',
+  'cycle.show': 'Mostrar',
+  'cycle.hide': 'Ocultar',
 }
 
 const it: Partial<Dict> = {
@@ -7545,6 +7557,9 @@ const it: Partial<Dict> = {
   'tgp.how.boost2': 'Per due boost al nostro canale Telegram',
   'platform.ipad': 'iPad',
   'platform.desktop': 'Computer',
+  'cycle.hidden': 'nascosto',
+  'cycle.show': 'Mostra',
+  'cycle.hide': 'Nascondi',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

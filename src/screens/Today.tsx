@@ -1,9 +1,9 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import { useApp, visible } from '../store'
+import { update, useApp, visible } from '../store'
 import { moduleLabel, useT } from '../i18n'
 import { useNav } from '../nav'
 import {
-  Avatar, GlassButton, Marks, Row, Screen, Section, type Action, Em,
+  haptic, Avatar, GlassButton, Marks, Row, Screen, Section, type Action, Em,
 } from '../ui'
 import { addDays, diffDays, fmtDate, fmtMoney, today } from '../lib/date'
 import { cycleDay, nextStart, periodDays } from '../lib/cycle'
@@ -152,7 +152,17 @@ export default function Today({ back }: { back?: boolean }) {
       </>}
       hero={<>
         <StatusChips />
-        {cycleLine && <div className="hero-sub" style={{ marginTop: 12 }}>{cycleLine}</div>}
+        {cycleLine && (
+          <button className="hero-sub cycle-line" style={{ marginTop: 12 }} aria-pressed={!s.prefs.hideCycle}
+            aria-label={t(s.prefs.hideCycle ? 'cycle.show' : 'cycle.hide')}
+            onClick={() => { haptic(); update((st) => { st.prefs = { ...st.prefs, hideCycle: !st.prefs.hideCycle } }) }}>
+            <span>{s.prefs.hideCycle ? `🌸 ${t('cycle.hidden')}` : cycleLine}</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+              {!s.prefs.hideCycle && <path d="M3 3l18 18" />}
+            </svg>
+          </button>
+        )}
         <div className="hero-row" style={{ marginTop: cycleLine ? 12 : 0 }}>
           <div><div className="hero-num">{ag.events.length}</div><div className="hero-lbl">{t('todayEvents')}</div></div>
           <div><div className="hero-num">{tasksNow.length}</div><div className="hero-lbl">{t('todayTasks')}</div></div>

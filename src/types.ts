@@ -320,6 +320,8 @@ export interface Prefs {
   tourDone?: boolean
   /** Screens whose own short tips were already shown (or skipped). */
   guidesSeen?: string[]
+  /** The cycle line on Today folded behind an eye (not everyone wants it on screen every day). */
+  hideCycle?: boolean
   /** Show a screen's tips the first time it opens (default on). */
   guides?: boolean
 }
