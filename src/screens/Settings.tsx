@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
 import { API_BASE, widgetScript } from '../lib/widget'
-import { ANDROID, PRESETS as SHORTCUTS, PRESET_KINDS, androidSteps, androidUrl, presetSteps } from '../lib/shortcuts'
+import { ANDROID, PRESETS as SHORTCUTS, PRESET_KINDS, androidSteps, androidUrl, presetFields, presetSteps } from '../lib/shortcuts'
 import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
@@ -997,7 +997,6 @@ function PresetCard({ p, open, onToggle, apiKey }: { p: (typeof SHORTCUTS)[numbe
   const a = android ? ANDROID[p.id]?.[ru ? 'ru' : 'en'] : undefined
   const k = apiKey ?? '…'
   const url = p.route === 'list' ? `${API_BASE}/list?${p.query}&key=${k}` : `${API_BASE}/add`
-  const body = p.route === 'add' ? JSON.stringify({ key: k, ...p.fields, ...Object.fromEntries(Object.keys(p.input ?? {}).map((x) => [x, '…'])) }, null, 1) : null
   return (
     <div className={'cmd-card' + (open ? ' on' : '')}>
       <Row icon={p.emoji} title={a?.title ?? tx.title} sub={a?.desc ?? tx.desc} right={<span className="faq-chev" aria-hidden>›</span>} onClick={onToggle} />
@@ -1011,8 +1010,11 @@ function PresetCard({ p, open, onToggle, apiKey }: { p: (typeof SHORTCUTS)[numbe
         <>
           <Row className="cmd-step" icon="📍" title={<span style={{ fontWeight: 400 }}>{t('runFrom')}: {tx.runFrom}</span>} />
           {presetSteps(p, s.lang).map((step, i) => <Row key={i} className="cmd-step" icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
-          <CopyRow label={t('apiUrl')} value={apiKey || p.route === 'add' ? url : t('needKey')} />
-          {body && <CopyRow label="JSON" value={body} />}
+          <CopyRow label={`🔗 ${t('cmd.address')}`} value={apiKey || p.route === 'add' ? url : t('needKey')} />
+          {p.route === 'add' && <div className="cmd-fields-head">🧾 {t('cmd.fields')}</div>}
+          {p.route === 'add' && presetFields(p, s.lang, apiKey).map((f) => f.copy
+            ? <CopyRow key={f.name} label={<code className="cmd-field">{f.name}</code>} value={f.value} />
+            : <Row key={f.name} className="cmd-step" icon="👆" title={<span style={{ fontWeight: 400 }}><code className="cmd-field">{f.name}</code> → {f.value}</span>} />)}
         </>
       ))}
     </div>
@@ -1026,7 +1028,6 @@ function ShortcutsPage() {
   const api = useApiKey()
   const android = usePlatform() === 'android'
   const [open, setOpen] = useState<string | null>(null)
-  const [siri, setSiri] = useState(false)
   const toggle = (id: string) => setOpen(open === id ? null : id)
   const list = SHORTCUTS.filter((p) => !android || ANDROID[p.id])
   return (
@@ -1044,18 +1045,6 @@ function ShortcutsPage() {
         </Section>
       )}
       <KeySection api={api} />
-      {!android && (
-        <Section className="compact">
-          <div className={'cmd-card' + (siri ? ' on' : '')}>
-            <Row icon="🎙️" title={t('siriTitle')} sub={t('siriIntro')} right={<span className="faq-chev" aria-hidden>›</span>} onClick={() => setSiri(!siri)} />
-            {siri && <>
-              {(['siri1', 'siri2', 'siri3', 'siri4', 'siri5', 'siri6'] as const).map((k, i) => <Row key={k} className="cmd-step" icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
-              <CopyRow label={t('apiUrl')} value={`${API_BASE}/add`} />
-              <CopyRow label="JSON" value={`{ "key": "${api.key ?? '…'}", "list": "groceries", "text": "…" }`} />
-            </>}
-          </div>
-        </Section>
-      )}
       {PRESET_KINDS.map((kind) => {
         const items = list.filter((p) => p.kind === kind)
         if (!items.length) return null

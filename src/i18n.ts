@@ -1422,6 +1422,8 @@ const ru = {
   'cmd.k.read': '🔊 Прочитать вслух',
   'cmd.k.auto': '⚙️ Сами по себе',
   'cmd.enOnly': 'Инструкции к командам пока на русском и английском.',
+  'cmd.address': 'Адрес — вставь в «URL»',
+  'cmd.fields': 'Поля — заполни по одному',
 }
 
 type Dict = typeof ru
@@ -2847,6 +2849,8 @@ const en: Partial<Dict> = {
   'cmd.k.read': '🔊 Read out',
   'cmd.k.auto': '⚙️ On their own',
   'cmd.enOnly': 'Shortcut instructions are in Russian and English for now.',
+  'cmd.address': 'Address — paste into “URL”',
+  'cmd.fields': 'Fields — add one by one',
 }
 
 const pl: Partial<Dict> = {
@@ -4272,6 +4276,8 @@ const pl: Partial<Dict> = {
   'cmd.k.read': '🔊 Czytanie na głos',
   'cmd.k.auto': '⚙️ Same z siebie',
   'cmd.enOnly': 'Instrukcje skrótów są na razie po rosyjsku i angielsku.',
+  'cmd.address': 'Adres — wklej w „URL”',
+  'cmd.fields': 'Pola — dodaj po kolei',
 }
 
 const es: Partial<Dict> = {
@@ -5697,6 +5703,8 @@ const es: Partial<Dict> = {
   'cmd.k.read': '🔊 Leer en voz alta',
   'cmd.k.auto': '⚙️ Solos',
   'cmd.enOnly': 'De momento las instrucciones de los atajos están en ruso e inglés.',
+  'cmd.address': 'Dirección: pégala en «URL»',
+  'cmd.fields': 'Campos: añádelos uno a uno',
 }
 
 const it: Partial<Dict> = {
@@ -7455,6 +7463,8 @@ const it: Partial<Dict> = {
   'cmd.k.read': '🔊 Leggere ad alta voce',
   'cmd.k.auto': '⚙️ Da soli',
   'cmd.enOnly': 'Per ora le istruzioni dei comandi sono in russo e inglese.',
+  'cmd.address': 'Indirizzo: incollalo in «URL»',
+  'cmd.fields': 'Campi: aggiungili uno alla volta',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

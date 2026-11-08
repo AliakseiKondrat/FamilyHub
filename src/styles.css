@@ -1263,3 +1263,5 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .cmd-card + .cmd-card { border-top: 0.5px solid var(--sep); }
 .cmd-step .row-title { display: block; -webkit-line-clamp: unset; overflow: visible; }
 .cmd-step .row-icon b { font-size: 14px; }
+.cmd-fields-head { padding: 10px 16px 2px; font-size: 13px; font-weight: 700; color: var(--label2); text-transform: uppercase; letter-spacing: 0.3px; background: var(--cell); }
+.cmd-field { font-family: ui-monospace, Menlo, monospace; font-size: 13px; padding: 1px 6px; border-radius: 6px; background: var(--fill); color: var(--label); }

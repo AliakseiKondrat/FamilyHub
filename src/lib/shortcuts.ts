@@ -146,29 +146,57 @@ export const PRESETS: Preset[] = [
 /** How the commands page groups presets. */
 export const PRESET_KINDS: Preset['kind'][] = ['ask', 'share', 'read', 'auto']
 
+/** The fields to type into “Get Contents of URL”: name, what to put there, and whether it's a value to copy or a variable to pick. */
+export function presetFields(p: Preset, lang: Lang, key: string | null): { name: string; value: string; copy: boolean }[] {
+  const ru = lang === 'ru'
+  const EN: Record<string, string> = { 'Введённый текст': 'Provided Input', 'Входные данные команды': 'Shortcut Input', 'Сумма': 'Amount', 'Продавец': 'Merchant' }
+  return [
+    { name: 'key', value: key ?? (ru ? 'сначала создай ключ выше' : 'create a key above first'), copy: !!key },
+    ...Object.entries(p.fields ?? {}).map(([name, value]) => ({ name, value, copy: true })),
+    ...Object.entries(p.input ?? {}).map(([name, v]) => ({ name, value: ru ? `переменная «${v}»` : `variable “${EN[v] ?? v}”`, copy: false })),
+  ]
+}
+
+/** iPhone: what to tap in the Shortcuts app, in plain words, one action per step. */
 export function presetSteps(p: Preset, lang: Lang) {
   const ru = lang === 'ru'
   const tx = p.text[ru ? 'ru' : 'en']
-  const fixed = Object.entries(p.fields ?? {}).map(([k, v]) => `${k} = ${v}`)
-  // Variable names as the Shortcuts app shows them in each language.
-  const EN: Record<string, string> = { 'Введённый текст': 'Provided Input', 'Входные данные команды': 'Shortcut Input', 'Сумма': 'Amount', 'Продавец': 'Merchant' }
-  const dynamic = Object.entries(p.input ?? {}).map(([k, v]) => (ru ? `${k} = «${v}»` : `${k} = “${EN[v] ?? v}”`))
-  const fields = [ru ? 'key = твой ключ' : 'key = your key', ...fixed, ...dynamic].join(', ')
-  const post = ru ? '«Получить содержимое URL»: адрес ниже, «Метод» → POST, «Тело запроса» → JSON.' : '“Get Contents of URL”: address below, Method → POST, Request Body → JSON.'
-  const show = ru ? '«Показать уведомление» → «Содержимое URL» (необязательно).' : '“Show Notification” → “Contents of URL” (optional).'
+  const open = ru
+    ? 'Открой приложение «Команды» (иконка с двумя цветными квадратами) и нажми «+» вверху справа.'
+    : 'Open the Shortcuts app (two coloured squares icon) and tap “+” at the top right.'
+  const name = ru
+    ? `Нажми на название вверху → «Переименовать» и напиши: «${tx.title}». Это же имя потом говоришь Siri.`
+    : `Tap the name at the top → Rename, and type: “${tx.title}”. That is also what you say to Siri.`
+  const url = ru
+    ? 'Внизу в поиске действий напиши «URL» и выбери «Получить содержимое URL». Нажми на синее слово «URL» и вставь адрес (кнопка «Скопировать» ниже).'
+    : 'In the action search at the bottom type “URL” and pick “Get Contents of URL”. Tap the blue word “URL” and paste the address (Copy button below).'
+  const post = ru
+    ? 'Нажми стрелку «›» у этого действия: «Метод» → POST, «Тело запроса» → JSON.'
+    : 'Tap the “›” arrow on that action: Method → POST, Request Body → JSON.'
+  const fields = ru
+    ? 'Нажми «Добавить новое поле» → «Текст» для каждой строки из таблицы ниже: слева имя (key, list…), справа значение. Где написано «переменная» — нажми на поле значения и выбери её из подсказок над клавиатурой.'
+    : 'Tap “Add new field” → Text for each row of the table below: name on the left (key, list…), value on the right. Where it says “variable”, tap the value field and pick it from the suggestions above the keyboard.'
+  const done = ru ? 'Нажми «Готово» вверху справа.' : 'Tap Done at the top right.'
+  const said = tx.title.replace(/\?$/, '').toLowerCase()
   switch (p.kind) {
-    case 'ask': return ru
-      ? [`«Команды» → «+», назови «${tx.title}».`, `«Запросить ввод» (текст): «${tx.prompt}».`, post, `Поля JSON: ${fields}.`, show]
-      : [`Shortcuts → “+”, name it “${tx.title}”.`, `“Ask for Input” (text): “${tx.prompt}”.`, post, `JSON fields: ${fields}.`, show]
-    case 'share': return ru
-      ? [`Новая команда «${tx.title}» → ⓘ → включи «Показывать в меню Поделиться» (URL и текст).`, post, `Поля JSON: ${fields}.`, show, `Готово: в ${tx.apps} → «Поделиться» → «${tx.title}».`]
-      : [`New shortcut “${tx.title}” → ⓘ → turn on “Show in Share Sheet” (URLs and text).`, post, `JSON fields: ${fields}.`, show, `Done: in ${tx.apps} → Share → “${tx.title}”.`]
-    case 'auto': return ru
-      ? [`«Команды» → «Автоматизация» → «+» → ${tx.trigger}.`, '«Запускать сразу», уведомление о запуске — по вкусу.', post, `Поля JSON: ${fields}.`]
-      : [`Shortcuts → Automation → “+” → ${tx.trigger}.`, '“Run Immediately”; run notification is up to you.', post, `JSON fields: ${fields}.`]
-    case 'read': return ru
-      ? [`Новая команда «${tx.title}».`, '«Получить содержимое URL»: адрес ниже (метод GET).', '«Быстрый просмотр» или «Произнести текст» → «Содержимое URL».']
-      : [`New shortcut “${tx.title}”.`, '“Get Contents of URL”: address below (method GET).', '“Quick Look” or “Speak Text” → “Contents of URL”.']
+    case 'ask': return [open, name,
+      ru ? `В поиске действий напиши «Запросить» и выбери «Запросить ввод». В поле вопроса напиши: «${tx.prompt}».` : `In the action search type “Ask” and pick “Ask for Input”. Type the question: “${tx.prompt}”.`,
+      url, post, fields, done,
+      ru ? `Проверь: скажи «Привет, Siri, ${said}» — или добавь виджет «Команды» на экран «Домой».` : `Try it: say “Hey Siri, ${said}” — or add the Shortcuts widget to the Home Screen.`]
+    case 'share': return [open, name,
+      ru ? 'Нажми ⓘ внизу экрана → включи «Показывать в меню Поделиться» → «Готово».' : 'Tap ⓘ at the bottom → turn on “Show in Share Sheet” → Done.',
+      url, post, fields, done,
+      ru ? `Проверь: в ${tx.apps} нажми «Поделиться» и пролистай ряд вниз до «${tx.title}».` : `Try it: in ${tx.apps} tap Share and scroll down to “${tx.title}”.`]
+    case 'read': return [open, name, url,
+      ru ? 'Ещё одно действие: «Произнести текст» (Siri прочитает вслух) или «Быстрый просмотр» (покажет на экране).' : 'One more action: “Speak Text” (Siri reads it out) or “Quick Look” (shows it on screen).',
+      done,
+      ru ? `Проверь: «Привет, Siri, ${said}».` : `Try it: “Hey Siri, ${said}”.`]
+    case 'auto': return [
+      ru ? 'Открой «Команды» → вкладка «Автоматизация» внизу → «+» (или «Новая автоматизация»).' : 'Open Shortcuts → Automation tab at the bottom → “+” (or New Automation).',
+      ru ? `Выбери, когда запускать: ${tx.trigger}.` : `Choose when it runs: ${tx.trigger}.`,
+      ru ? 'Выбери «Запускать сразу» → «Далее» → «Новая пустая автоматизация».' : 'Pick “Run Immediately” → Next → New Blank Automation.',
+      url, post, fields, done,
+      ru ? 'Всё: дальше телефон делает это сам.' : 'That is it: the phone does it by itself from now on.']
   }
 }
 
@@ -226,16 +254,21 @@ export function androidUrl(p: Preset, key: string, end = false) {
 export function androidSteps(p: Preset, lang: Lang) {
   const ru = lang === 'ru'
   const a = ANDROID[p.id][ru ? 'ru' : 'en']
-  const where = a.endTrigger ? (ru ? '«Включение» ниже' : '“Start” below') : (ru ? 'ниже' : 'below')
-  const http = ru ? `Действие: «Подключение» → «HTTP-запрос», метод GET, адрес — ${where}.` : `Action: “Connectivity” → “HTTP Request”, method GET, URL — ${where}.`
   const steps = ru
-    ? ['Установи MacroDroid из Google Play и открой его.', '«Добавить макрос».', `Триггер: ${a.trigger}.`, http]
-    : ['Install MacroDroid from Google Play and open it.', '“Add Macro”.', `Trigger: ${a.trigger}.`, http]
+    ? ['Установи бесплатное приложение MacroDroid из Google Play и открой его.',
+      'Нажми большую плитку «Добавить макрос».',
+      `В блоке «Триггеры» (красный) нажми «+» и выбери: ${a.trigger}.`,
+      `В блоке «Действия» (синий) нажми «+» → «Подключение» → «HTTP-запрос». Метод — GET, в поле URL вставь адрес${a.endTrigger ? ' «Включение»' : ''} (кнопка «Скопировать» ниже).`]
+    : ['Install the free MacroDroid app from Google Play and open it.',
+      'Tap the big “Add Macro” tile.',
+      `In the red Triggers block tap “+” and pick: ${a.trigger}.`,
+      `In the blue Actions block tap “+” → Connectivity → HTTP Request. Method GET, paste the${a.endTrigger ? ' “Start”' : ''} address into URL (Copy button below).`]
   if (p.kind === 'read') steps.push(ru
-    ? 'В запросе сохрани ответ в текстовую переменную, затем «Уведомление» или «Произнести текст» с этой переменной.'
-    : 'In the request save the response to a string variable, then “Display Notification” or “Speak Text” with it.')
+    ? 'В этом же HTTP-запросе включи сохранение ответа в новую текстовую переменную. Затем ещё одно действие: «Уведомление» или «Произнести текст» с этой переменной.'
+    : 'In the same HTTP Request turn on saving the response to a new string variable. Then add “Display Notification” or “Speak Text” with that variable.')
+  steps.push(ru ? 'Вверху напиши имя макроса и сохрани (значок ✓ или дискеты).' : 'Type a macro name at the top and save it (✓ or the disk icon).')
   if (a.endTrigger) steps.push(ru
-    ? `Второй макрос, чтобы статус снимался: триггер ${a.endTrigger}, тот же HTTP-запрос с адресом «Выключение».`
-    : `A second macro clears the status: trigger ${a.endTrigger}, the same HTTP request with the “End” URL.`)
+    ? `Чтобы статус снимался сам, сделай второй макрос так же: триггер ${a.endTrigger}, адрес «Выключение».`
+    : `To clear the status by itself, make a second macro the same way: trigger ${a.endTrigger}, the “End” address.`)
   return steps
 }
