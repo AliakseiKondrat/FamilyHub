@@ -25,7 +25,7 @@ export function takeLaunchParams(): { open?: ModuleId; shared?: Shared } {
   return { open: open ?? undefined, shared: has ? shared : undefined }
 }
 
-type Target = 'inbox' | 'music' | 'watch' | 'recipes' | 'groceries' | 'tasks'
+type Target = 'inbox' | 'music' | 'watch' | 'recipes' | 'groceries' | 'tasks' | 'wishlist' | 'dates'
 
 /** "Where to save?" for something shared from another app: a link becomes a picture tile wherever it lands. */
 export function ShareSheet({ shared, onClose }: { shared: Shared; onClose: () => void }) {
@@ -42,7 +42,7 @@ export function ShareSheet({ shared, onClose }: { shared: Shared; onClose: () =>
   const title = (shared.title || note || preview?.title || (url ? hostOf(url) : '')).trim()
   const fromPage = preview ? { cover: preview.image ?? '', site: preview.site } : {}
   const targets: Target[] = url
-    ? ['inbox', ...(isMusicLink(url) ? ['music' as const] : []), 'watch', 'recipes']
+    ? ['inbox', ...(isMusicLink(url) ? ['music' as const] : []), 'watch', 'wishlist', 'dates', 'recipes']
     : ['inbox', 'groceries', 'tasks']
 
   const save = async (to: Target) => {
@@ -64,6 +64,10 @@ export function ShareSheet({ shared, onClose }: { shared: Shared; onClose: () =>
       // YouTube and custom sites keep their own picture; films get a poster looked up by title.
       const poster = link.service === 'netflix' || link.service === 'appletv' ? undefined : preview?.image
       update((st) => { st.watch.unshift({ ...base(me), title, kind: 'movie', status: 'want', links: [link], poster, notes: note || undefined }) })
+    } else if (to === 'wishlist') {
+      update((st) => { st.wishes.unshift({ ...base(me), title, url, ...fromPage, notes: note || undefined, owner: me, kind: 'gift', priority: 1 }) })
+    } else if (to === 'dates') {
+      update((st) => { st.notes.unshift({ ...base(me), module: 'dates', title, url, ...fromPage, notes: note || undefined, done: false }) })
     } else if (to === 'groceries') {
       update((st) => addItems(st, [shared.title, shared.text].filter(Boolean).join(', ')))
     } else if (to === 'tasks') {

@@ -34,6 +34,7 @@ export default defineConfig({
         shortcuts: [
           { name: 'Продукты', short_name: 'Продукты', url: './?open=groceries', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
           { name: 'Задачи', short_name: 'Задачи', url: './?open=tasks', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Бюджет', short_name: 'Бюджет', url: './?open=budget', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
           { name: 'Входящие', short_name: 'Входящие', url: './?open=inbox', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
         ],
         share_target: { action: './', method: 'GET', params: { title: 'title', text: 'text', url: 'url' } },

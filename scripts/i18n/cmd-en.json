@@ -1,0 +1,13 @@
+{
+  "cmd.title": "Shortcuts & Siri", "cmd.titleAndroid": "Shortcuts",
+  "cmd.sub": "Add to Family Hub by voice, from the Share menu, a widget or the Action button — without opening the app.",
+  "cmd.subAndroid": "Some work right away, no setup. The rest your phone does by itself through the free MacroDroid app.",
+  "cmd.builtIn": "Already on your phone", "cmd.builtInHint": "Family Hub just needs to be installed as an app (Chrome → ⋮ → «Install app»).",
+  "cmd.longPress": "Long-press the icon", "cmd.longPressSub": "Groceries, Tasks, Budget, Inbox. Drag any of them to the Home screen.",
+  "cmd.shareTo": "Share → Family Hub", "cmd.shareToSub": "From any app: a link or text goes to groceries, tasks, wishlist, Dates, recipes, the watchlist or music.",
+  "cmd.how": "How it works", "cmd.how1": "Create a key below — shortcuts need it to write into your couple.",
+  "cmd.how2": "Open a shortcut and repeat its steps in the Shortcuts app — it takes a minute.",
+  "cmd.how3": "Run it: «Hey Siri, <shortcut name>», from a widget, the Action button or the Share menu.",
+  "cmd.k.ask": "🗣️ By voice and widget", "cmd.k.share": "📤 From the Share menu", "cmd.k.read": "🔊 Read out", "cmd.k.auto": "⚙️ On their own",
+  "cmd.enOnly": "Shortcut instructions are in Russian and English for now."
+}

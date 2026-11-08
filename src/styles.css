@@ -1258,3 +1258,8 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .more-text small { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
 .more-text b { font-size: 14.5px; letter-spacing: -0.2px; }
 .more-item { gap: 9px; padding: 9px 8px 9px 9px; }
+.cmd-card.on .faq-chev { transform: rotate(90deg); }
+.cmd-card.on > .row:first-child .row-title { font-weight: 650; }
+.cmd-card + .cmd-card { border-top: 0.5px solid var(--sep); }
+.cmd-step .row-title { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.cmd-step .row-icon b { font-size: 14px; }

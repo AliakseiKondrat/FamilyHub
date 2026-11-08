@@ -1,0 +1,13 @@
+{
+  "cmd.title": "Atajos y Siri", "cmd.titleAndroid": "Atajos",
+  "cmd.sub": "Añade a Family Hub con la voz, desde «Compartir», un widget o el botón de acción, sin abrir la app.",
+  "cmd.subAndroid": "Una parte funciona ya, sin configurar nada. El resto lo hace el móvil solo con la app gratuita MacroDroid.",
+  "cmd.builtIn": "Ya en tu móvil", "cmd.builtInHint": "Solo hace falta tener Family Hub instalada como app (Chrome → ⋮ → «Instalar aplicación»).",
+  "cmd.longPress": "Mantén pulsado el icono", "cmd.longPressSub": "Compra, Tareas, Presupuesto, Bandeja. Puedes arrastrar cualquiera a la pantalla de inicio.",
+  "cmd.shareTo": "«Compartir» → Family Hub", "cmd.shareToSub": "Desde cualquier app: un enlace o un texto a la compra, tareas, lista de deseos, citas, recetas, «Por ver» o música.",
+  "cmd.how": "Cómo funciona", "cmd.how1": "Crea una clave abajo: los atajos la necesitan para escribir en vuestra pareja.",
+  "cmd.how2": "Abre un atajo y repite sus pasos en la app Atajos: es un minuto.",
+  "cmd.how3": "Lánzalo: «Oye Siri, <nombre del atajo>», desde un widget, el botón de acción o «Compartir».",
+  "cmd.k.ask": "🗣️ Con la voz y el widget", "cmd.k.share": "📤 Desde «Compartir»", "cmd.k.read": "🔊 Leer en voz alta", "cmd.k.auto": "⚙️ Solos",
+  "cmd.enOnly": "De momento las instrucciones de los atajos están en ruso e inglés."
+}

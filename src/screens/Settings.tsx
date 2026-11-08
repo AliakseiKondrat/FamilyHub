@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
 import { API_BASE, widgetScript } from '../lib/widget'
-import { ANDROID, PRESETS as SHORTCUTS, androidSteps, androidUrl, presetSteps } from '../lib/shortcuts'
+import { ANDROID, PRESETS as SHORTCUTS, PRESET_KINDS, androidSteps, androidUrl, presetSteps } from '../lib/shortcuts'
 import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
@@ -70,7 +70,7 @@ export default function Settings({ page = 'root' }: { page?: SettingsPage }) {
     case 'region': return <RegionPage />
     case 'data': return <DataPage />
     case 'notifications': return <NotificationsPage />
-    case 'siri': return <SiriPage />
+    case 'siri': return <ShortcutsPage />
     case 'widget': return <WidgetPage />
     case 'google': return <GooglePage />
     case 'statuses': return <StatusesPage />
@@ -131,10 +131,7 @@ function useEntries(openFeedback: () => void): Record<GroupId, Entry[]> {
     ],
     connect: [
       page('🔔', tint('red'), t('push'), 'notifications', s.prefs.notify.channel === 'tg' ? 'Telegram' : s.prefs.notify.channel === 'both' ? 'Push + Telegram' : undefined, 'telegram телеграм bot бот push уведомления'),
-      platform === 'android'
-        ? page('⚡️', 'linear-gradient(135deg,#34a853,#4285f4)', t('presetsAndroid'), 'shortcuts', Object.keys(ANDROID).length)
-        : page('⚡️', 'linear-gradient(135deg,#ff2d55,#5856d6)', t('presets'), 'shortcuts', SHORTCUTS.length),
-      ...(platform === 'ios' ? [page('🎙️', tint('purple'), t('siriTitle'), 'siri')] : []),
+      page('⚡️', platform === 'android' ? 'linear-gradient(135deg,#34a853,#4285f4)' : 'linear-gradient(135deg,#ff2d55,#5856d6)', t(platform === 'android' ? 'cmd.titleAndroid' : 'cmd.title'), 'shortcuts', undefined, 'siri сири shortcuts команды macrodroid'),
       page('🧩', tint('orange'), t(platform === 'android' ? 'quickActions' : 'widgets'), 'widget'),
       page('G', 'color-mix(in srgb, #4285f4 18%, transparent)', t('connectGoogle'), 'google', undefined, 'google calendar календарь'),
     ],
@@ -832,29 +829,6 @@ function KeySection({ api }: { api: ReturnType<typeof useApiKey> }) {
   )
 }
 
-function SiriPage() {
-  const t = useT()
-  const api = useApiKey()
-  const { key } = api
-  return (
-    <Screen title={t('siriTitle')} back accent="watch" subtitle={t('siriIntro')}>
-      <KeySection api={api} />
-      <Section>
-        {(['siri1', 'siri2', 'siri3', 'siri4', 'siri5', 'siri6'] as const).map((k, i) => (
-          <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />
-        ))}
-      </Section>
-      <Section>
-        <CopyRow label={t('apiUrl')} value={`${API_BASE}/add`} />
-        <CopyRow label="JSON" value={`{ "key": "${key ?? '…'}", "list": "groceries", "text": "…" }`} />
-      </Section>
-      <Section footer={t('siriRead')}>
-        <CopyRow label={t('listUrl')} value={key ? `${API_BASE}/list?name=groceries&key=${key}` : t('needKey')} />
-      </Section>
-    </Screen>
-  )
-}
-
 function WidgetPage() {
   const t = useT()
   const api = useApiKey()
@@ -1013,61 +987,85 @@ function StatusesPage() {
 }
 
 /* ---------- Ready-made Shortcuts ---------- */
+/** One ready-made command: tap to unfold how to build it, with the address and JSON to copy. */
+function PresetCard({ p, open, onToggle, apiKey }: { p: (typeof SHORTCUTS)[number]; open: boolean; onToggle: () => void; apiKey: string | null }) {
+  const s = useApp()
+  const t = useT()
+  const ru = s.lang === 'ru'
+  const android = usePlatform() === 'android'
+  const tx = p.text[ru ? 'ru' : 'en']
+  const a = android ? ANDROID[p.id]?.[ru ? 'ru' : 'en'] : undefined
+  const k = apiKey ?? '…'
+  const url = p.route === 'list' ? `${API_BASE}/list?${p.query}&key=${k}` : `${API_BASE}/add`
+  const body = p.route === 'add' ? JSON.stringify({ key: k, ...p.fields, ...Object.fromEntries(Object.keys(p.input ?? {}).map((x) => [x, '…'])) }, null, 1) : null
+  return (
+    <div className={'cmd-card' + (open ? ' on' : '')}>
+      <Row icon={p.emoji} title={a?.title ?? tx.title} sub={a?.desc ?? tx.desc} right={<span className="faq-chev" aria-hidden>›</span>} onClick={onToggle} />
+      {open && (android && a ? (
+        <>
+          {androidSteps(p, s.lang).map((step, i) => <Row key={i} className="cmd-step" icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
+          <CopyRow label={a.endTrigger ? t('urlStart') : t('apiUrl')} value={androidUrl(p, k)} />
+          {a.endTrigger && <CopyRow label={t('urlEnd')} value={androidUrl(p, k, true)} />}
+        </>
+      ) : (
+        <>
+          <Row className="cmd-step" icon="📍" title={<span style={{ fontWeight: 400 }}>{t('runFrom')}: {tx.runFrom}</span>} />
+          {presetSteps(p, s.lang).map((step, i) => <Row key={i} className="cmd-step" icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
+          <CopyRow label={t('apiUrl')} value={apiKey || p.route === 'add' ? url : t('needKey')} />
+          {body && <CopyRow label="JSON" value={body} />}
+        </>
+      ))}
+    </div>
+  )
+}
+
+/** Commands & Siri in one place (iPhone: the Shortcuts app; Android: what's built in, then MacroDroid automations). */
 function ShortcutsPage() {
   const s = useApp()
   const t = useT()
   const api = useApiKey()
+  const android = usePlatform() === 'android'
   const [open, setOpen] = useState<string | null>(null)
-  const ru = s.lang === 'ru'
-  if (usePlatform() === 'android') return (
-    <Screen title={t('presetsAndroid')} back accent="watch" subtitle={t('presetsHintAndroid')}>
-      <KeySection api={api} />
-      {SHORTCUTS.filter((p) => ANDROID[p.id]).map((p) => {
-        const tx = p.text[ru ? 'ru' : 'en']
-        const a = ANDROID[p.id][ru ? 'ru' : 'en']
-        const isOpen = open === p.id
-        const k = api.key ?? '…'
-        return (
-          <div key={p.id} className="section">
-            <div className="list">
-              <Row icon={p.emoji} title={a.title ?? tx.title} sub={a.desc ?? tx.desc} chevron onClick={() => setOpen(isOpen ? null : p.id)} />
-              {isOpen && (
-                <>
-                  {androidSteps(p, s.lang).map((step, i) => <Row key={i} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
-                  <CopyRow label={a.endTrigger ? t('urlStart') : t('apiUrl')} value={androidUrl(p, k)} />
-                  {a.endTrigger && <CopyRow label={t('urlEnd')} value={androidUrl(p, k, true)} />}
-                </>
-              )}
-            </div>
-          </div>
-        )
-      })}
-    </Screen>
-  )
+  const [siri, setSiri] = useState(false)
+  const toggle = (id: string) => setOpen(open === id ? null : id)
+  const list = SHORTCUTS.filter((p) => !android || ANDROID[p.id])
   return (
-    <Screen title={t('presets')} back accent="watch" subtitle={t('presetsHint')}>
+    <Screen title={t(android ? 'cmd.titleAndroid' : 'cmd.title')} back accent="watch" subtitle={t(android ? 'cmd.subAndroid' : 'cmd.sub')} searchable={false}>
+      {android ? (
+        <Section header={`✅ ${t('cmd.builtIn')}`} footer={t('cmd.builtInHint')} className="compact">
+          <Row icon="👆" title={t('cmd.longPress')} sub={t('cmd.longPressSub')} />
+          <Row icon="📤" title={t('cmd.shareTo')} sub={t('cmd.shareToSub')} />
+        </Section>
+      ) : (
+        <Section header={`🎙️ ${t('cmd.how')}`} className="compact">
+          <Row className="cmd-step" icon={<b>1</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how1')}</span>} />
+          <Row className="cmd-step" icon={<b>2</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how2')}</span>} />
+          <Row className="cmd-step" icon={<b>3</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how3')}</span>} />
+        </Section>
+      )}
       <KeySection api={api} />
-      {SHORTCUTS.map((p) => {
-        const tx = p.text[ru ? 'ru' : 'en']
-        const isOpen = open === p.id
-        const url = p.route === 'list' ? `${API_BASE}/list?${p.query}&key=${api.key ?? '…'}` : `${API_BASE}/add`
-        const body = p.route === 'add' ? JSON.stringify({ key: api.key ?? '…', ...p.fields, ...Object.fromEntries(Object.keys(p.input ?? {}).map((k) => [k, '…'])) }, null, 1) : null
-        return (
-          <div key={p.id} className="section">
-            <div className="list">
-              <Row icon={p.emoji} title={tx.title} sub={tx.desc} chevron onClick={() => setOpen(isOpen ? null : p.id)} />
-              {isOpen && (
-                <>
-                  <Row icon="📍" title={<span style={{ fontWeight: 400 }}>{t('runFrom')}: {tx.runFrom}</span>} />
-                  {presetSteps(p, s.lang).map((step, i) => <Row key={i} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{step}</span>} />)}
-                  <CopyRow label={t('apiUrl')} value={api.key || p.route === 'add' ? url : t('needKey')} />
-                  {body && <CopyRow label="JSON" value={body} />}
-                </>
-              )}
-            </div>
+      {!android && (
+        <Section className="compact">
+          <div className={'cmd-card' + (siri ? ' on' : '')}>
+            <Row icon="🎙️" title={t('siriTitle')} sub={t('siriIntro')} right={<span className="faq-chev" aria-hidden>›</span>} onClick={() => setSiri(!siri)} />
+            {siri && <>
+              {(['siri1', 'siri2', 'siri3', 'siri4', 'siri5', 'siri6'] as const).map((k, i) => <Row key={k} className="cmd-step" icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
+              <CopyRow label={t('apiUrl')} value={`${API_BASE}/add`} />
+              <CopyRow label="JSON" value={`{ "key": "${api.key ?? '…'}", "list": "groceries", "text": "…" }`} />
+            </>}
           </div>
+        </Section>
+      )}
+      {PRESET_KINDS.map((kind) => {
+        const items = list.filter((p) => p.kind === kind)
+        if (!items.length) return null
+        return (
+          <Section key={kind} header={t(`cmd.k.${kind}` as TKey)} className="compact">
+            {items.map((p) => <PresetCard key={p.id} p={p} open={open === p.id} onToggle={() => toggle(p.id)} apiKey={api.key} />)}
+          </Section>
         )
       })}
+      {s.lang !== 'ru' && s.lang !== 'en' && <div className="section-footer" style={{ margin: '-6px 14px 16px' }}>{t('cmd.enOnly')}</div>}
     </Screen>
   )
 }

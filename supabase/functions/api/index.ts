@@ -1,6 +1,6 @@
 // Family Hub personal API for Siri Shortcuts and the Scriptable widget.
 // Auth: personal key (from Settings → Siri) as `key` in the JSON body / query, or `Authorization: Bearer <key>`.
-//  POST|GET /api/add      { list: groceries|tasks|inbox|music|watch|expense|status, text, ... }  → plain-text confirmation
+//  POST|GET /api/add      { list: groceries|tasks|inbox|music|watch|expense|status|wish|place|recipe, text, ... }  → plain-text confirmation
 //                         expense: amount, merchant, shared?  ·  status: event (code from Settings → Statuses), end?=1 — or text
 //  GET      /api/list     ?name=groceries|tasks|events                         → plain text, one item per line
 //  GET      /api/summary                                                       → JSON for the widget
@@ -260,6 +260,34 @@ async function add(role: Role, hh: string, list: string, input: string, tz: stri
       ...b, text: preset?.label ?? input, emoji: preset?.emoji, preset: preset?.id, auto: true, at: new Date().toISOString(),
     } })
     return (ru ? 'Статус: ' : 'Status: ') + [preset?.emoji, preset?.label ?? input].filter(Boolean).join(' ')
+  }
+  if (list === 'wish' || list === 'place') {
+    // A shop link → wishlist (my wish); a maps link or a name → places to go together (Dates).
+    const url = input.match(/https?:\/\/\S+/)?.[0]
+    const m = url ? await previewMeta(url).catch(() => null) : null
+    const title = (m?.title || input.replace(url ?? '', '').trim() || url || input).slice(0, 200)
+    const b = base()
+    if (list === 'wish') {
+      await sb.from('records').insert({ household: hh, id: b.id, collection: 'wishes', created_by: role, data: {
+        ...b, title, url, cover: m?.image, site: m?.site, owner: role, kind: 'gift', priority: 1,
+      } })
+      return (ru ? '🎁 В вишлист: ' : '🎁 Added to wishlist: ') + title
+    }
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'notes', created_by: role, data: {
+      ...b, module: 'dates', title, url, cover: m?.image, site: m?.site, done: false,
+    } })
+    return (ru ? '📍 В места: ' : '📍 Added to places: ') + title
+  }
+  if (list === 'recipe') {
+    const url = input.match(/https?:\/\/\S+/)?.[0]
+    const r = url ? await recipeMeta(url).catch(() => null) : null
+    const title = (r?.title || input.replace(url ?? '', '').trim() || url || input).slice(0, 200)
+    const b = base()
+    await sb.from('records').insert({ household: hh, id: b.id, collection: 'recipes', created_by: role, data: {
+      ...b, title, url, image: r?.image, ingredients: r?.ingredients ?? [], steps: r?.steps ?? [], minutes: r?.minutes, servings: r?.servings,
+      tags: [], someday: true, cooked: 0,
+    } })
+    return (ru ? '🍳 В рецепты: ' : '🍳 Added to recipes: ') + title + (r?.found ? (ru ? ` · ${r.ingredients.length} ингр.` : ` · ${r.ingredients.length} ingr.`) : '')
   }
   return ru ? 'Неизвестный список' : 'Unknown list'
 }

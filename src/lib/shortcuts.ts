@@ -106,7 +106,45 @@ export const PRESETS: Preset[] = [
       en: { title: 'Today’s tasks', desc: 'Today’s task list — e.g. in the morning when the alarm stops.', runFrom: '“Alarm” → “Is Stopped” automation, widget' },
     },
   },
+  {
+    id: 'readEvents', emoji: '📅', kind: 'read', route: 'list', query: 'name=events',
+    text: {
+      ru: { title: 'Что у нас в планах?', desc: 'Ближайшие события из общего календаря — вслух или на экране.', runFrom: 'Siri, виджет, Apple Watch, CarPlay' },
+      en: { title: 'What’s coming up?', desc: 'The next events from the shared calendar — read out or on screen.', runFrom: 'Siri, widget, Apple Watch, CarPlay' },
+    },
+  },
+  {
+    id: 'expense', emoji: '💸', kind: 'ask', route: 'add', fields: { list: 'expense', shared: 'true' }, input: { text: 'Введённый текст' },
+    text: {
+      ru: { title: 'Записать трату', desc: 'Скажи «кофе 15» или «Biedronka 84,50» — сумма и магазин попадут в общий бюджет, категория определится сама.', prompt: 'Что и сколько?', runFrom: 'Siri, виджет «Команды», кнопка действия, Apple Watch' },
+      en: { title: 'Log an expense', desc: 'Say “coffee 15” or “Biedronka 84.50” — amount and shop go to the shared budget, category picked automatically.', prompt: 'What and how much?', runFrom: 'Siri, Shortcuts widget, Action button, Apple Watch' },
+    },
+  },
+  {
+    id: 'wish', emoji: '🎁', kind: 'share', route: 'add', fields: { list: 'wish' }, input: { text: 'Входные данные команды' },
+    text: {
+      ru: { title: 'В вишлист', desc: 'Увидел что-то в магазине — «Поделиться» → «В вишлист». Название и картинка подтянутся сами.', apps: 'Allegro, Amazon, Zalando, Safari', runFrom: 'Меню «Поделиться»' },
+      en: { title: 'To wishlist', desc: 'Saw something in a shop — Share → “To wishlist”. Name and picture fill in by themselves.', apps: 'Allegro, Amazon, Zalando, Safari', runFrom: 'Share menu' },
+    },
+  },
+  {
+    id: 'place', emoji: '📍', kind: 'share', route: 'add', fields: { list: 'place' }, input: { text: 'Входные данные команды' },
+    text: {
+      ru: { title: 'Место для свидания', desc: 'Кафе или выставка из карт или Instagram — «Поделиться» → место попадёт в «Свидания».', apps: 'Google Карты, Apple Карты, Instagram, Safari', runFrom: 'Меню «Поделиться»' },
+      en: { title: 'Date spot', desc: 'A café or an exhibition from maps or Instagram — Share → it lands in Dates.', apps: 'Google Maps, Apple Maps, Instagram, Safari', runFrom: 'Share menu' },
+    },
+  },
+  {
+    id: 'recipe', emoji: '🍳', kind: 'share', route: 'add', fields: { list: 'recipe' }, input: { text: 'Входные данные команды' },
+    text: {
+      ru: { title: 'Рецепт в книгу', desc: 'Со страницы рецепта — ингредиенты, шаги и время подтянутся сами.', apps: 'Safari, YouTube, Instagram', runFrom: 'Меню «Поделиться»' },
+      en: { title: 'Recipe to the book', desc: 'From a recipe page — ingredients, steps and time fill in by themselves.', apps: 'Safari, YouTube, Instagram', runFrom: 'Share menu' },
+    },
+  },
 ]
+
+/** How the commands page groups presets. */
+export const PRESET_KINDS: Preset['kind'][] = ['ask', 'share', 'read', 'auto']
 
 export function presetSteps(p: Preset, lang: Lang) {
   const ru = lang === 'ru'

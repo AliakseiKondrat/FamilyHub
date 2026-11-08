@@ -1,0 +1,13 @@
+{
+  "cmd.title": "Comandi e Siri", "cmd.titleAndroid": "Comandi",
+  "cmd.sub": "Aggiungi a Family Hub con la voce, da «Condividi», da un widget o con il tasto Azione, senza aprire l'app.",
+  "cmd.subAndroid": "Una parte funziona subito, senza configurazione. Il resto lo fa il telefono da solo con l'app gratuita MacroDroid.",
+  "cmd.builtIn": "Già sul telefono", "cmd.builtInHint": "Basta che Family Hub sia installata come app (Chrome → ⋮ → «Installa app»).",
+  "cmd.longPress": "Tieni premuta l'icona", "cmd.longPressSub": "Spesa, Attività, Budget, In arrivo. Puoi trascinarne una qualsiasi nella schermata Home.",
+  "cmd.shareTo": "«Condividi» → Family Hub", "cmd.shareToSub": "Da qualsiasi app: un link o un testo nella spesa, attività, lista dei desideri, appuntamenti, ricette, «Da vedere» o musica.",
+  "cmd.how": "Come funziona", "cmd.how1": "Crea una chiave qui sotto: ai comandi serve per scrivere nella vostra coppia.",
+  "cmd.how2": "Apri un comando e ripeti i passaggi nell'app Comandi: ci vuole un minuto.",
+  "cmd.how3": "Avvialo: «Ehi Siri, <nome del comando>», da un widget, con il tasto Azione o da «Condividi».",
+  "cmd.k.ask": "🗣️ Con la voce e il widget", "cmd.k.share": "📤 Da «Condividi»", "cmd.k.read": "🔊 Leggere ad alta voce", "cmd.k.auto": "⚙️ Da soli",
+  "cmd.enOnly": "Per ora le istruzioni dei comandi sono in russo e inglese."
+}

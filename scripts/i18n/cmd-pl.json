@@ -1,0 +1,13 @@
+{
+  "cmd.title": "Skróty i Siri", "cmd.titleAndroid": "Skróty",
+  "cmd.sub": "Dodawaj do Family Hub głosem, z menu „Udostępnij”, z widżetu lub przyciskiem czynności — bez otwierania aplikacji.",
+  "cmd.subAndroid": "Część działa od razu, bez konfiguracji. Resztę telefon zrobi sam przez darmowy MacroDroid.",
+  "cmd.builtIn": "Już w telefonie", "cmd.builtInHint": "Wystarczy, że Family Hub jest zainstalowany jako aplikacja (Chrome → ⋮ → „Zainstaluj aplikację”).",
+  "cmd.longPress": "Przytrzymaj ikonę", "cmd.longPressSub": "Zakupy, Zadania, Budżet, Skrzynka. Każdą pozycję można przeciągnąć na ekran główny.",
+  "cmd.shareTo": "„Udostępnij” → Family Hub", "cmd.shareToSub": "Z dowolnej aplikacji: link lub tekst do zakupów, zadań, listy życzeń, randek, przepisów, „Do obejrzenia” albo muzyki.",
+  "cmd.how": "Jak to działa", "cmd.how1": "Utwórz klucz poniżej — skróty potrzebują go, żeby zapisywać do waszej pary.",
+  "cmd.how2": "Otwórz skrót i powtórz kroki w aplikacji Skróty — to minuta.",
+  "cmd.how3": "Uruchamiaj: „Hej Siri, <nazwa skrótu>”, z widżetu, przyciskiem czynności albo z „Udostępnij”.",
+  "cmd.k.ask": "🗣️ Głosem i z widżetu", "cmd.k.share": "📤 Z menu „Udostępnij”", "cmd.k.read": "🔊 Czytanie na głos", "cmd.k.auto": "⚙️ Same z siebie",
+  "cmd.enOnly": "Instrukcje skrótów są na razie po rosyjsku i angielsku."
+}
