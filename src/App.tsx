@@ -33,6 +33,7 @@ import Tour, { guideKeyOf, tourBus } from './screens/Tour'
 import { SYNC_ENABLED } from './config'
 import { takeInviteParams } from './screens/Pairing'
 import { inTelegram, loadTelegram, paintTelegram, telegramBack, telegramLink } from './lib/telegram'
+import { useDevice } from './lib/platform'
 
 // ?join=CODE and ?ref=hN must survive the sign-up round trip.
 takeInviteParams()
@@ -105,7 +106,7 @@ function Sidebar() {
         <span className="sb-logo">❤️</span>
         <div><b>Family Hub</b><span>{s.users[s.me].emoji} {s.users[s.me].name}</span></div>
       </div>
-      <button className={'sb-item' + (nav.stack.some((r) => 'search' in r) ? ' on' : '')} onClick={nav.search} style={{ marginBottom: 8 }}>
+      <button title={t('search')} className={'sb-item' + (nav.stack.some((r) => 'search' in r) ? ' on' : '')} onClick={nav.search} style={{ marginBottom: 8 }}>
         <span className="sb-ico" style={{ background: 'var(--fill2)' }}><Icon name="search" style={{ width: 16, height: 16 }} /></span><span>{t('search')}</span>
       </button>
       <div className="sb-list">
@@ -113,7 +114,7 @@ function Sidebar() {
           const l = moduleLabel(s, m)
           const [c1, c2] = accentColors(m, s)
           return (
-            <button key={m} className={'sb-item' + (nav.tab === m ? ' on' : '') + (!s.prefs.order?.length && i === s.prefs.tabs.length - 1 ? ' sep' : '')}
+            <button key={m} title={l.title} className={'sb-item' + (nav.tab === m ? ' on' : '') + (!s.prefs.order?.length && i === s.prefs.tabs.length - 1 ? ' sep' : '')}
               onClick={() => (nav.tab === m && nav.stack.length ? history.go(-nav.stack.length) : nav.setTab(m))}>
               <span className="sb-ico" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>{l.emoji}</span>
               <span>{l.title}</span>
@@ -121,7 +122,7 @@ function Sidebar() {
           )
         })}
       </div>
-      <button className={'sb-item' + (nav.stack.some((r) => 'settings' in r) ? ' on' : '')} onClick={() => nav.settings()}>
+      <button title={t('settings')} className={'sb-item' + (nav.stack.some((r) => 'settings' in r) ? ' on' : '')} onClick={() => nav.settings()}>
         <span className="sb-ico" style={{ background: 'linear-gradient(135deg, #3f3f46, #71717a)' }}>⚙️</span><span>{t('settings')}</span>
       </button>
     </aside>
@@ -181,9 +182,12 @@ export default function App() {
   const [shared, setShared] = useState<Shared | null>(null)
 
   const width = useWidth()
-  const wide = s.prefs.layout === 'wide' || (s.prefs.layout === 'auto' && width >= 900)
+  const device = useDevice()
+  // An iPad or a computer gets the sidebar a bit earlier (iPad portrait); a phone only on a very wide screen.
+  const wide = s.prefs.layout === 'wide' || (s.prefs.layout === 'auto' && (width >= 900 || (device !== 'ios' && device !== 'android' && width >= 700)))
   setWideNav(wide)
   useEffect(() => { document.documentElement.dataset.layout = wide ? 'wide' : 'phone' }, [wide])
+  useEffect(() => { document.documentElement.dataset.device = device }, [device])
   // Leaving the wide layout while on a section that isn't in the tab bar: fall back to "More".
   useEffect(() => { if (!wide && nav.tab !== 'more' && !s.prefs.tabs.includes(nav.tab)) nav.setTab('more') }, [wide]) // eslint-disable-line react-hooks/exhaustive-deps
   // The look also changes when the server's unlocks arrive or a theme is being tried on.

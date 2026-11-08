@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { disablePush, enablePush, pushStatus, pushSupport, testPush } from '../lib/push'
 import { API_BASE, widgetScript } from '../lib/widget'
 import { ANDROID, PRESETS as SHORTCUTS, PRESET_KINDS, androidSteps, androidUrl, presetFields, presetSteps } from '../lib/shortcuts'
-import { detectPlatform, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
+import { detectDevice, setPlatformChoice, usePlatform, usePlatformChoice } from '../lib/platform'
 import { getState, replaceState, uid, update, useApp } from '../store'
 import { DEFAULT_EMOJI, LANG_NAMES, moduleLabel, useT, type TKey } from '../i18n'
 import { EmojiPicker, Empty, Icon, Row, Screen, Section, Segmented, SelectRow, Sheet, Switch, TextRow, ToggleRow, haptic, toast } from '../ui'
@@ -250,9 +250,11 @@ function GroupPage({ id }: { id: GroupId }) {
         <Section className="compact" footer={t('deviceHint')}>
           <SelectRow label={`📱 ${t('device')}`} value={choice} onChange={setPlatformChoice}
             options={[
-              { value: 'auto', label: t('platform.auto', { p: t(`platform.${detectPlatform()}`) }) },
+              { value: 'auto', label: t('platform.auto', { p: t(`platform.${detectDevice()}` as TKey) }) },
               { value: 'ios', label: t('platform.ios') },
               { value: 'android', label: t('platform.android') },
+              { value: 'ipad', label: t('platform.ipad') },
+              { value: 'desktop', label: t('platform.desktop') },
             ]} />
         </Section>
       )}

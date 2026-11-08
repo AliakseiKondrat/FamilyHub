@@ -1265,3 +1265,41 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .cmd-step .row-icon b { font-size: 14px; }
 .cmd-fields-head { padding: 10px 16px 2px; font-size: 13px; font-weight: 700; color: var(--label2); text-transform: uppercase; letter-spacing: 0.3px; background: var(--cell); }
 .cmd-field { font-family: ui-monospace, Menlo, monospace; font-size: 13px; padding: 1px 6px; border-radius: 6px; background: var(--fill); color: var(--label); }
+
+/* ---------- Wide layout uses the whole width (iPad, computer) ---------- */
+[data-layout='wide'] .head .seg, [data-layout='wide'] .head .quick { max-width: none; margin-left: 28px; margin-right: 28px; width: auto; }
+[data-layout='wide'] .head .chips { padding-right: 28px; flex-wrap: wrap; overflow: visible; }
+[data-layout='wide'] .poster-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 16px; }
+[data-layout='wide'] .track-grid, [data-layout='wide'] .recipe-grid, [data-layout='wide'] .goal-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px 16px; }
+[data-layout='wide'] .screen-body > .wish-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+[data-layout='wide'] .cards { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+[data-layout='wide'] .photos { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+[data-layout='wide'] .stat-row { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+[data-layout='wide'] .screen-body > .recipe-grid, [data-layout='wide'] .screen-body > .wish-grid, [data-layout='wide'] .screen-body > .section-header,
+[data-layout='wide'] .screen-body > .more-grid { column-span: all; }
+/* The month sits beside the day's list instead of over it. */
+[data-layout='wide'] .screen-body > .cal { column-span: none; max-width: none; }
+[data-layout='wide'] .hero-row { gap: 40px; }
+[data-layout='wide'] .actions { flex-wrap: wrap; }
+/* Big screens: a third column. */
+@media (min-width: 1500px) {
+  [data-layout='wide'] .screen-body { columns: 3 340px; }
+}
+/* iPad portrait and narrow windows: the sidebar shrinks to icons and gives the space to the content. */
+@media (max-width: 1099px) {
+  [data-layout='wide'] .sidebar { width: 64px; padding: 12px 7px 8px; left: 10px; }
+  [data-layout='wide'] .sb-head { justify-content: center; padding: 2px 0 12px; }
+  [data-layout='wide'] .sb-head > div, [data-layout='wide'] .sb-item > span:not(.sb-ico) { display: none; }
+  [data-layout='wide'] .sb-item { justify-content: center; padding: 6px 0; }
+  [data-layout='wide'] .sb-item.sep::after { left: 8px; right: 8px; }
+  [data-layout='wide'] .main { left: 84px; }
+  [data-layout='wide'] .large-title { font-size: 34px; line-height: 40px; }
+}
+/* A mouse: hover shows what's clickable. */
+[data-device='desktop'] .row.tap:hover, [data-device='desktop'] .more-item:hover, [data-device='desktop'] .mod-tile:hover { filter: brightness(1.06); }
+[data-device='desktop'] .more-item:hover { background: var(--fill2, var(--fill)); }
+/* Headers with quick buttons: text on the left, the buttons on the right instead of a row under it. */
+[data-layout='wide'] .head:has(> .actions) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+[data-layout='wide'] .head:has(> .actions) > * { grid-column: 1; }
+[data-layout='wide'] .head:has(> .actions) > .actions { grid-column: 2; grid-row: 1 / span 3; align-self: end; display: grid; grid-template-columns: repeat(4, auto); gap: 14px 18px; padding: 0 28px 4px 0; }
+[data-layout='wide'] .head:has(> .actions) > :is(.seg, .quick, .chips, .head-extra) { grid-column: 1 / -1; }
