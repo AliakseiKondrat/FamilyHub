@@ -3,7 +3,7 @@ import { DEMO, SYNC_ENABLED } from '../config'
 import { supabase } from './supabase'
 import { getState, useApp } from '../store'
 import { progressionOf } from './progression'
-import { CATALOG, DEFAULTS, ITEMS, LOOKS, type Item, type Kind, type Metric, type Rule, type Tier } from './catalog'
+import { CATALOG, DEFAULTS, ITEMS, LOOKS, TG_PERKS, type Item, type Kind, type Metric, type Rule, type Tier } from './catalog'
 import type { State, UserId } from '../types'
 
 /*
@@ -96,6 +96,11 @@ export type Status =
 /** Couples who aren't close can earn everything too, just twice as far (the developers can change it). */
 export const publicFactor = () => server.publicFactor ?? 2
 
+/** Either of us joined / boosted our Telegram community enough for this perk. */
+export function tgPerkHas(s: State, perk: 'member' | 'boost1' | 'boost2') {
+  return Object.values(s.game.tgPerks ?? {}).some((p) => !!p && (perk === 'member' ? p.member : p.boosts >= (perk === 'boost1' ? 1 : 2)))
+}
+
 export function statusOf(id: string, s: State = getState()): Status {
   const rule = ruleOf(id)
   if (!rule) return { open: true, why: 'free' }
@@ -106,6 +111,7 @@ export function statusOf(id: string, s: State = getState()): Status {
   if (server.freeForAll) return { open: true, why: 'test' }
   // Marathon rewards: earned in «Around the world» only (everyone else may also buy them).
   if (rule.m === 'event' && progressionOf(s).m.earned.has(id)) return { open: true, why: 'earned' }
+  if (TG_PERKS[id] && tgPerkHas(s, TG_PERKS[id])) return { open: true, why: 'earned' }
   const st = statsOf(s)
   if (rule.m === 'event') return { open: false, id, tier, rule, have: 0, need: 0, refs: st.refs }
   const have = st[rule.m as Exclude<Metric, 'event'>]

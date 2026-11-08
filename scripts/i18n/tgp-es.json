@@ -1,0 +1,16 @@
+{
+ "tgp.title": "Nuestra comunidad en Telegram",
+ "tgp.hint": "Únete a la comunidad de Family Hub: novedades, ideas para parejas y respuestas. Los boosts vienen con Telegram Premium. Telegram debe estar vinculado arriba.",
+ "tgp.member": "Por unirte a la comunidad",
+ "tgp.boost1": "Por 1 boost",
+ "tgp.boost2": "Por 2 boosts",
+ "tgp.join": "Unirme a la comunidad",
+ "tgp.collect": "Recoger premios",
+ "tgp.linkFirst": "Primero vincula Telegram arriba",
+ "tgp.notReady": "La comunidad aún se está preparando; prueba un poco más tarde",
+ "tgp.got": "Premios recogidos: {n} 🎉 Échale un vistazo a la colección",
+ "tgp.none": "Aún no hay nada que recoger: únete a la comunidad y vuelve",
+ "tgp.how.member": "Por unirte a nuestra comunidad de Telegram (Ajustes → Notificaciones → «Recoger premios»)",
+ "tgp.how.boost1": "Por dar un boost a nuestro canal de Telegram (requiere Telegram Premium)",
+ "tgp.how.boost2": "Por dos boosts a nuestro canal de Telegram"
+}

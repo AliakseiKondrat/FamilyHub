@@ -1,12 +1,12 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { update, useApp } from '../store'
-import { useT } from '../i18n'
+import { useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, ToggleRow, haptic, toast } from '../ui'
 import { SYNC_ENABLED } from '../config'
 import { fmtDate } from '../lib/date'
 import { FONTS, loadFont } from '../theme'
-import { CARDS, CATALOG, DEFAULTS, FLAMES, FRAMES, HATS, ITEMS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
+import { CARDS, CATALOG, DEFAULTS, FLAMES, FRAMES, HATS, ITEMS, TG_PERKS, KINDS, METRICS, PIGGIES, SCENES, isCulture, itemName, type Item, type Kind, type Metric, type Rule, type Tier } from '../lib/catalog'
 import { marathonOf, nextWeekOf } from '../lib/marathon'
 import {
   activeCard, activeFlame, activeFrame, activeHat, activeLook, activeMascot, activePiggy, devGrant, devGrants, devHouseholds, devRevoke, devSetFreeForAll, devSetRule,
@@ -500,6 +500,7 @@ function BotHealth() {
 export function eventHow(id: string, s: State, t: ReturnType<typeof useT>): string {
   const item = ITEMS[id]
   if (!item) return ''
+  if (TG_PERKS[id]) return t(`tgp.how.${TG_PERKS[id]}` as TKey)
   if (item.kind === 'atmo' && item.key.startsWith('c-')) {
     const when = nextWeekOf(item.key.slice(2))
     const m = marathonOf(s)

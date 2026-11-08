@@ -105,3 +105,6 @@ export const telegramStatus = () => call<{ linked?: boolean; bot?: string | null
 /** A one-time link to the bot: opening it in Telegram ties that chat to me. */
 export const telegramLinkCode = () => call<{ url?: string | null; bot?: string | null }>('linkCode')
 export const telegramUnlink = () => call<{ ok?: boolean }>('unlink')
+/** Our community in Telegram: is my linked account in it and how many boosts it gave (rewards in the collection). */
+export const telegramPerks = () => call<{ linked?: boolean; community?: string; ready?: boolean; member?: boolean; boosts?: number }>('perks')
+export const COMMUNITY_URL = 'https://t.me/+jlK7z5g9zPVhMTU0'

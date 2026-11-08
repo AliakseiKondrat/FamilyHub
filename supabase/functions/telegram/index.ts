@@ -5,6 +5,8 @@
 //  - { type: 'linkCode' } + user JWT       a one-time code for t.me/<bot>?start=<code> (link Telegram to an existing account)
 //  - { type: 'status' | 'unlink' } + JWT   is my Telegram linked / forget it
 //  - { type: 'diag' } + developer's JWT    the bot's health: webhook, delivery errors, how many people are linked
+//  - { type: 'perks' } + user JWT          community membership and boosts of my linked Telegram (rewards)
+//  - commands: /buy /task /spent /list /today /wish /watch /idea /community /bonus /help
 //  - Telegram updates (webhook, secret header): /start, links and text → «where to save?» → a record in that section
 // The bot token is read from the TELEGRAM_BOT_TOKEN secret; without it every call answers «not configured».
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -83,6 +85,173 @@ function guessTarget(text: string): (typeof TARGETS)[number] | null {
   return null
 }
 
+/* ---------- commands: /buy, /task, /spent, /list, /today, /wish, /watch, /idea, /community, /bonus, /help ---------- */
+const COMMUNITY = 'https://t.me/+jlK7z5g9zPVhMTU0'
+const LANGS = ['ru', 'en', 'pl', 'es', 'it'] as const
+type L = (typeof LANGS)[number]
+const CMD: Record<L, Record<string, string>> = {
+  ru: { start: 'Открыть Family Hub', buy: 'В покупки: /buy молоко, хлеб', task: 'Задача: /task позвонить маме завтра 18:00', spent: 'Трата: /spent 45 Biedronka', list: 'Что купить', today: 'Что у нас сегодня', wish: 'В вишлист: /wish ссылка', watch: 'В «Смотреть»: /watch название', idea: 'Во входящие: /idea мысль', community: 'Наше сообщество', bonus: 'Награды за сообщество и бусты', help: 'Что я умею' },
+  en: { start: 'Open Family Hub', buy: 'To groceries: /buy milk, bread', task: 'Task: /task call mum tomorrow 18:00', spent: 'Expense: /spent 45 Biedronka', list: 'What to buy', today: 'What we have today', wish: 'To wishlist: /wish link', watch: 'To watchlist: /watch title', idea: 'To inbox: /idea a thought', community: 'Our community', bonus: 'Rewards for community and boosts', help: 'What I can do' },
+  pl: { start: 'Otwórz Family Hub', buy: 'Do zakupów: /buy mleko, chleb', task: 'Zadanie: /task zadzwonić do mamy jutro 18:00', spent: 'Wydatek: /spent 45 Biedronka', list: 'Co kupić', today: 'Co mamy dziś', wish: 'Na listę życzeń: /wish link', watch: 'Do obejrzenia: /watch tytuł', idea: 'Do skrzynki: /idea myśl', community: 'Nasza społeczność', bonus: 'Nagrody za społeczność i boosty', help: 'Co potrafię' },
+  es: { start: 'Abrir Family Hub', buy: 'A la compra: /buy leche, pan', task: 'Tarea: /task llamar a mamá mañana 18:00', spent: 'Gasto: /spent 45 Mercadona', list: 'Qué comprar', today: 'Qué tenemos hoy', wish: 'A deseos: /wish enlace', watch: 'Para ver: /watch título', idea: 'A la bandeja: /idea una idea', community: 'Nuestra comunidad', bonus: 'Premios por la comunidad y los boosts', help: 'Qué sé hacer' },
+  it: { start: 'Apri Family Hub', buy: 'Alla spesa: /buy latte, pane', task: 'Attività: /task chiamare la mamma domani 18:00', spent: 'Spesa: /spent 45 Conad', list: 'Cosa comprare', today: 'Cosa abbiamo oggi', wish: 'Ai desideri: /wish link', watch: 'Da vedere: /watch titolo', idea: 'In arrivo: /idea un pensiero', community: 'La nostra community', bonus: 'Premi per community e boost', help: 'Cosa so fare' },
+}
+const HELP: Record<L, string> = {
+  ru: 'Что я умею 👇\n\n🛒 /buy молоко, хлеб — в покупки (можно списком)\n✅ /task позвонить маме завтра 18:00 — задача с датой\n💸 /spent 45 Biedronka — записать трату\n🗒️ /list — что купить\n📅 /today — дела и события на сегодня\n🎁 /wish ссылка — в вишлист\n🍿 /watch название или ссылка — в «Смотреть»\n💡 /idea мысль — во входящие\n💬 /community — наше сообщество\n🏅 /bonus — награды за сообщество и бусты\n\nА ещё можно просто прислать ссылку или текст — я спрошу, куда сохранить.',
+  en: 'What I can do 👇\n\n🛒 /buy milk, bread — to groceries (a list is fine)\n✅ /task call mum tomorrow 18:00 — a task with a date\n💸 /spent 45 Biedronka — log an expense\n🗒️ /list — what to buy\n📅 /today — today’s tasks and events\n🎁 /wish link — to the wishlist\n🍿 /watch title or link — to the watchlist\n💡 /idea a thought — to the inbox\n💬 /community — our community\n🏅 /bonus — rewards for the community and boosts\n\nOr just send me a link or text — I’ll ask where to save it.',
+  pl: 'Co potrafię 👇\n\n🛒 /buy mleko, chleb — do zakupów (może być lista)\n✅ /task zadzwonić do mamy jutro 18:00 — zadanie z datą\n💸 /spent 45 Biedronka — zapisz wydatek\n🗒️ /list — co kupić\n📅 /today — zadania i wydarzenia na dziś\n🎁 /wish link — na listę życzeń\n🍿 /watch tytuł lub link — do obejrzenia\n💡 /idea myśl — do skrzynki\n💬 /community — nasza społeczność\n🏅 /bonus — nagrody za społeczność i boosty\n\nMożesz też po prostu wysłać link lub tekst — zapytam, gdzie zapisać.',
+  es: 'Qué sé hacer 👇\n\n🛒 /buy leche, pan — a la compra (vale una lista)\n✅ /task llamar a mamá mañana 18:00 — tarea con fecha\n💸 /spent 45 Mercadona — anotar un gasto\n🗒️ /list — qué comprar\n📅 /today — tareas y eventos de hoy\n🎁 /wish enlace — a la lista de deseos\n🍿 /watch título o enlace — a «Por ver»\n💡 /idea una idea — a la bandeja\n💬 /community — nuestra comunidad\n🏅 /bonus — premios por la comunidad y los boosts\n\nO mándame un enlace o un texto: te preguntaré dónde guardarlo.',
+  it: 'Cosa so fare 👇\n\n🛒 /buy latte, pane — alla spesa (anche una lista)\n✅ /task chiamare la mamma domani 18:00 — attività con data\n💸 /spent 45 Conad — segna una spesa\n🗒️ /list — cosa comprare\n📅 /today — attività ed eventi di oggi\n🎁 /wish link — alla lista dei desideri\n🍿 /watch titolo o link — a «Da vedere»\n💡 /idea un pensiero — in arrivo\n💬 /community — la nostra community\n🏅 /bonus — premi per community e boost\n\nOppure mandami un link o un testo: ti chiederò dove salvarlo.',
+}
+const SHORT: Record<L, string> = {
+  ru: 'Family Hub — общее приложение для пары: покупки, задачи, бюджет, планы. Пиши сюда — я всё сохраню.',
+  en: 'Family Hub — a shared app for couples: groceries, tasks, budget, plans. Write here and I’ll save it.',
+  pl: 'Family Hub — wspólna aplikacja dla par: zakupy, zadania, budżet, plany. Napisz tu, a zapiszę.',
+  es: 'Family Hub: la app compartida para parejas. Compra, tareas, presupuesto, planes. Escríbeme y lo guardo.',
+  it: 'Family Hub: l’app condivisa per le coppie. Spesa, attività, budget, programmi. Scrivimi e salvo tutto.',
+}
+const ABOUT: Record<L, string> = {
+  ru: 'Привет! Я помощник Family Hub 💞\n\n• Открываю приложение кнопкой «Family Hub» внизу\n• Сохраняю ссылки и заметки: пришли — спрошу, куда положить\n• /buy, /task, /spent — быстро добавить покупки, дела и траты\n• /today и /list — что сегодня и что купить\n• Присылаю уведомления, если выбрать Telegram в настройках приложения\n\nНажми «Старт» 👇',
+  en: 'Hi! I’m the Family Hub helper 💞\n\n• I open the app with the «Family Hub» button below\n• I save links and notes: send one and I’ll ask where it goes\n• /buy, /task, /spent — quickly add groceries, tasks and expenses\n• /today and /list — what’s on today and what to buy\n• I send notifications if you choose Telegram in the app’s settings\n\nTap «Start» 👇',
+  pl: 'Cześć! Jestem pomocnikiem Family Hub 💞\n\n• Otwieram aplikację przyciskiem «Family Hub» na dole\n• Zapisuję linki i notatki: wyślij, a zapytam, gdzie je dać\n• /buy, /task, /spent — szybko dodaj zakupy, zadania i wydatki\n• /today i /list — co dziś i co kupić\n• Wysyłam powiadomienia, jeśli wybierzesz Telegram w ustawieniach aplikacji\n\nNaciśnij «Start» 👇',
+  es: '¡Hola! Soy el ayudante de Family Hub 💞\n\n• Abro la app con el botón «Family Hub» de abajo\n• Guardo enlaces y notas: mándamelos y te pregunto dónde\n• /buy, /task, /spent — añade rápido compra, tareas y gastos\n• /today y /list — qué hay hoy y qué comprar\n• Te mando notificaciones si eliges Telegram en los ajustes de la app\n\nPulsa «Iniciar» 👇',
+  it: 'Ciao! Sono l’assistente di Family Hub 💞\n\n• Apro l’app con il pulsante «Family Hub» qui sotto\n• Salvo link e note: mandameli e ti chiedo dove metterli\n• /buy, /task, /spent — aggiungi al volo spesa, attività e spese\n• /today e /list — cosa c’è oggi e cosa comprare\n• Mando notifiche se scegli Telegram nelle impostazioni dell’app\n\nTocca «Avvia» 👇',
+}
+const RX: Record<L, Record<string, string>> = {
+  ru: { needText: 'Напиши после команды, что добавить. Например: {ex}', buy: '🛒 В покупках: {s}', task: '✅ Задача: {s}', spent: '💸 Записал: {s}', noAmount: 'Не нашёл сумму. Например: /spent 45 Biedronka', wish: '🎁 В вишлисте: {s}', watch: '🍿 В «Смотреть»: {s}', idea: '💡 Во входящих: {s}', listEmpty: 'Список покупок пуст 🎉', listHead: '🛒 Купить ({n}):', todayEmpty: 'На сегодня ничего не запланировано ☀️', todayTasks: '✅ Дела:', todayEvents: '📅 События:', community: 'Наше сообщество Family Hub: новости, идеи для пар и ваши вопросы 💬\nЗа вступление — «Огонёк клуба» в приложении, а за бусты — ещё награды (/bonus).', join: 'Вступить', bonusNoCommunity: 'Сообщество ещё настраивается — загляни чуть позже 🙂', bonus: 'Твои награды:\n{lines}\n\nЧтобы забрать их, открой приложение → Настройки → Уведомления и связь → Уведомления → «Забрать награды».', perkMember: '{m} Вступил(а) в сообщество — «Огонёк клуба»', perkBoost1: '{m} 1 буст — «Рамка бустера»', perkBoost2: '{m} 2 буста — «Ракета бустера»', boostHow: 'Бусты доступны с Telegram Premium: открой канал → название вверху → «Бусты».' },
+  en: { needText: 'Write what to add after the command. For example: {ex}', buy: '🛒 In groceries: {s}', task: '✅ Task: {s}', spent: '💸 Saved: {s}', noAmount: 'No amount found. For example: /spent 45 Biedronka', wish: '🎁 In the wishlist: {s}', watch: '🍿 In the watchlist: {s}', idea: '💡 In the inbox: {s}', listEmpty: 'The shopping list is empty 🎉', listHead: '🛒 To buy ({n}):', todayEmpty: 'Nothing planned for today ☀️', todayTasks: '✅ Tasks:', todayEvents: '📅 Events:', community: 'Our Family Hub community: news, ideas for couples and your questions 💬\nJoining gives the «Club flame» in the app, and boosts give more rewards (/bonus).', join: 'Join', bonusNoCommunity: 'The community is still being set up — check back a bit later 🙂', bonus: 'Your rewards:\n{lines}\n\nTo collect them, open the app → Settings → Notifications & links → Notifications → «Collect rewards».', perkMember: '{m} Joined the community — «Club flame»', perkBoost1: '{m} 1 boost — «Booster frame»', perkBoost2: '{m} 2 boosts — «Booster rocket»', boostHow: 'Boosts come with Telegram Premium: open the channel → its name at the top → «Boosts».' },
+  pl: { needText: 'Po komendzie napisz, co dodać. Na przykład: {ex}', buy: '🛒 W zakupach: {s}', task: '✅ Zadanie: {s}', spent: '💸 Zapisano: {s}', noAmount: 'Nie znalazłem kwoty. Na przykład: /spent 45 Biedronka', wish: '🎁 Na liście życzeń: {s}', watch: '🍿 Do obejrzenia: {s}', idea: '💡 W skrzynce: {s}', listEmpty: 'Lista zakupów jest pusta 🎉', listHead: '🛒 Do kupienia ({n}):', todayEmpty: 'Na dziś nic nie zaplanowano ☀️', todayTasks: '✅ Zadania:', todayEvents: '📅 Wydarzenia:', community: 'Nasza społeczność Family Hub: nowości, pomysły dla par i wasze pytania 💬\nZa dołączenie — «Płomyk klubu» w aplikacji, a za boosty — kolejne nagrody (/bonus).', join: 'Dołącz', bonusNoCommunity: 'Społeczność jest jeszcze ustawiana — zajrzyj trochę później 🙂', bonus: 'Twoje nagrody:\n{lines}\n\nAby je odebrać, otwórz aplikację → Ustawienia → Powiadomienia i połączenia → Powiadomienia → «Odbierz nagrody».', perkMember: '{m} Dołączenie do społeczności — «Płomyk klubu»', perkBoost1: '{m} 1 boost — «Ramka boostera»', perkBoost2: '{m} 2 boosty — «Rakieta boostera»', boostHow: 'Boosty są w Telegram Premium: otwórz kanał → nazwa na górze → «Boosty».' },
+  es: { needText: 'Escribe después del comando qué añadir. Por ejemplo: {ex}', buy: '🛒 En la compra: {s}', task: '✅ Tarea: {s}', spent: '💸 Anotado: {s}', noAmount: 'No encontré el importe. Por ejemplo: /spent 45 Mercadona', wish: '🎁 En deseos: {s}', watch: '🍿 En «Por ver»: {s}', idea: '💡 En la bandeja: {s}', listEmpty: 'La lista de la compra está vacía 🎉', listHead: '🛒 Por comprar ({n}):', todayEmpty: 'Hoy no hay nada planeado ☀️', todayTasks: '✅ Tareas:', todayEvents: '📅 Eventos:', community: 'Nuestra comunidad de Family Hub: novedades, ideas para parejas y vuestras preguntas 💬\nUnirte da la «Llama del club» en la app, y los boosts dan más premios (/bonus).', join: 'Unirme', bonusNoCommunity: 'La comunidad aún se está preparando; vuelve un poco más tarde 🙂', bonus: 'Tus premios:\n{lines}\n\nPara recogerlos, abre la app → Ajustes → Notificaciones y conexiones → Notificaciones → «Recoger premios».', perkMember: '{m} Unirte a la comunidad — «Llama del club»', perkBoost1: '{m} 1 boost — «Marco de booster»', perkBoost2: '{m} 2 boosts — «Cohete de booster»', boostHow: 'Los boosts vienen con Telegram Premium: abre el canal → su nombre arriba → «Boosts».' },
+  it: { needText: 'Scrivi dopo il comando cosa aggiungere. Per esempio: {ex}', buy: '🛒 Nella spesa: {s}', task: '✅ Attività: {s}', spent: '💸 Segnato: {s}', noAmount: 'Non ho trovato l’importo. Per esempio: /spent 45 Conad', wish: '🎁 Nei desideri: {s}', watch: '🍿 In «Da vedere»: {s}', idea: '💡 In arrivo: {s}', listEmpty: 'La lista della spesa è vuota 🎉', listHead: '🛒 Da comprare ({n}):', todayEmpty: 'Niente in programma per oggi ☀️', todayTasks: '✅ Attività:', todayEvents: '📅 Eventi:', community: 'La nostra community di Family Hub: novità, idee per coppie e le vostre domande 💬\nUnirti dà la «Fiamma del club» nell’app, e i boost danno altri premi (/bonus).', join: 'Unisciti', bonusNoCommunity: 'La community è ancora in preparazione: ripassa tra poco 🙂', bonus: 'I tuoi premi:\n{lines}\n\nPer ritirarli, apri l’app → Impostazioni → Notifiche e collegamenti → Notifiche → «Ritira i premi».', perkMember: '{m} Iscrizione alla community — «Fiamma del club»', perkBoost1: '{m} 1 boost — «Cornice del booster»', perkBoost2: '{m} 2 boost — «Razzo del booster»', boostHow: 'I boost sono inclusi in Telegram Premium: apri il canale → il nome in alto → «Boost».' },
+}
+const langOf = (code?: string): L => ((LANGS as readonly string[]).includes((code ?? '').slice(0, 2)) ? (code ?? '').slice(0, 2) as L : 'en')
+
+/* Grocery aisles, quick dates and amounts — the same rules as the personal API (supabase/functions/api). */
+const STEMS: Record<string, string[]> = {
+  produce: ['яблок', 'банан', 'авокад', 'помидор', 'томат', 'огур', 'картош', 'картоф', 'лук', 'морков', 'капуст', 'салат', 'перец', 'лимон', 'апельсин', 'груш', 'виноград', 'ягод', 'клубник', 'зелен', 'укроп', 'чеснок', 'гриб', 'брокол', 'apple', 'banana', 'avocado', 'tomato', 'cucumber', 'potato', 'onion', 'carrot', 'lettuce', 'pepper', 'lemon', 'orange', 'grape', 'berr', 'garlic', 'mushroom', 'jabł', 'pomidor', 'ogór', 'ziemniak', 'cebul', 'marchew', 'sałat', 'papryk', 'cytryn', 'czosn', 'grzyb', 'manzan', 'plátano', 'tomate', 'patata', 'cebolla', 'zanahoria', 'limón', 'naranja', 'fresa', 'mela', 'pomodor', 'patat', 'cipoll', 'carot', 'limon', 'arancia'],
+  dairy: ['молок', 'кефир', 'сыр', 'творог', 'сметан', 'йогурт', 'сливк', 'яйц', 'milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'mleko', 'ser', 'jogurt', 'masło', 'śmietan', 'jaj', 'twaróg', 'leche', 'queso', 'yogur', 'mantequilla', 'huevo', 'latte', 'formaggio', 'burro', 'uova'],
+  meat: ['мяс', 'куриц', 'курин', 'говяд', 'свинин', 'фарш', 'колбас', 'сосиск', 'ветчин', 'рыб', 'лосос', 'креветк', 'бекон', 'chicken', 'beef', 'pork', 'sausage', 'ham', 'fish', 'salmon', 'shrimp', 'bacon', 'mięso', 'kurczak', 'wołow', 'wieprz', 'kiełbas', 'szynk', 'ryb', 'łosoś', 'carne', 'pollo', 'cerdo', 'jamón', 'pescado', 'salmone', 'prosciutto', 'pesce'],
+  bakery: ['хлеб', 'батон', 'булк', 'багет', 'лаваш', 'круассан', 'bread', 'baguette', 'bun', 'croissant', 'chleb', 'bułk', 'bagiet', 'barra', 'pane'],
+  frozen: ['морожен', 'пельмен', 'заморож', 'ice cream', 'frozen', 'lody', 'mrożon', 'pierogi', 'helado', 'congelad', 'gelato', 'surgelat'],
+  drinks: ['вод', 'сок', 'пиво', 'вино', 'кола', 'чай', 'кофе', 'water', 'juice', 'beer', 'wine', 'cola', 'tea', 'coffee', 'woda', 'sok', 'piwo', 'wino', 'herbat', 'kaw', 'agua', 'zumo', 'cerveza', 'vino', 'café', 'acqua', 'succo', 'birra'],
+  pantry: ['рис', 'макарон', 'паст', 'гречк', 'мук', 'сахар', 'сол', 'консерв', 'соус', 'кетчуп', 'майонез', 'специ', 'овсян', 'хлопь', 'шоколад', 'печень', 'rice', 'pasta', 'flour', 'sugar', 'salt', 'oil', 'sauce', 'ketchup', 'oat', 'cereal', 'chocolate', 'cookie', 'ryż', 'makaron', 'mąk', 'cukier', 'sól', 'olej', 'oliw', 'sos', 'płatki', 'czekolad', 'ciastk', 'arroz', 'harina', 'azúcar', 'aceite', 'riso', 'farina', 'zucchero', 'olio'],
+  household: ['бумаг', 'полотенц', 'мыл', 'шампун', 'порош', 'губк', 'пакет', 'салфет', 'зубн', 'paper', 'towel', 'soap', 'shampoo', 'detergent', 'sponge', 'tissue', 'toothpaste', 'papier', 'ręcznik', 'mydło', 'szampon', 'proszek', 'gąbk', 'chusteczk', 'papel', 'jabón', 'champú', 'sapone'],
+  pet: ['корм', 'лакомств', 'для честера', 'dog food', 'pet food', 'treats', 'karma', 'przysmak', 'pienso', 'crocchette'],
+}
+function guessCategory(title: string) {
+  const s = ' ' + title.toLowerCase() + ' '
+  for (const cat of ['pet', 'household', 'produce', 'dairy', 'meat', 'bakery', 'frozen', 'drinks', 'pantry']) if (STEMS[cat].some((x) => s.includes(x))) return cat
+  return 'other'
+}
+function localToday(tz: string) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).map((x) => [x.type, x.value]))
+  return `${p.year}-${p.month}-${p.day}`
+}
+const addDays = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
+function parseQuick(input: string, today: string) {
+  let s = ' ' + input + ' '
+  let due: string | undefined, time: string | undefined
+  const take = (re: RegExp, fn: (m: RegExpMatchArray) => void) => { const m = s.match(re); if (m) { fn(m); s = s.replace(re, ' ') } }
+  take(/\s(послезавтра|pojutrze|pasado mañana|dopodomani|day after tomorrow)\s/i, () => { due = addDays(today, 2) })
+  take(/\s(завтра|tomorrow|jutro|mañana|domani)\s/i, () => { due = addDays(today, 1) })
+  take(/\s(сегодня|today|dziś|dzisiaj|hoy|oggi)\s/i, () => { due = today })
+  take(/\s(?:в|at|o|a las|alle)?\s?([01]?\d|2[0-3])[:.]([0-5]\d)\s/i, (m) => { time = `${m[1].padStart(2, '0')}:${m[2]}` })
+  if (time && !due) due = today
+  return { title: s.replace(/\s+/g, ' ').trim(), due, time }
+}
+function parseAmount(s: string) {
+  const m = String(s).replace(/\s| /g, '').match(/\d+(?:[.,]\d{3})*(?:[.,]\d{1,2})?/)
+  if (!m) return NaN
+  const dec = m[0].match(/^(.*)[.,](\d{1,2})$/)
+  return parseFloat(dec ? `${dec[1].replace(/[.,]/g, '')}.${dec[2]}` : m[0].replace(/[.,]/g, ''))
+}
+const MERCHANT_CATS: [RegExp, string][] = [
+  [/biedronka|lidl|żabka|zabka|carrefour|auchan|kaufland|mercadona|\bdia\b|aldi|netto|lewiatan|stokrotka|conad|coop|esselunga|spar|supermerc|market|продукт/i, 'groceries'],
+  [/uber eats|glovo|wolt|pyszne|restaur|caf[eé]|coffee|кофе|кафе|starbucks|mcdonald|kfc|burger|pizza|sushi|\bbar\b|bistro/i, 'eating'],
+  [/uber|bolt|free ?now|orlen|\bbp\b|shell|parking|pkp|metro|бензин|такси|ryanair|wizz/i, 'transport'],
+  [/netflix|spotify|apple\.com|icloud|youtube|disney|hbo|prime video|playstation|chatgpt/i, 'subscriptions'],
+  [/apteka|farmacia|pharm|rossmann|hebe|аптек/i, 'health'],
+  [/maxi ?zoo|kakadu|zooplus|zoo\b|vet|корм/i, 'pet'],
+  [/ikea|leroy|castorama|media ?markt|rtv|euro ?agd/i, 'home'],
+  [/cinema|kino|кино|multikino|helios|teatr|museum|concert/i, 'fun'],
+]
+const visibleTo = (r: any, role: string, today: string) =>
+  (!r.private_to || r.private_to === role) && (r.surprise_for !== role || (!!r.reveal_at && r.reveal_at <= today))
+
+/** The household's country (currency, time zone) from its shared settings. */
+async function placeOf(hh: string) {
+  const { data } = await sb.from('records').select('data').eq('household', hh).eq('id', 'meta:settings').maybeSingle()
+  const country = data?.data?.country === 'ES' ? 'ES' : 'PL'
+  return { currency: country === 'ES' ? 'EUR' : 'PLN', tz: country === 'ES' ? 'Europe/Madrid' : 'Europe/Warsaw' }
+}
+
+/** A command with its words: /buy milk → saved, and a short confirmation (or a hint when the words are missing). */
+async function runCommand(cmd: string, arg: string, member: { role: 'a' | 'j'; household: string }, l: L): Promise<string> {
+  const r = RX[l], hh = member.household, role = member.role
+  const base = () => ({ id: crypto.randomUUID(), createdBy: role, createdAt: new Date().toISOString() })
+  const insert = (collection: string, data: Record<string, unknown>) => sb.from('records').insert({ household: hh, id: data.id, collection, created_by: role, data })
+  const { currency, tz } = await placeOf(hh)
+  const today = localToday(tz)
+  if (['buy', 'task', 'spent', 'wish', 'watch', 'idea'].includes(cmd) && !arg) return r.needText.replace('{ex}', CMD[l][cmd].split(': ')[1] ?? `/${cmd}`)
+  const url = arg.match(/https?:\/\/\S+/)?.[0]
+  const title = (url ? arg.replace(url, '').trim() : arg).slice(0, 200) || url || ''
+  switch (cmd) {
+    case 'buy': {
+      const items = arg.split(/,|;|\n|\s+и\s+|\s+and\s+|\s+i\s+|\s+y\s+|\s+e\s+/i).map((x) => x.trim()).filter(Boolean).map((x) => x[0].toUpperCase() + x.slice(1))
+      const { data: existing } = await sb.from('records').select('id,data').eq('household', hh).eq('collection', 'groceries').eq('deleted', false)
+      for (const t of items) {
+        const ex = (existing ?? []).find((x) => String(x.data.title).toLowerCase() === t.toLowerCase())
+        if (ex) await sb.from('records').update({ data: { ...ex.data, done: false } }).eq('household', hh).eq('id', ex.id)
+        else await insert('groceries', { ...base(), title: t, category: guessCategory(t), done: false })
+      }
+      return r.buy.replace('{s}', items.join(', '))
+    }
+    case 'task': {
+      const p = parseQuick(arg, today)
+      await insert('tasks', { ...base(), title: p.title || arg, due: p.due, time: p.time, assignee: 'both', done: false, repeat: 'none' })
+      return r.task.replace('{s}', (p.title || arg) + (p.due ? ` · ${p.due.slice(8)}.${p.due.slice(5, 7)}${p.time ? ' ' + p.time : ''}` : ''))
+    }
+    case 'spent': {
+      const amount = parseAmount(arg)
+      if (!(amount > 0)) return r.noAmount
+      const merchant = arg.replace(/[\d\s.,]+(zł|pln|eur|€|\$)?/gi, ' ').trim() || '—'
+      const category = MERCHANT_CATS.find(([re]) => re.test(merchant))?.[1] ?? 'other'
+      await insert('expenses', { ...base(), title: merchant, amount, currency, category, paidBy: role, shared: true, date: today, source: 'telegram' })
+      return r.spent.replace('{s}', `${merchant} · ${amount} ${currency}`)
+    }
+    case 'wish': await insert('wishes', { ...base(), title, url, owner: role, kind: 'gift', priority: 1 }); return r.wish.replace('{s}', title)
+    case 'watch': await insert('watch', { ...base(), title, kind: 'movie', status: 'want', links: url ? [{ service: 'custom', url }] : [] }); return r.watch.replace('{s}', title)
+    case 'idea': await insert('notes', { ...base(), module: 'inbox', title, url }); return r.idea.replace('{s}', title)
+    case 'list': case 'today': {
+      const { data } = await sb.from('records').select('collection,data,private_to,surprise_for,reveal_at').eq('household', hh).eq('deleted', false).in('collection', cmd === 'list' ? ['groceries'] : ['tasks', 'events'])
+      const rows = (data ?? []).filter((x) => visibleTo(x, role, today))
+      if (cmd === 'list') {
+        const items = rows.filter((x) => !x.data.done).map((x) => `• ${x.data.title}`)
+        return items.length ? `${r.listHead.replace('{n}', String(items.length))}\n${items.join('\n')}` : r.listEmpty
+      }
+      const mine = (who?: string) => !who || who === 'both' || who === role
+      const tasks = rows.filter((x) => x.collection === 'tasks' && !x.data.done && x.data.due && x.data.due <= today && mine(x.data.assignee))
+        .sort((a, b) => (a.data.time ?? '99').localeCompare(b.data.time ?? '99')).map((x) => `• ${x.data.time ? x.data.time + ' ' : ''}${x.data.title}`)
+      const events = rows.filter((x) => x.collection === 'events' && x.data.date === today && mine(x.data.who))
+        .sort((a, b) => (a.data.time ?? '').localeCompare(b.data.time ?? '')).map((x) => `• ${x.data.time ? x.data.time + ' ' : ''}${x.data.title}`)
+      if (!tasks.length && !events.length) return r.todayEmpty
+      return [events.length ? `${r.todayEvents}\n${events.join('\n')}` : '', tasks.length ? `${r.todayTasks}\n${tasks.join('\n')}` : ''].filter(Boolean).join('\n\n')
+    }
+  }
+  return HELP[l]
+}
+
+/** Community perks: is this Telegram user in our community, and how many boosts did they give it. */
+async function perksOf(token: string, tgId: number) {
+  const { data } = await sb.from('app_config').select('value').eq('key', 'tg_community').maybeSingle()
+  const chat = (data?.value as { id?: number } | null)?.id
+  if (!chat) return null
+  const [m, b] = await Promise.all([tg(token, 'getChatMember', { chat_id: chat, user_id: tgId }), tg(token, 'getUserChatBoosts', { chat_id: chat, user_id: tgId })])
+  const st = m.result?.status
+  const member = st === 'member' || st === 'administrator' || st === 'creator' || (st === 'restricted' && m.result?.is_member)
+  return { member: !!member, boosts: b.result?.boosts?.length ?? 0 }
+}
+
 /** The member behind a Telegram user: their linked email → membership. */
 async function memberOf(tgId: number) {
   const { data: link } = await sb.from('tg_links').select('email').eq('tg_id', tgId).maybeSingle()
@@ -108,6 +277,16 @@ function recordFor(target: (typeof TARGETS)[number], text: string, role: 'a' | '
 }
 
 async function onUpdate(token: string, u: any) {
+  // The bot made an admin of a channel or group by one of the developers: that's our community (for /bonus and rewards).
+  if (u.my_chat_member) {
+    const c = u.my_chat_member, st = c.new_chat_member?.status
+    if (st === 'administrator' && (c.chat.type === 'channel' || c.chat.type === 'supergroup')) {
+      const m = await memberOf(c.from.id)
+      const { data: h } = m ? await sb.from('households').select('tier').eq('id', m.household).maybeSingle() : { data: null }
+      if (h?.tier === 'dev') await sb.from('app_config').upsert({ key: 'tg_community', value: { id: c.chat.id, title: c.chat.title, type: c.chat.type }, updated_at: new Date().toISOString(), updated_by: 'telegram' })
+    }
+    return
+  }
   if (u.message) {
     const m = u.message, from = m.from, t = tx(from?.language_code)
     const chat = m.chat.id
@@ -127,9 +306,29 @@ async function onUpdate(token: string, u: any) {
       await tg(token, 'sendMessage', { chat_id: chat, text: fresh ? t.linked : t.badCode, reply_markup: openBtn })
       return
     }
-    if (!text || text.startsWith('/start')) { await tg(token, 'sendMessage', { chat_id: chat, text: t.start, reply_markup: openBtn }); return }
+    const l = langOf(from?.language_code)
+    const say = (s: string, markup: unknown = undefined) => tg(token, 'sendMessage', { chat_id: chat, text: s, reply_markup: markup, disable_web_page_preview: true })
+    const joinBtn = { inline_keyboard: [[{ text: `💬 ${RX[l].join}`, url: COMMUNITY }]] }
+    if (!text || text.startsWith('/start')) { await say(`${t.start}\n\n${HELP[l]}`, openBtn); return }
+    const cmd = text.match(/^\/([a-z_]+)(?:@\w+)?(?:\s+([\s\S]*))?$/i)
+    const name = cmd?.[1].toLowerCase()
+    if (name === 'help') { await say(HELP[l], openBtn); return }
+    if (name === 'community') { await say(RX[l].community, joinBtn); return }
+    if (name === 'bonus') {
+      const p = await perksOf(token, from.id)
+      if (!p) { await say(RX[l].bonusNoCommunity, joinBtn); return }
+      const mark = (ok: boolean) => (ok ? '✅' : '▫️')
+      const lines = [RX[l].perkMember.replace('{m}', mark(p.member)), RX[l].perkBoost1.replace('{m}', mark(p.boosts >= 1)), RX[l].perkBoost2.replace('{m}', mark(p.boosts >= 2))].join('\n')
+      await say(`${RX[l].bonus.replace('{lines}', lines)}${p.boosts < 2 ? `\n\n${RX[l].boostHow}` : ''}`, p.member ? openBtn : joinBtn)
+      return
+    }
     const member = await memberOf(from.id)
     if (!member) { await tg(token, 'sendMessage', { chat_id: chat, text: t.notLinked, reply_markup: openBtn }); return }
+    if (name && ['buy', 'task', 'spent', 'list', 'today', 'wish', 'watch', 'idea'].includes(name)) {
+      await say(await runCommand(name, (cmd?.[2] ?? '').trim(), member, l))
+      return
+    }
+    if (name) { await say(HELP[l], openBtn); return }
     const { data: p } = await sb.from('tg_pending').insert({ household: member.household, role: member.role, text: text.slice(0, 2000) }).select('id').single()
     const guess = guessTarget(text)
     const rest = TARGETS.filter((k) => k !== guess)
@@ -191,6 +390,17 @@ Deno.serve(async (req) => {
     return json({ token_hash: data.properties.hashed_token, name: user.first_name })
   }
 
+  if (body.type === 'perks') {
+    // The app's «Collect rewards»: my linked Telegram account in our community, and its boosts.
+    const { data: u } = await sb.auth.getUser(jwt)
+    const email = u.user?.email?.toLowerCase()
+    if (!email) return json({ error: 'not signed in' }, 401)
+    const { data: link } = await sb.from('tg_links').select('tg_id').eq('email', email).maybeSingle()
+    if (!link) return json({ linked: false, community: COMMUNITY })
+    const p = await perksOf(token, link.tg_id)
+    return json({ linked: true, community: COMMUNITY, ready: !!p, member: p?.member ?? false, boosts: p?.boosts ?? 0 })
+  }
+
   if (body.type === 'linkCode' || body.type === 'status' || body.type === 'unlink') {
     const { data: u } = await sb.auth.getUser(jwt)
     const email = u.user?.email?.toLowerCase()
@@ -215,9 +425,16 @@ Deno.serve(async (req) => {
     if (h?.tier !== 'dev') return json({ error: 'forbidden' }, 403)
     let set: { hook?: boolean; menu?: boolean; error?: string } = {}
     if (body.type === 'setup') {
-      const hook = await tg(token, 'setWebhook', { url: FN_URL, secret_token: await webhookSecret(token), allowed_updates: ['message', 'callback_query'], drop_pending_updates: false })
+      const hook = await tg(token, 'setWebhook', { url: FN_URL, secret_token: await webhookSecret(token), allowed_updates: ['message', 'callback_query', 'my_chat_member'], drop_pending_updates: false })
       const menu = await tg(token, 'setChatMenuButton', { menu_button: { type: 'web_app', text: 'Family Hub', web_app: { url: APP_URL } } })
-      await tg(token, 'setMyCommands', { commands: [{ command: 'start', description: 'Family Hub' }] })
+      // Commands, the «What can this bot do?» text and the profile line, in each language (English is the default).
+      const order = ['start', 'buy', 'task', 'spent', 'list', 'today', 'wish', 'watch', 'idea', 'community', 'bonus', 'help']
+      for (const l of LANGS) {
+        const language_code = l === 'en' ? undefined : l
+        await tg(token, 'setMyCommands', { commands: order.map((command) => ({ command, description: CMD[l][command] })), language_code })
+        await tg(token, 'setMyDescription', { description: ABOUT[l], language_code })
+        await tg(token, 'setMyShortDescription', { short_description: SHORT[l], language_code })
+      }
       set = { hook: hook.ok, menu: menu.ok, error: hook.ok ? (menu.ok ? undefined : menu.description) : hook.description }
     }
     // Health: is the webhook ours, is Telegram failing to deliver, how many people the bot can write to.

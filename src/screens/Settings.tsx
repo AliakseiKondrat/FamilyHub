@@ -15,13 +15,13 @@ import { ALL_MODULES, defaultDesign, moduleOrder } from '../defaults'
 import { MASCOT_STAGES, pausesOf, progress } from '../lib/game'
 import Collection, { DevPage, openCollection } from './Collection'
 import { itemsOf, realTier, statusOf } from '../lib/unlocks'
-import { itemName } from '../lib/catalog'
+import { ITEMS, itemName } from '../lib/catalog'
 import { hasExamples, removeExamples } from '../lib/examples'
 import { DeleteDataSection, FAQ, FaqPage, FeedbackSheet, InviteSection, focusFaq } from './Pairing'
 import { guideKeys, openGuide, openTour } from './Tour'
 import ProgressPage from './Progress'
 import LeadersPage from './Leaders'
-import { inTelegram, telegramLinkCode, telegramStatus, telegramUnlink } from '../lib/telegram'
+import { COMMUNITY_URL, inTelegram, telegramLinkCode, telegramPerks, telegramStatus, telegramUnlink } from '../lib/telegram'
 import { addDays, fmtDate, LOCALES, today } from '../lib/date'
 import { accentColors, DEFAULT_ACCENT, PRESETS, type Accent } from '../theme'
 import { catTitle } from '../lib/cats'
@@ -219,7 +219,7 @@ function RootPage() {
         </>
       )}
       {feedback && <FeedbackSheet onClose={() => setFeedback(false)} />}
-      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.5</div>
+      <div className="section-footer" style={{ textAlign: 'center', paddingBottom: 20 }}>Family Hub · v0.6</div>
     </Screen>
   )
 }
@@ -737,6 +737,37 @@ function TelegramChannel() {
   )
 }
 
+/** Our Telegram community: join it, then collect the rewards for joining and boosting (checked by the bot). */
+function CommunityPerks() {
+  const s = useApp()
+  const t = useT()
+  const [busy, setBusy] = useState(false)
+  const mine = s.game.tgPerks?.[s.me]
+  const collect = async () => {
+    setBusy(true)
+    const r = await telegramPerks()
+    setBusy(false)
+    if (r.error) { toast('⚠︎ ' + r.error); return }
+    if (!r.linked) { toast(t('tgp.linkFirst')); return }
+    if (!r.ready) { toast(t('tgp.notReady')); return }
+    update((st) => { st.game = { ...st.game, tgPerks: { ...st.game.tgPerks, [st.me]: { member: !!r.member, boosts: r.boosts ?? 0, at: new Date().toISOString() } } } })
+    const n = (r.member ? 1 : 0) + Math.min(r.boosts ?? 0, 2)
+    toast(n ? t('tgp.got', { n }) : t('tgp.none'))
+  }
+  const rows: { id: string; ok: boolean; label: TKey }[] = [
+    { id: 'flame:club', ok: !!mine?.member, label: 'tgp.member' },
+    { id: 'frame:booster', ok: (mine?.boosts ?? 0) >= 1, label: 'tgp.boost1' },
+    { id: 'hat:rocket', ok: (mine?.boosts ?? 0) >= 2, label: 'tgp.boost2' },
+  ]
+  return (
+    <Section header={`💬 ${t('tgp.title')}`} footer={t('tgp.hint')} className="compact">
+      {rows.map((x) => <Row key={x.id} icon={ITEMS[x.id]?.emoji} title={ITEMS[x.id] ? itemName(ITEMS[x.id], s.lang) : x.id} sub={t(x.label)} detail={x.ok ? '✓' : undefined} />)}
+      <a className="row tap accent" href={COMMUNITY_URL} target="_blank" rel="noreferrer">💬 {t('tgp.join')}</a>
+      <button className="row tap accent" disabled={busy} onClick={collect}>{busy ? '…' : `🎁 ${t('tgp.collect')}`}</button>
+    </Section>
+  )
+}
+
 function NotificationsPage() {
   const s = useApp()
   const t = useT()
@@ -766,6 +797,7 @@ function NotificationsPage() {
       ] : undefined}>
       {busy && <div className="empty" style={{ padding: 12 }}>…</div>}
       {SYNC_ENABLED && <TelegramChannel />}
+      {SYNC_ENABLED && <CommunityPerks />}
       <Section header={t('what')}>
         <ToggleRow icon="💞" label={t('nActivity', { name: s.users[s.me === 'a' ? 'j' : 'a'].name })} on={n.activity} onChange={(activity) => setN({ activity })} />
         <ToggleRow icon="⏰" label={t('nReminders')} on={n.reminders} onChange={(reminders) => setN({ reminders })} />

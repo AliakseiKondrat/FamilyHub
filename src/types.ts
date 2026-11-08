@@ -239,6 +239,8 @@ export interface GameSettings {
   hat?: string
   /** The «Around the world» marathon: runs (joined → left) and cultures claimed with jokers (marathon.ts). */
   marathon?: { runs: { from: string; to?: string }[]; claims?: string[] }
+  /** What each of us got from our Telegram community (checked by the bot): joined it, how many boosts. */
+  tgPerks?: Partial<Record<UserId, { member: boolean; boosts: number; at: string }>>
   /** "Another quest" presses for a given day, so both phones reshuffle alike. */
   shuffle?: { date: string; n: number }
 }

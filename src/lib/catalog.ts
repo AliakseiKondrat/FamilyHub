@@ -33,6 +33,8 @@ const N = (ru: string, en: string, pl: string, es: string, it: string): Record<L
 const R = (m: Metric, n: number, price: number, refs?: number): Rule => ({ m, n, price, ...(refs ? { refs } : {}) })
 /** Earned only in the marathon (or bought by everyone else). */
 const EV: Rule = { m: 'event', n: 0, price: 150 }
+/** Rewards from our Telegram community: for joining it, and for boosting it (Telegram Premium). */
+export const TG_PERKS: Record<string, 'member' | 'boost1' | 'boost2'> = { 'flame:club': 'member', 'frame:booster': 'boost1', 'hat:rocket': 'boost2' }
 
 /* ---------- looks: themes and atmospheres ---------- */
 /** [background, card, pressed card, tint for buttons and links] */
@@ -203,6 +205,7 @@ export const FLAMES: Record<string, { glyph: string; filter?: string; anim?: 'ra
   snow: { glyph: '❄️', anim: 'flicker' },
   sun: { glyph: '☀️', anim: 'pulse' },
   comet: { glyph: '☄️', anim: 'flicker' },
+  club: { glyph: '🔥', filter: 'hue-rotate(185deg) saturate(1.7) brightness(1.1)', anim: 'pulse' },
 }
 /** The ring around the couple's avatars: a CSS background for the ring, maybe a glow, a spin, little things around it. */
 export const FRAMES: Record<string, { ring?: string; glow?: string; spin?: boolean; deco?: string }> = {
@@ -221,6 +224,7 @@ export const FRAMES: Record<string, { ring?: string; glow?: string; spin?: boole
   royal: { ring: 'conic-gradient(from var(--fa, 0deg), #6d28d9, #f5d77a, #6d28d9, #f5d77a, #6d28d9)', glow: 'rgba(109, 40, 217, 0.5)', spin: true, deco: '👑' },
   dots: { ring: 'repeating-conic-gradient(#f43f5e 0 15deg, #fde68a 15deg 30deg)' },
   candy: { ring: 'repeating-linear-gradient(45deg, #f472b6 0 6px, #ffffff 6px 12px)' },
+  booster: { ring: 'conic-gradient(from var(--fa, 0deg), #229ed9, #7dd3fc, #a855f7, #229ed9)', glow: 'rgba(34, 158, 217, 0.6)', spin: true, deco: '⚡' },
 }
 /** Something the mascot wears: on its head, over the eyes or round its neck. */
 export const HATS: Record<string, { glyph?: string; pos: 'top' | 'eyes' | 'neck' }> = {
@@ -231,6 +235,7 @@ export const HATS: Record<string, { glyph?: string; pos: 'top' | 'eyes' | 'neck'
   helmet: { glyph: '⛑️', pos: 'top' }, clover: { glyph: '🍀', pos: 'top' }, star: { glyph: '⭐', pos: 'top' },
   rainbow: { glyph: '🌈', pos: 'top' }, shades: { glyph: '🕶️', pos: 'eyes' }, glasses: { glyph: '👓', pos: 'eyes' },
   scarf: { glyph: '🧣', pos: 'neck' }, medal: { glyph: '🏅', pos: 'neck' },
+  rocket: { glyph: '🚀', pos: 'top' },
 }
 
 /* ---------- the catalog ---------- */
@@ -361,6 +366,10 @@ export const CATALOG: Item[] = [
   item('hat', 'rainbow', '🌈', N('Радуга', 'Rainbow', 'Tęcza', 'Arcoíris', 'Arcobaleno'), R('level', 50, 150)),
   item('hat', 'crown', '👑', N('Корона', 'Crown', 'Korona', 'Corona', 'Corona'), R('level', 75, 250, 3)),
   item('hat', 'medal', '🏅', N('Медаль за любовь', 'Medal for love', 'Medal za miłość', 'Medalla al amor', "Medaglia all'amore"), R('level', 300, 400, 5)),
+  // Our Telegram community: joining it and boosting it (TG_PERKS below).
+  item('flame', 'club', '💙', N('Огонёк клуба', 'Club flame', 'Płomyk klubu', 'Llama del club', 'Fiamma del club'), EV),
+  item('frame', 'booster', '⚡', N('Рамка бустера', 'Booster frame', 'Ramka boostera', 'Marco de booster', 'Cornice del booster'), EV),
+  item('hat', 'rocket', '🚀', N('Ракета бустера', 'Booster rocket', 'Rakieta boostera', 'Cohete de booster', 'Razzo del booster'), EV),
   // «Around the world» — earned in the marathon (marathon.ts): weeks in a row and months of quests.
   item('mascot', 'parrot', '🦜', N('Попугай-путешественник', 'Travelling parrot', 'Papuga podróżniczka', 'Loro viajero', 'Pappagallo viaggiatore'), EV),
   item('mascot', 'camel', '🐫', N('Верблюд', 'Camel', 'Wielbłąd', 'Camello', 'Cammello'), EV),
