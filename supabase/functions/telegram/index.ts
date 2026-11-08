@@ -6,6 +6,7 @@
 //  - { type: 'status' | 'unlink' } + JWT   is my Telegram linked / forget it
 //  - { type: 'diag' } + developer's JWT    the bot's health: webhook, delivery errors, how many people are linked
 //  - { type: 'perks' } + user JWT          community membership and boosts of my linked Telegram (rewards)
+//  - { type: 'post', text, pin? } + dev JWT a post in our community from the bot (HTML), optionally pinned
 //  - commands: /buy /task /spent /list /today /wish /watch /idea /community /bonus /help
 //  - Telegram updates (webhook, secret header): /start, links and text → «where to save?» → a record in that section
 // The bot token is read from the TELEGRAM_BOT_TOKEN secret; without it every call answers «not configured».
@@ -417,13 +418,25 @@ Deno.serve(async (req) => {
     return json({ code, bot, url: bot ? `https://t.me/${bot}?start=${code}` : null })
   }
 
-  if (body.type === 'setup' || body.type === 'diag') {
+  if (body.type === 'setup' || body.type === 'diag' || body.type === 'post') {
     // Developers only: the caller must be in a dev-tier household.
     const { data: u } = await sb.auth.getUser(jwt)
     const { data: m } = await sb.from('members').select('household').ilike('email', u.user?.email ?? '-').maybeSingle()
     const { data: h } = m ? await sb.from('households').select('tier').eq('id', m.household).maybeSingle() : { data: null }
     if (h?.tier !== 'dev') return json({ error: 'forbidden' }, 403)
     let set: { hook?: boolean; menu?: boolean; error?: string } = {}
+    if (body.type === 'post') {
+      // A post in our community from the bot (HTML), with an «open the app» button; pin = pin it too.
+      const { data: c } = await sb.from('app_config').select('value').eq('key', 'tg_community').maybeSingle()
+      const chat = (c?.value as { id?: number } | null)?.id
+      if (!chat) return json({ error: 'no community yet' }, 409)
+      const sent = await tg(token, 'sendMessage', {
+        chat_id: chat, text: String(body.text ?? ''), parse_mode: 'HTML', disable_web_page_preview: true,
+        reply_markup: body.button === false ? undefined : { inline_keyboard: [[{ text: '💞 Открыть Family Hub', url: APP_URL }]] },
+      })
+      if (sent.ok && body.pin) await tg(token, 'pinChatMessage', { chat_id: chat, message_id: sent.result.message_id, disable_notification: true })
+      return json({ ok: !!sent.ok, id: sent.result?.message_id, error: sent.ok ? undefined : sent.description })
+    }
     if (body.type === 'setup') {
       const hook = await tg(token, 'setWebhook', { url: FN_URL, secret_token: await webhookSecret(token), allowed_updates: ['message', 'callback_query', 'my_chat_member'], drop_pending_updates: false })
       const menu = await tg(token, 'setChatMenuButton', { menu_button: { type: 'web_app', text: 'Family Hub', web_app: { url: APP_URL } } })
