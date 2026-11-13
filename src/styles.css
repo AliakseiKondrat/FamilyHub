@@ -1309,3 +1309,12 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .trip-money { display: flex !important; align-items: center; gap: 8px; margin-top: 4px; font-weight: 600; }
 .trip-bar { flex: 1; max-width: 140px; height: 5px; border-radius: 3px; background: var(--fill2, var(--fill)); overflow: hidden; display: block; }
 .trip-bar > i { display: block; height: 100%; background: var(--green); border-radius: 3px; }
+/* Small phones (≤ 380 px): «More» tiles keep whole names. */
+@media (max-width: 380px) {
+  .more-group { margin-left: 10px; margin-right: 10px; padding: 10px; }
+  .more-grid { gap: 6px; }
+  .more-item { gap: 7px; padding: 8px 6px 8px 7px; }
+  .more-icon { width: 30px; height: 30px; font-size: 16px; border-radius: 9px; }
+  .more-text b { font-size: 13.5px; }
+  .more-text small { font-size: 12px; }
+}

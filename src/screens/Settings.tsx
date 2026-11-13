@@ -1063,33 +1063,57 @@ function ShortcutsPage() {
   const api = useApiKey()
   const android = usePlatform() === 'android'
   const [open, setOpen] = useState<string | null>(null)
+  const [pro, setPro] = useState(false)
   const toggle = (id: string) => setOpen(open === id ? null : id)
   const list = SHORTCUTS.filter((p) => !android || ANDROID[p.id])
+  const bot = 'https://t.me/fh_pwa_link_bot'
   return (
-    <Screen title={t(android ? 'cmd.titleAndroid' : 'cmd.title')} back accent="watch" subtitle={t(android ? 'cmd.subAndroid' : 'cmd.sub')} searchable={false}>
+    <Screen title={t(android ? 'cmd.titleAndroid' : 'cmd.title')} back accent="watch" subtitle={t('cmd.sub2')} searchable={false}>
+      {/* 1. Nothing to set up: write to the bot. */}
+      <Section header={`⭐ ${t('cmd.easiest')}`} footer={t('cmd.botHint')} className="compact">
+        <Row icon="✈️" iconBg="linear-gradient(135deg,#229ed9,#7dd3fc)" title={t('cmd.bot')} sub={t('cmd.botSub')} />
+        {['/buy молоко, хлеб', '/task позвонить маме завтра 18:00', '/spent 45 Biedronka', '/list'].map((x) => (
+          <Row key={x} className="cmd-step" icon="›" title={<code className="cmd-field">{x}</code>} />
+        ))}
+        <a className="row tap accent" href={bot} target="_blank" rel="noreferrer">✈️ {t('cmd.openBot')}</a>
+      </Section>
+      {/* 2. Built into the phone. */}
       {android ? (
         <Section header={`✅ ${t('cmd.builtIn')}`} footer={t('cmd.builtInHint')} className="compact">
           <Row icon="👆" title={t('cmd.longPress')} sub={t('cmd.longPressSub')} />
           <Row icon="📤" title={t('cmd.shareTo')} sub={t('cmd.shareToSub')} />
         </Section>
       ) : (
-        <Section header={`🎙️ ${t('cmd.how')}`} className="compact">
-          <Row className="cmd-step" icon={<b>1</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how1')}</span>} />
-          <Row className="cmd-step" icon={<b>2</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how2')}</span>} />
-          <Row className="cmd-step" icon={<b>3</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how3')}</span>} />
+        <Section header={`✅ ${t('cmd.builtIn')}`} className="compact">
+          <Row icon="📤" title={t('cmd.shareBot')} sub={t('cmd.shareBotSub')} />
+          <Row icon="🧩" title={t('widgets')} sub={t('cmd.widgetSub')} />
         </Section>
       )}
-      <KeySection api={api} />
-      {PRESET_KINDS.map((kind) => {
-        const items = list.filter((p) => p.kind === kind)
-        if (!items.length) return null
-        return (
-          <Section key={kind} header={t(`cmd.k.${kind}` as TKey)} className="compact">
-            {items.map((p) => <PresetCard key={p.id} p={p} open={open === p.id} onToggle={() => toggle(p.id)} apiKey={api.key} />)}
+      {/* 3. For those who like to tinker: own Siri shortcuts / MacroDroid automations. */}
+      <Section className="compact">
+        <Row icon="🛠️" title={t(android ? 'cmd.proAndroid' : 'cmd.pro')} sub={t(android ? 'cmd.proAndroidSub' : 'cmd.proSub')}
+          right={<span className="faq-chev" style={{ transform: pro ? 'rotate(90deg)' : undefined }} aria-hidden>›</span>} onClick={() => setPro(!pro)} />
+      </Section>
+      {pro && <>
+        {!android && (
+          <Section header={`🎙️ ${t('cmd.how')}`} className="compact">
+            <Row className="cmd-step" icon={<b>1</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how1')}</span>} />
+            <Row className="cmd-step" icon={<b>2</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how2')}</span>} />
+            <Row className="cmd-step" icon={<b>3</b>} title={<span style={{ fontWeight: 400 }}>{t('cmd.how3')}</span>} />
           </Section>
-        )
-      })}
-      {s.lang !== 'ru' && s.lang !== 'en' && <div className="section-footer" style={{ margin: '-6px 14px 16px' }}>{t('cmd.enOnly')}</div>}
+        )}
+        <KeySection api={api} />
+        {PRESET_KINDS.map((kind) => {
+          const items = list.filter((p) => p.kind === kind)
+          if (!items.length) return null
+          return (
+            <Section key={kind} header={t(`cmd.k.${kind}` as TKey)} className="compact">
+              {items.map((p) => <PresetCard key={p.id} p={p} open={open === p.id} onToggle={() => toggle(p.id)} apiKey={api.key} />)}
+            </Section>
+          )
+        })}
+        {s.lang !== 'ru' && s.lang !== 'en' && <div className="section-footer" style={{ margin: '-6px 14px 16px' }}>{t('cmd.enOnly')}</div>}
+      </>}
     </Screen>
   )
 }

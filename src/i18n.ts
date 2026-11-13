@@ -1462,6 +1462,19 @@ const ru = {
   'thought.11': 'Держаться за руки — тоже разговор.',
   'thought.12': 'Скажи «люблю» просто так.',
   w5: 'Три вида: оставь поле «Параметр» в настройках виджета пустым — дела на сегодня; напиши «мысль» — тёплая мысль дня или записка партнёра; «поездка» — сколько дней до отъезда и сколько отложено.',
+  'cmd.sub2': 'Как добавлять в Family Hub, не открывая приложение. Начни с первого — он работает сразу.',
+  'cmd.easiest': 'Проще всего — бот в Telegram',
+  'cmd.bot': 'Напиши боту @fh_pwa_link_bot',
+  'cmd.botSub': 'Ничего настраивать не надо. Пишешь — бот сохраняет в вашу пару. Ссылку можно просто переслать — он спросит, куда положить.',
+  'cmd.botHint': 'Работает и на iPhone, и на Android. Если бот вас не знает — нажмите «Привязать Telegram» в Настройки → Уведомления и связь → Уведомления.',
+  'cmd.openBot': 'Открыть бота',
+  'cmd.shareBot': '«Поделиться» → Telegram → бот',
+  'cmd.shareBotSub': 'Из любого приложения: ссылку на товар, фильм, место или рецепт отправь боту — он сам предложит раздел.',
+  'cmd.widgetSub': 'Дела на сегодня, мысль дня или отсчёт до поездки на экране «Домой» — Настройки → Уведомления и связь → Виджеты.',
+  'cmd.pro': 'Для продвинутых: свои команды Siri',
+  'cmd.proSub': 'Голосом «Привет, Siri…», кнопкой действия, автоматически. Собираются в приложении «Команды» за пару минут.',
+  'cmd.proAndroid': 'Для продвинутых: автоматизации',
+  'cmd.proAndroidSub': 'Телефон сам ставит статусы и записывает траты — через бесплатный MacroDroid.',
 }
 
 type Dict = typeof ru
@@ -2927,6 +2940,19 @@ const en: Partial<Dict> = {
   'thought.11': 'Holding hands is a conversation too.',
   'thought.12': 'Say «I love you» just because.',
   w5: 'Three kinds: leave the widget’s Parameter empty for today’s tasks; type «thought» for a warm thought of the day or your partner’s note; «trip» for days until departure and the money saved.',
+  'cmd.sub2': 'How to add to Family Hub without opening the app. Start with the first — it works right away.',
+  'cmd.easiest': 'Easiest — the Telegram bot',
+  'cmd.bot': 'Write to @fh_pwa_link_bot',
+  'cmd.botSub': 'Nothing to set up. You write — the bot saves it to your couple. Just forward a link and it asks where to put it.',
+  'cmd.botHint': 'Works on iPhone and Android. If the bot doesn’t know you, tap «Link Telegram» in Settings → Notifications & links → Notifications.',
+  'cmd.openBot': 'Open the bot',
+  'cmd.shareBot': 'Share → Telegram → the bot',
+  'cmd.shareBotSub': 'From any app: send a product, film, place or recipe link to the bot — it suggests the section.',
+  'cmd.widgetSub': 'Today’s tasks, a thought of the day or a countdown to your trip on the Home Screen — Settings → Notifications & links → Widgets.',
+  'cmd.pro': 'Advanced: your own Siri shortcuts',
+  'cmd.proSub': 'By voice «Hey Siri…», the Action button, automatically. Built in the Shortcuts app in a couple of minutes.',
+  'cmd.proAndroid': 'Advanced: automations',
+  'cmd.proAndroidSub': 'The phone sets statuses and logs expenses by itself — with the free MacroDroid app.',
 }
 
 const pl: Partial<Dict> = {
@@ -4392,6 +4418,19 @@ const pl: Partial<Dict> = {
   'thought.11': 'Trzymanie się za ręce to też rozmowa.',
   'thought.12': 'Powiedz «kocham cię» tak po prostu.',
   w5: 'Trzy rodzaje: zostaw pole Parametr w ustawieniach widżetu puste — zadania na dziś; wpisz «thought» — myśl dnia lub liścik partnera; «trip» — dni do wyjazdu i odłożone pieniądze.',
+  'cmd.sub2': 'Jak dodawać do Family Hub bez otwierania aplikacji. Zacznij od pierwszego — działa od razu.',
+  'cmd.easiest': 'Najprościej — bot w Telegramie',
+  'cmd.bot': 'Napisz do @fh_pwa_link_bot',
+  'cmd.botSub': 'Nic nie trzeba ustawiać. Piszesz — bot zapisuje do waszej pary. Link możesz po prostu przesłać, a zapyta, gdzie go dać.',
+  'cmd.botHint': 'Działa na iPhonie i Androidzie. Jeśli bot was nie zna, naciśnij «Połącz Telegram» w Ustawienia → Powiadomienia i połączenia → Powiadomienia.',
+  'cmd.openBot': 'Otwórz bota',
+  'cmd.shareBot': '«Udostępnij» → Telegram → bot',
+  'cmd.shareBotSub': 'Z dowolnej aplikacji: wyślij botowi link do produktu, filmu, miejsca lub przepisu — sam zaproponuje sekcję.',
+  'cmd.widgetSub': 'Zadania na dziś, myśl dnia lub odliczanie do wyjazdu na ekranie głównym — Ustawienia → Powiadomienia i połączenia → Widżety.',
+  'cmd.pro': 'Dla zaawansowanych: własne skróty Siri',
+  'cmd.proSub': 'Głosem «Hej Siri…», przyciskiem czynności, automatycznie. Składa się je w aplikacji Skróty w kilka minut.',
+  'cmd.proAndroid': 'Dla zaawansowanych: automatyzacje',
+  'cmd.proAndroidSub': 'Telefon sam ustawia statusy i zapisuje wydatki — przez darmowy MacroDroid.',
 }
 
 const es: Partial<Dict> = {
@@ -5857,6 +5896,19 @@ const es: Partial<Dict> = {
   'thought.11': 'Darse la mano también es una conversación.',
   'thought.12': 'Di «te quiero» porque sí.',
   w5: 'Tres tipos: deja vacío el Parámetro del widget para las tareas de hoy; escribe «thought» para el pensamiento del día o la nota de tu pareja; «trip» para los días hasta el viaje y lo ahorrado.',
+  'cmd.sub2': 'Cómo añadir a Family Hub sin abrir la app. Empieza por la primera: funciona ya.',
+  'cmd.easiest': 'Lo más fácil: el bot de Telegram',
+  'cmd.bot': 'Escribe a @fh_pwa_link_bot',
+  'cmd.botSub': 'No hay que configurar nada. Escribes y el bot lo guarda en vuestra pareja. Reenvía un enlace y te pregunta dónde ponerlo.',
+  'cmd.botHint': 'Funciona en iPhone y Android. Si el bot no os conoce, pulsa «Vincular Telegram» en Ajustes → Notificaciones y conexiones → Notificaciones.',
+  'cmd.openBot': 'Abrir el bot',
+  'cmd.shareBot': 'Compartir → Telegram → el bot',
+  'cmd.shareBotSub': 'Desde cualquier app: envía al bot un enlace de un producto, película, sitio o receta y te propone la sección.',
+  'cmd.widgetSub': 'Tareas de hoy, el pensamiento del día o la cuenta atrás del viaje en la pantalla de inicio: Ajustes → Notificaciones y conexiones → Widgets.',
+  'cmd.pro': 'Avanzado: tus atajos de Siri',
+  'cmd.proSub': 'Con la voz «Oye Siri…», el botón de acción o automáticamente. Se montan en la app Atajos en un par de minutos.',
+  'cmd.proAndroid': 'Avanzado: automatizaciones',
+  'cmd.proAndroidSub': 'El móvil pone estados y apunta gastos solo, con la app gratuita MacroDroid.',
 }
 
 const it: Partial<Dict> = {
@@ -7655,6 +7707,19 @@ const it: Partial<Dict> = {
   'thought.11': 'Tenersi per mano è anche una conversazione.',
   'thought.12': 'Di’ «ti amo» così, senza motivo.',
   w5: 'Tre tipi: lascia vuoto il Parametro del widget per le attività di oggi; scrivi «thought» per il pensiero del giorno o il biglietto del partner; «trip» per i giorni alla partenza e i soldi messi da parte.',
+  'cmd.sub2': 'Come aggiungere a Family Hub senza aprire l’app. Parti dal primo: funziona subito.',
+  'cmd.easiest': 'Il più semplice: il bot di Telegram',
+  'cmd.bot': 'Scrivi a @fh_pwa_link_bot',
+  'cmd.botSub': 'Niente da configurare. Scrivi e il bot salva nella vostra coppia. Inoltra un link e ti chiede dove metterlo.',
+  'cmd.botHint': 'Funziona su iPhone e Android. Se il bot non vi conosce, tocca «Collega Telegram» in Impostazioni → Notifiche e collegamenti → Notifiche.',
+  'cmd.openBot': 'Apri il bot',
+  'cmd.shareBot': 'Condividi → Telegram → il bot',
+  'cmd.shareBotSub': 'Da qualsiasi app: manda al bot il link di un prodotto, film, posto o ricetta e ti propone la sezione.',
+  'cmd.widgetSub': 'Attività di oggi, pensiero del giorno o conto alla rovescia del viaggio nella Home: Impostazioni → Notifiche e collegamenti → Widget.',
+  'cmd.pro': 'Avanzato: i tuoi comandi Siri',
+  'cmd.proSub': 'Con la voce «Ehi Siri…», il tasto Azione, in automatico. Si creano nell’app Comandi in un paio di minuti.',
+  'cmd.proAndroid': 'Avanzato: automazioni',
+  'cmd.proAndroidSub': 'Il telefono imposta gli stati e segna le spese da solo, con l’app gratuita MacroDroid.',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */
