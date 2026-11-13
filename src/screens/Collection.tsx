@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { update, useApp } from '../store'
 import { useT, type TKey } from '../i18n'
+import { anchorsOf } from '../lib/anchors'
 import { useNav } from '../nav'
 import { Row, Screen, Section, Segmented, SelectRow, Sheet, ToggleRow, haptic, toast } from '../ui'
 import { SYNC_ENABLED } from '../config'
@@ -553,5 +554,8 @@ export function HatOn({ id }: { id?: string }) {
   const s = useApp()
   const h = HATS[ITEMS[id ?? activeHat(s)]?.key ?? 'none']
   if (!h?.glyph) return null
-  return <span className={`mascot-hat ${h.pos}`}>{h.glyph}</span>
+  // Placed on this mascot's head / eyes / neck (anchors.ts); the glyph sits centred in a 1.25 × 1.15 box.
+  const [x, y, size, rot = 0] = anchorsOf(ITEMS[activeMascot(s)]?.key ?? 'fox')[h.pos]
+  const style = { left: `calc(var(--mascot) * ${0.125 + x})`, top: `calc(var(--mascot) * ${0.075 + y})`, fontSize: `calc(var(--mascot) * ${size})`, transform: `translate(-50%, -50%) rotate(${rot}deg)` }
+  return <span className="mascot-hat" style={style}>{h.glyph}</span>
 }

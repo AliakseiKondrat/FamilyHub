@@ -1167,7 +1167,7 @@ button.xp { display: block; border: 0; background: none; padding: 0; color: inhe
 .frame-deco { position: absolute; font-style: normal; font-size: 16px; pointer-events: none; animation: fl-flicker 3s ease-in-out infinite; }
 .frame-deco.d1 { left: -10px; bottom: -4px; }
 .frame-deco.d2 { right: -12px; top: -8px; animation-delay: -1.5s; }
-.mascot-hat { position: absolute; left: 50%; line-height: 1; pointer-events: none; transform: translateX(-50%); }
+.mascot-hat { position: absolute; line-height: 1; pointer-events: none; z-index: 1; }
 .mascot-hat.top { top: calc(var(--mascot) * -0.26); font-size: calc(var(--mascot) * 0.5); transform: translateX(-50%) rotate(-8deg); }
 .mascot-hat.eyes { top: calc(var(--mascot) * 0.24); font-size: calc(var(--mascot) * 0.46); }
 .mascot-hat.neck { bottom: calc(var(--mascot) * 0.02); font-size: calc(var(--mascot) * 0.36); }
