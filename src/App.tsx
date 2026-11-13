@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { getState, useApp } from './store'
+import { getState, update, useApp } from './store'
 import { moduleLabel, useT } from './i18n'
 import { consumeSkipLeave, setWideNav, useNav, type Route, type Tab } from './nav'
 import { ALL_MODULES, moduleOrder } from './defaults'
-import { Icon, haptic, toast } from './ui'
+import { Icon, Section, Sheet, TextRow, haptic, toast } from './ui'
 import { accentColors, applyDesign } from './theme'
 import type { ModuleId } from './types'
 import Today from './screens/Today'
@@ -126,6 +126,32 @@ function Sidebar() {
         <span className="sb-ico" style={{ background: 'linear-gradient(135deg, #3f3f46, #71717a)' }}>⚙️</span><span>{t('settings')}</span>
       </button>
     </aside>
+  )
+}
+
+/** First sign-in of a new couple: ask my name (the starting data has none; our own couple's names are real). */
+function NameSheet() {
+  const s = useApp()
+  const t = useT()
+  const sync = useSync()
+  const mine = s.users[s.me]
+  const stale = !mine.name.trim() || (getHousehold() !== 'h1' && (mine.name === 'Лёша' || mine.name === 'Юля'))
+  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState(mine.emoji)
+  const [closed, setClosed] = useState(false)
+  if (!SYNC_ENABLED || sync.status !== 'ready' || !stale || closed) return null
+  const save = () => update((st) => { st.users = { ...st.users, [st.me]: { ...st.users[st.me], name: name.trim(), emoji } } })
+  return (
+    <Sheet title={t('name.title')} onClose={() => setClosed(true)} onDone={save} doneDisabled={!name.trim()}>
+      <Section footer={t('name.hint')}>
+        <TextRow value={name} onChange={setName} placeholder={t('name.placeholder')} autoFocus />
+      </Section>
+      <div className="chips-wrap" style={{ paddingTop: 0 }}>
+        {['🙂', '😊', '🧔', '👩', '👨', '👱‍♀️', '🧑', '🦊', '🐻', '🐱', '🌸', '☀️'].map((e) => (
+          <button key={e} className={'chip' + (emoji === e ? ' on' : '')} onClick={() => setEmoji(e)}>{e}</button>
+        ))}
+      </div>
+    </Sheet>
   )
 }
 
@@ -286,6 +312,7 @@ export default function App() {
       {celebration.milestone > 0 && <Celebration n={celebration.milestone} onClose={celebration.dismiss} />}
       <TryOnBar />
       <GiftNotice />
+      <NameSheet />
       <UnlockBanner />
       {tour && <Tour onClose={() => setTour(false)} />}
       {guide && !tour && <Tour key={guide} guide={guide} onClose={() => setGuide(null)} />}

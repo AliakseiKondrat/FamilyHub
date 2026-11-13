@@ -11,7 +11,9 @@ const b = (by: UserId = 'a', extra: Partial<Base> = {}): Base => ({
 export function blankState(): State {
   return {
     ...demoState(),
-    pet: { name: 'Честер', emoji: '🐶' },
+    // A new couple starts with neutral names; each person is asked theirs on first sign-in (NameSheet in App).
+    users: { a: { name: '', emoji: '🙂' }, j: { name: '', emoji: '😊' } },
+    pet: { name: '', emoji: '🐶' },
     budgets: {},
     groceries: [], tasks: [], events: [], expenses: [], watch: [], recipes: [], music: [], recurring: [], goals: [], statuses: [], wishes: [], wishClaims: [], acts: [], moods: [], loveNotes: [], checkins: [], blindDates: [], blindSecrets: [],
     petRecords: [], weights: [], notes: [], trips: [], photos: [], periods: [],

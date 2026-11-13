@@ -103,7 +103,7 @@ export default function Today({ back }: { back?: boolean }) {
       </button>
     ),
     pet: () => petSoon.length > 0 && (
-      <Section key="pet" big header={`${s.pet.emoji} ${t('petDue', { name: s.pet.name })}`}>
+      <Section key="pet" big header={`${s.pet.emoji} ${t('petDue', { name: s.pet.name || t('pet') })}`}>
         {petSoon.map((r) => {
           const n = diffDays(r.nextDue!, d)
           return <Row key={r.id} icon={PET_EMOJI[r.kind]} title={r.title} chevron onClick={() => nav.open('pet')}

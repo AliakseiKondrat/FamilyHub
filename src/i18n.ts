@@ -1443,6 +1443,9 @@ const ru = {
   'cycle.hidden': 'скрыто',
   'cycle.show': 'Показать',
   'cycle.hide': 'Скрыть',
+  'name.title': 'Как тебя зовут?',
+  'name.hint': 'Имя увидит партнёр. Поменять можно в Настройки → Пара и аккаунт → Люди.',
+  'name.placeholder': 'Твоё имя',
 }
 
 type Dict = typeof ru
@@ -2889,6 +2892,9 @@ const en: Partial<Dict> = {
   'cycle.hidden': 'hidden',
   'cycle.show': 'Show',
   'cycle.hide': 'Hide',
+  'name.title': 'What’s your name?',
+  'name.hint': 'Your partner will see it. Change it in Settings → Couple & account → People.',
+  'name.placeholder': 'Your name',
 }
 
 const pl: Partial<Dict> = {
@@ -4335,6 +4341,9 @@ const pl: Partial<Dict> = {
   'cycle.hidden': 'ukryte',
   'cycle.show': 'Pokaż',
   'cycle.hide': 'Ukryj',
+  'name.title': 'Jak masz na imię?',
+  'name.hint': 'Partner zobaczy to imię. Zmienisz je w Ustawienia → Para i konto → Osoby.',
+  'name.placeholder': 'Twoje imię',
 }
 
 const es: Partial<Dict> = {
@@ -5781,6 +5790,9 @@ const es: Partial<Dict> = {
   'cycle.hidden': 'oculto',
   'cycle.show': 'Mostrar',
   'cycle.hide': 'Ocultar',
+  'name.title': '¿Cómo te llamas?',
+  'name.hint': 'Tu pareja lo verá. Cámbialo en Ajustes → Pareja y cuenta → Personas.',
+  'name.placeholder': 'Tu nombre',
 }
 
 const it: Partial<Dict> = {
@@ -7560,6 +7572,9 @@ const it: Partial<Dict> = {
   'cycle.hidden': 'nascosto',
   'cycle.show': 'Mostra',
   'cycle.hide': 'Nascondi',
+  'name.title': 'Come ti chiami?',
+  'name.hint': 'Il partner lo vedrà. Puoi cambiarlo in Impostazioni → Coppia e account → Persone.',
+  'name.placeholder': 'Il tuo nome',
 }
 
 /** Russian is complete; other languages fall back to it for keys they lack. */

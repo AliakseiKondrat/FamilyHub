@@ -36,7 +36,7 @@ export default function Pet({ back }: { back?: boolean }) {
   })
 
   return (
-    <Screen title={s.pet.name} back={back} accent="pet"
+    <Screen title={s.pet.name || t('pet')} back={back} accent="pet"
       right={<GlassButton icon="plus" label={t('add')} onClick={() => setEdit({ ...base(s.me), kind: 'vaccine', title: '', date: d, nextDue: addDays(d, 365) })} />}
       hero={<div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
         <span className="circle lg" style={{ width: 76, height: 76, fontSize: 42 }}>{s.pet.emoji}</span>
