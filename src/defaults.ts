@@ -29,7 +29,7 @@ export function upgradePrefs(saved: Partial<Prefs> | undefined): Prefs {
 export const defaultPrefs = (): Prefs => ({
   tabs: ['today', 'calendar', 'tasks', 'groceries'],
   todayActions: ['budget', 'music', 'photos', 'pet'],
-  todayBlocks: (['ritual', 'events', 'tasks', 'trip', 'budget', 'pet', 'music', 'memories', 'dateIdea', 'tomorrow'] as const).map((id) => ({ id, on: true })),
+  todayBlocks: (['thought', 'ritual', 'events', 'tasks', 'trip', 'budget', 'pet', 'music', 'memories', 'dateIdea', 'tomorrow'] as const).map((id) => ({ id, on: true })),
   blocksAdded: NEW_BLOCKS,
   weekStart: 1,
   startTab: 'today',
@@ -80,7 +80,7 @@ export const defaultGame = (): GameSettings => ({
 })
 
 /** Today blocks added in newer versions: appended once to lists saved before them. */
-const NEW_BLOCKS: TodayBlock[] = ['ritual']
+const NEW_BLOCKS: TodayBlock[] = ['ritual', 'thought']
 
 export const defaultGroceryCats = (): Category[] => GROCERY_CATS.map((id) => ({ id, emoji: GROCERY_EMOJI[id] }))
 export const defaultBudgetCats = (): Category[] => BUDGET_CATS.map((id) => ({ id, emoji: BUDGET_EMOJI[id] }))

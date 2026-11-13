@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { update, useApp, visible } from '../store'
-import { moduleLabel, useT } from '../i18n'
+import { moduleLabel, useT, type TKey } from '../i18n'
 import { useNav } from '../nav'
 import {
   haptic, Avatar, GlassButton, Marks, Row, Screen, Section, type Action, Em,
@@ -36,6 +36,15 @@ export default function Today({ back }: { back?: boolean }) {
     .sort((a, b) => ((a.due ?? '') + (a.time ?? '')).localeCompare((b.due ?? '') + (b.time ?? '')))
   const groceriesLeft = visible(s.groceries, s.me).filter((g) => !g.done).length
   const trip = visible(s.trips, s.me).filter((tr) => tr.end >= d).sort((a, b) => a.start.localeCompare(b.start))[0]
+  // Money for the next trip: a savings goal named like it, else its booked costs against its budget.
+  const tripMoney = (() => {
+    if (!trip) return null
+    const names = [trip.title, trip.destination].filter(Boolean).map((x) => x.toLowerCase())
+    const goal = visible(s.goals, s.me).find((g) => names.some((n) => g.title.toLowerCase().includes(n) || n.includes(g.title.toLowerCase())))
+    if (goal) return { saved: goal.saved, target: goal.target }
+    const booked = (trip.costs ?? []).filter((c) => c.booked).reduce((a, c) => a + c.amount, 0)
+    return booked || trip.budget ? { saved: booked, target: trip.budget } : null
+  })()
   const petSoon = visible(s.petRecords, s.me).filter((r) => r.nextDue && diffDays(r.nextDue, d) <= 7)
   const ideas = visible(s.notes, s.me).filter((n) => n.module === 'dates' && !n.done)
   // Same idea for the whole day, different tomorrow.
@@ -67,12 +76,29 @@ export default function Today({ back }: { back?: boolean }) {
 
   const blocks: Record<TodayBlock, () => ReactNode> = {
     ritual: () => <RitualCard key="ritual" />,
+    thought: () => {
+      // The partner's latest note to me (last 3 days), else a warm line that changes every day.
+      const since = new Date(Date.now() - 3 * 86400000).toISOString(), now = new Date().toISOString()
+      const note = visible(s.loveNotes, s.me).filter((n) => n.to === s.me && n.deliverAt <= now && n.deliverAt >= since).sort((a, b) => b.deliverAt.localeCompare(a.deliverAt))[0]
+      const n = Math.floor(Date.parse(d + 'T12:00:00Z') / 86400000) % 12 + 1
+      return (
+        <div key="thought" className="banner thought-card">
+          <span className="big-emoji">💗</span>
+          <div>
+            <b>{note ? note.text : t(`thought.${n}` as TKey)}</b>
+            <span>{note ? t('thought.from', { name: s.users[note.createdBy].name }) : t('thought.title')}</span>
+          </div>
+        </div>
+      )
+    },
     trip: () => trip && (
       <button key="trip" className="banner" onClick={() => nav.push({ trip: trip.id })}>
         <span className="big-emoji">✈️</span>
         <div>
           <b>{trip.start <= d ? t('tripNow', { place: trip.title }) : t('tripIn', { place: trip.title, n: diffDays(trip.start, d) })}</b>
           <span>{fmtDate(trip.start, s.lang)} – {fmtDate(trip.end, s.lang)}</span>
+          {tripMoney && <span className="trip-money">💰 {fmtMoney(tripMoney.saved, currencyOf(s), s.lang)}{tripMoney.target ? ` / ${fmtMoney(tripMoney.target, currencyOf(s), s.lang)}` : ''}
+            {tripMoney.target ? <i className="trip-bar"><i style={{ width: `${Math.min(100, (tripMoney.saved / tripMoney.target) * 100)}%` }} /></i> : null}</span>}
         </div>
       </button>
     ),

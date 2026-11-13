@@ -435,6 +435,7 @@ function TabsPage() {
 /* ---------- Today ---------- */
 const BLOCK_LABEL: Record<TodayBlock, { emoji: string; key: TKey }> = {
   ritual: { emoji: '🔥', key: 'block.ritual' },
+  thought: { emoji: '💗', key: 'block.thought' },
   events: { emoji: '📅', key: 'todayEvents' }, tasks: { emoji: '✅', key: 'todayTasks' }, trip: { emoji: '✈️', key: 'mod.travel' },
   budget: { emoji: '💰', key: 'mod.budget' }, pet: { emoji: '🐶', key: 'mod.pet' }, music: { emoji: '🎧', key: 'mod.music' },
   memories: { emoji: '📸', key: 'onThisDay' }, dateIdea: { emoji: '💕', key: 'dateIdea' }, tomorrow: { emoji: '📆', key: 'tomorrow' },
@@ -879,7 +880,7 @@ function WidgetPage() {
     <Screen title={t('widgetTitle')} back accent="recipes" subtitle={t('widgetIntro')}>
       <KeySection api={api} />
       <Section>
-        {(['w1', 'w2', 'w3', 'w4'] as const).map((k, i) => <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
+        {(['w1', 'w2', 'w3', 'w4', 'w5'] as const).map((k, i) => <Row key={k} icon={<b>{i + 1}</b>} title={<span style={{ fontWeight: 400 }}>{t(k)}</span>} />)}
         <button className="row tap accent" disabled={!key} style={{ opacity: key ? 1 : 0.4 }}
           onClick={() => key && navigator.clipboard.writeText(widgetScript(key, t('nothingToday'))).then(() => toast(t('copied')))}>📋 {key ? t('copyScript') : t('needKey')}</button>
       </Section>

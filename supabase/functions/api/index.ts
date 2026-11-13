@@ -301,7 +301,44 @@ async function summary(role: Role, hh: string, tz: string) {
     .map((r) => ({ title: r.data.title, time: r.data.time ?? null, overdue: r.data.due < today })).sort((a, b) => (a.time ?? '99').localeCompare(b.time ?? '99'))
   const events = rows.filter((r) => r.collection === 'events' && r.data.date >= today && (r.data.who === role || r.data.who === 'both'))
     .map((r) => ({ title: r.data.title, date: r.data.date, time: r.data.time ?? null })).sort((a, b) => (a.date + (a.time ?? '')).localeCompare(b.date + (b.time ?? ''))).slice(0, 5)
-  return { today, tasks, events, groceries, counts: { tasks: tasks.length, groceries: groceries.length } }
+  return { today, tasks, events, groceries, counts: { tasks: tasks.length, groceries: groceries.length }, ...(await extras(role, hh, today)) }
+}
+
+/** A warm line for the day: the partner's latest note to me (last 3 days), else a phrase that changes daily. */
+const THOUGHTS = [
+  'Ты — моё любимое «дома».', 'Обними сегодня чуть дольше обычного.', 'Маленькие «спасибо» делают большой день.', 'Вместе даже понедельник тёплый.',
+  'Напиши друг другу что-нибудь доброе до обеда.', 'Лучшее в дне — вечер вдвоём.', 'Сегодня отличный день, чтобы сказать «я горжусь тобой».',
+  'Вспомни, как вы познакомились, — и улыбнись.', 'Кофе вкуснее, когда его сварил любимый человек.', 'Запланируйте маленькое свидание на этой неделе.',
+  'Любовь — это когда помнят, какой чай ты пьёшь.', 'Похвали сегодня то, что обычно не замечаешь.', 'Самые важные слова — самые простые.',
+  'Вы — команда. Даже в споре о том, что посмотреть.', 'Пять минут без телефонов — только вы двое.', 'Сделай сегодня приятное без повода.',
+  'Счастье — это обычный вечер с правильным человеком.', 'Спроси сегодня: «Как ты на самом деле?»', 'Улыбка с утра — лучший будильник.',
+  'Вспомните сегодня вашу лучшую поездку.', 'Ты — моя любимая привычка.', 'Держаться за руки — тоже разговор.',
+  'Пусть сегодня будет повод посмеяться вместе.', 'Небольшой сюрприз меняет весь день.', 'Скажи «люблю» просто так.',
+  'Лучшие планы — те, что вы придумали вдвоём.', 'Тёплый плед, чай и ты — идеальный вечер.', 'Сегодня можно никуда не спешить вместе.',
+  'Хорошие отношения строятся из маленьких дней.', 'Ты делаешь мои дни лучше.',
+]
+async function extras(role: Role, hh: string, today: string) {
+  const { data } = await sb.from('records').select('collection,data,private_to,surprise_for,reveal_at').eq('household', hh).eq('deleted', false).in('collection', ['loveNotes', 'trips', 'goals'])
+  const rows = (data ?? []).filter((r) => visibleTo(r, role, today))
+  const now = new Date().toISOString()
+  const recent = new Date(Date.now() - 3 * 86400000).toISOString()
+  const note = rows.filter((r) => r.collection === 'loveNotes' && r.data.to === role && r.data.deliverAt <= now && r.data.deliverAt >= recent)
+    .sort((a, b) => String(b.data.deliverAt).localeCompare(String(a.data.deliverAt)))[0]
+  const { data: meta } = await sb.from('records').select('data').eq('household', hh).eq('id', 'meta:settings').maybeSingle()
+  const users = meta?.data?.users ?? {}
+  const day = Math.floor(Date.parse(today + 'T12:00:00Z') / 86400000)
+  const thought = note ? { text: String(note.data.text).slice(0, 160), from: users[note.data.createdBy]?.name ?? null } : { text: THOUGHTS[day % THOUGHTS.length], from: null }
+  // The next trip, and what's saved for it: a savings goal named like the trip, else its booked costs against its budget.
+  const trip = rows.filter((r) => r.collection === 'trips' && r.data.end >= today).sort((a, b) => String(a.data.start).localeCompare(String(b.data.start)))[0]?.data
+  let next = null
+  if (trip) {
+    const names = [trip.title, trip.destination].filter(Boolean).map((x: string) => x.toLowerCase())
+    const goal = rows.find((r) => r.collection === 'goals' && names.some((n: string) => String(r.data.title).toLowerCase().includes(n) || n.includes(String(r.data.title).toLowerCase())))?.data
+    const booked = (trip.costs ?? []).filter((c: any) => c.booked).reduce((a: number, c: any) => a + (Number(c.amount) || 0), 0)
+    const days = Math.round((Date.parse(trip.start + 'T12:00:00Z') - Date.parse(today + 'T12:00:00Z')) / 86400000)
+    next = { title: trip.title, destination: trip.destination ?? '', start: trip.start, days, saved: goal ? goal.saved : booked, target: goal ? goal.target : trip.budget ?? null, goal: !!goal, currency: meta?.data?.country === 'ES' ? 'EUR' : 'PLN' }
+  }
+  return { thought, trip: next }
 }
 
 Deno.serve(async (req) => {

@@ -252,7 +252,7 @@ export interface ModuleSettings { title?: string; emoji?: string; hidden?: boole
 /** An editable category (groceries, budget): built-ins can be renamed/hidden, custom ones deleted. */
 export interface Category { id: string; title?: string; emoji: string; hidden?: boolean; custom?: boolean }
 
-export type TodayBlock = 'ritual' | 'events' | 'tasks' | 'trip' | 'pet' | 'music' | 'memories' | 'dateIdea' | 'budget' | 'tomorrow'
+export type TodayBlock = 'ritual' | 'thought' | 'events' | 'tasks' | 'trip' | 'pet' | 'music' | 'memories' | 'dateIdea' | 'budget' | 'tomorrow'
 
 export interface Design {
   /** Per-section header gradient overrides (preset id). */
